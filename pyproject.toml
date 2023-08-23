@@ -50,13 +50,13 @@ docs = [
 ]
 
 [project.entry-points."aiida.data"]
-"aimall" = "aiida_aimall.data:DiffParameters"
+"aimall" = "aiida_aimall.data:AimqbParameters"
 
 [project.entry-points."aiida.calculations"]
-"aimall" = "aiida_aimall.calculations:DiffCalculation"
+"aimall" = "aiida_aimall.calculations:AimqbCalculation"
 
 [project.entry-points."aiida.parsers"]
-"aimall" = "aiida_aimall.parsers:DiffParser"
+"aimall" = "aiida_aimall.parsers:AimsumParser"
 
 [project.entry-points."aiida.cmdline.data"]
 "aimall" = "aiida_aimall.cli:data_cli"
