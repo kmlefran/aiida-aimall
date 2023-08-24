@@ -38,5 +38,5 @@ If you have already set up your own aiida_aimall code using
 Available calculations
 ++++++++++++++++++++++
 
-.. aiida-calcjob:: DiffCalculation
+.. aiida-calcjob:: AimqbCalculation
     :module: aiida_aimall.calculations
