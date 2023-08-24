@@ -8,27 +8,32 @@ from aiida.engine import ExitCode
 from aiida.orm import SinglefileData
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
+import io
+import re
 
-DiffCalculation = CalculationFactory("aimall")
+
+AimqbCalculation = CalculationFactory("aimall")
 
 
-class DiffParser(Parser):
+class AimqbBaseParser(Parser):
     """
     Parser class for parsing output of calculation.
     """
-
+    #before parser called, self.retrieved - isntance of FolderData of output files that CalcJob instructed to receive
+    #provides means to open any file it contains
+    #self.node - the calcjobNode representing the finished calculation
     def __init__(self, node):
         """
         Initialize Parser instance
 
-        Checks that the ProcessNode being passed was produced by a DiffCalculation.
+        Checks that the ProcessNode being passed was produced by a AimqbCalculation.
 
         :param node: ProcessNode of calculation
         :param type node: :class:`aiida.orm.nodes.process.process.ProcessNode`
         """
         super().__init__(node)
-        if not issubclass(node.process_class, DiffCalculation):
-            raise exceptions.ParsingError("Can only parse DiffCalculation")
+        if not issubclass(node.process_class, AimqbCalculation):
+            raise exceptions.ParsingError("Can only parse AimqbCalculation")
 
     def parse(self, **kwargs):
         """
@@ -36,6 +41,7 @@ class DiffParser(Parser):
 
         :returns: an exit code, if parsing fails (or nothing if parsing succeeds)
         """
+        #convenience method to get filename of output file
         output_filename = self.node.get_option("output_filename")
 
         # Check that folder content is as expected
@@ -52,6 +58,8 @@ class DiffParser(Parser):
         self.logger.info(f"Parsing '{output_filename}'")
         with self.retrieved.open(output_filename, "rb") as handle:
             output_node = SinglefileData(file=handle)
+        #first argument is name for link that connects calculation and data node
+        #second argument is node that should be recorded as output
         self.out("aimall", output_node)
 
         return ExitCode(0)
