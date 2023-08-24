@@ -26,19 +26,18 @@ def test_run(aimall_code):
         aimall_code = helpers.get_code(entry_point="aimall", computer=computer)
 
     # Prepare input parameters
-    DiffParameters = DataFactory("aimall")
-    parameters = DiffParameters({"ignore-case": True})
+    AimqbParameters = DataFactory("aimall")
+    parameters = AimqbParameters({"ignore-case": True})
 
     SinglefileData = DataFactory("singlefile")
-    file1 = SinglefileData(file=path.join(INPUT_DIR, "file1.txt"))
-    file2 = SinglefileData(file=path.join(INPUT_DIR, "file2.txt"))
+    file = SinglefileData(file=path.join(INPUT_DIR, "file1.txt"))
+    
 
     # set up calculation
     inputs = {
         "code": aimall_code,
         "parameters": parameters,
-        "file1": file1,
-        "file2": file2,
+        "file": file,
         "metadata": {
             "description": "Test job submission with the aiida_aimall plugin",
         },
@@ -49,8 +48,8 @@ def test_run(aimall_code):
     # future = submit(CalculationFactory('aimall'), **inputs)
     result = engine.run(CalculationFactory("aimall"), **inputs)
 
-    computed_diff = result["aimall"].get_content()
-    print(f"Computed diff between files: \n{computed_diff}")
+    computed_aimqb = result["aimall"].get_content()
+    print(f"Computed aimqb: \n{computed_aimqb}")
 
 
 @click.command()
@@ -59,9 +58,9 @@ def test_run(aimall_code):
 def cli(code):
     """Run example.
 
-    Example usage: $ ./example_01.py --code diff@localhost
+    Example usage: $ ./example_01.py --code aimqb@localhost
 
-    Alternative (creates diff@localhost-test code): $ ./example_01.py
+    Alternative (creates aimqb@localhost-test code): $ ./example_01.py
 
     Help: $ ./example_01.py --help
     """
