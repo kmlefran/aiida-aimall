@@ -20,7 +20,7 @@ class AimqbCalculation(CalcJob):
     INPUT_FILE = "aiida.inp"
     OUTPUT_FILE = "aiida.out"
     PARENT_FOLDER_NAME = "parent_calc"
-    DEFAULT_PARSER = "aimall.base"
+    DEFAULT_PARSER = "aimqb.base"
 
     @classmethod
     def define(cls,spec):
@@ -66,6 +66,7 @@ class AimqbCalculation(CalcJob):
         """
 
         codeinfo = datastructures.CodeInfo()
+        #probably modify the next line
         codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
             file_name=self.inputs.file.filename
         )
@@ -74,7 +75,8 @@ class AimqbCalculation(CalcJob):
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
-        calcinfo.codes_info = [codeinfo]
+        calcinfo.codes_info = [codeinfo] #list since can involve more than one
+        #files are already stored in AiiDA file repository, can use local_copy_list to pass the along
         calcinfo.local_copy_list = [
             (
                 self.inputs.file.uuid,
@@ -82,9 +84,27 @@ class AimqbCalculation(CalcJob):
                 self.inputs.file.filename,
             ),
         ]
+        #which files to retrieve from directory where job ran
         calcinfo.retrieve_list = [self.metadata.options.output_filename]
 
         return calcinfo
+    #TODO use this starter cli_options and construct one to create cli in aimqb format
+    def cli_options(parameters):
+     """Return command line options for parameters dictionary.
+
+     :param dict parameters: dictionary with command line parameters
+     """
+     options = []
+     for key, value in parameters.items():
+         # Could validate: is key a known command-line option?
+         if isinstance(value, bool) and value:
+             options.append(f'--{key}')
+         elif isinstance(value, str):
+             # Could validate: is value a valid regular expression?
+             options.append(f'--{key}')
+             options.append(value)
+
+     return options
 
 # class DiffCalculation(CalcJob):
 #     """
