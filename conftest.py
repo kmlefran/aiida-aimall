@@ -12,4 +12,4 @@ def clear_database_auto(clear_database):  # pylint: disable=unused-argument
 @pytest.fixture(scope="function")
 def aimall_code(aiida_local_code_factory):
     """Get a aimall code."""
-    return aiida_local_code_factory(executable="diff", entry_point="aimall")
+    return aiida_local_code_factory(executable="aimqb", entry_point="aimall")
