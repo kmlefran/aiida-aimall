@@ -9,7 +9,7 @@ from voluptuous import Optional, Schema
 
 from aiida.orm import Dict
 
-# A subset of diff's command line options
+# AIMQB's command line options
 cmdline_options = {
     Optional("bim"): str,
     Optional("iasmesh"): str,
@@ -75,7 +75,7 @@ class AimqbParameters(Dict): # pylint: disable=too-many-ancestors
 
         Uses the voluptuous package for validation. Find out about allowed keys using::
 
-            print(DiffParameters).schema.schema
+            print(AimqbParameters).schema.schema
 
         :param parameters_dict: dictionary with commandline parameters
         :param type parameters_dict: dict
