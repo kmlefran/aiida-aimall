@@ -82,4 +82,4 @@ jobs:
     - name: Run pre-commit
       run: |
         pre-commit install
-        pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
+        pre-commit run --all-files || ( git status --short ; git aimqb ; exit 1 )
