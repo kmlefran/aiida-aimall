@@ -30,7 +30,7 @@ class AimqbCalculation(CalcJob):
         #set default values for AiiDA options
         spec.inputs['metadata']['options']['resources'].defaults = {
             'num_machines':1,
-            'num_mpiprocs_per_machine': 1,
+            'tot_num_mpiprocs': 1,
         }
         #commented out parser to see default folder structure
         # spec.inputs["metadata"]["options"]["parser_name"].default = "aimall.base"
