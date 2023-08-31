@@ -6,8 +6,10 @@ Usage: ./example_01.py
 from os import path
 
 import click
-
+import sys
+from aiida.common import NotExistent
 from aiida import cmdline, engine
+from aiida.orm import Code
 from aiida.plugins import CalculationFactory, DataFactory
 
 from aiida_aimall import helpers
@@ -27,7 +29,7 @@ def test_run(aimall_code):
 
     # Prepare input parameters
     AimqbParameters = DataFactory("aimall")
-    parameters = AimqbParameters({"ignore-case": True})
+    parameters = AimqbParameters()
 
     SinglefileData = DataFactory("singlefile")
     file = SinglefileData(file=path.join(INPUT_DIR, "file1.txt"))
@@ -48,14 +50,15 @@ def test_run(aimall_code):
     # future = submit(CalculationFactory('aimall'), **inputs)
     result = engine.run(CalculationFactory("aimall"), **inputs)
 
-    computed_aimqb = result["aimall"].get_content()
-    print(f"Computed aimqb: \n{computed_aimqb}")
+    # computed_aimqb = result["aimall"].get_content()
+    # print(f"Computed aimqb: \n{computed_aimqb}")
 
 
 @click.command()
-@cmdline.utils.decorators.with_dbenv()
-@cmdline.params.options.CODE()
-def cli(code):
+@click.argument("codelabel",default="aimqb@localhost")
+# @cmdline.utils.decorators.with_dbenv()
+# @cmdline.params.options.CODE()
+def cli(codelabel):
     """Run example.
 
     Example usage: $ ./example_01.py --code aimqb@localhost
@@ -64,7 +67,12 @@ def cli(code):
 
     Help: $ ./example_01.py --help
     """
-    test_run(code)
+    try:
+        code = Code.get_from_string(codelabel)
+    except NotExistent:
+        print(f'The code {codelabel} does not exist')
+        sys.exit(1)
+    test_run(codelabel)
 
 
 if __name__ == "__main__":
