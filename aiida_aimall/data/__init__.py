@@ -97,7 +97,7 @@ class AimqbParameters(Dict): # pylint: disable=too-many-ancestors
         pm_dict = self.get_dict()
         for key, value in pm_dict.items():
             parameters += [f'-{key}={value}']
-
+        parameters += ["-nogui"]
         parameters += [file_name]
 
         return [str(p) for p in parameters]

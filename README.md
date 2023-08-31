@@ -20,7 +20,6 @@ intended to help developers get started with their AiiDA plugins.
   * [`data/`](aiida_aimall/data/): A new `DiffParameters` data class, used as input to the `DiffCalculation` `CalcJob` class
   * [`calculations.py`](aiida_aimall/calculations.py): A new `DiffCalculation` `CalcJob` class
   * [`cli.py`](aiida_aimall/cli.py): Extensions of the `verdi data` command line interface for the `DiffParameters` class
-  * [`helpers.py`](aiida_aimall/helpers.py): Helpers for setting up an AiiDA code for `diff` automatically
   * [`parsers.py`](aiida_aimall/parsers.py): A new `Parser` for the `DiffCalculation`
 * [`docs/`](docs/): A documentation template ready for publication on [Read the Docs](http://aiida-diff.readthedocs.io/en/latest/)
 * [`examples/`](examples/): An example of how to submit a calculation using this plugin
