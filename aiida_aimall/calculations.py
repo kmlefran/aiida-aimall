@@ -90,12 +90,12 @@ class AimqbCalculation(CalcJob):
 
         return calcinfo
     
-    def cli_options(parameters):
-     """Return command line options for parameters dictionary.
+    # def cli_options(parameters):
+    #  """Return command line options for parameters dictionary.
 
-     :param dict parameters: dictionary with command line parameters
-     """
-     options = [f'-{key}={value}' for key,value in parameters.items()]
+    #  :param dict parameters: dictionary with command line parameters
+    #  """
+    #  options = [f'-{key}={value}' for key,value in parameters.items()]
     #  for key, value in parameters.items():
     #      # Could validate: is key a known command-line option?
     #      options.append(f'-{key}={value}')
@@ -104,7 +104,7 @@ class AimqbCalculation(CalcJob):
         #      options.append(f'--{key}')
         #      options.append(value)
 
-     return options
+    #  return options
 
 # class DiffCalculation(CalcJob):
 #     """

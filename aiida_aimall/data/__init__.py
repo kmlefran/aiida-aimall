@@ -95,9 +95,8 @@ class AimqbParameters(Dict): # pylint: disable=too-many-ancestors
         parameters = []
 
         pm_dict = self.get_dict()
-        for option, enabled in pm_dict.items():
-            if enabled:
-                parameters += ["-" + option]
+        for key, value in pm_dict.items():
+            parameters += [f'-{key}={value}']
 
         parameters += [file_name]
 
