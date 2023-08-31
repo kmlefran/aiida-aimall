@@ -32,7 +32,8 @@ class AimqbCalculation(CalcJob):
             'num_machines':1,
             'num_mpiprocs_per_machine': 1,
         }
-        spec.inputs["metadata"]["options"]["parser_name"].default = "aimall.base"
+        #commented out parser to see default folder structure
+        # spec.inputs["metadata"]["options"]["parser_name"].default = "aimall.base"
         #new ports
         spec.input(
             'metadata.options.output_filename', valid_type=str, default='aiida.out'
@@ -45,13 +46,14 @@ class AimqbCalculation(CalcJob):
         spec.input(
             "file", valid_type=SinglefileData, help="fchk, wfn, or wfx to run AimQB on"
         )
-        spec.output(
-            'output_parameters',
-            valid_type=Dict,
-            required=True,
-            help="The result parameters of the calculation",
-        )
-        spec.default_output_node = "output_parameters"
+        #commented these to see
+        # spec.output(
+        #     'output_parameters',
+        #     valid_type=Dict,
+        #     required=True,
+        #     help="The result parameters of the calculation",
+        # )
+        # spec.default_output_node = "output_parameters"
         spec.outputs.dynamic = True
 
         #would put error codes here
@@ -77,32 +79,30 @@ class AimqbCalculation(CalcJob):
         calcinfo = datastructures.CalcInfo()
         calcinfo.codes_info = [codeinfo] #list since can involve more than one
         #files are already stored in AiiDA file repository, can use local_copy_list to pass the along
-        calcinfo.local_copy_list = [
-            (
-                self.inputs.file.uuid,
-                self.inputs.file.filename,
-                self.inputs.file.filename,
-            ),
-        ]
+        # calcinfo.local_copy_list = [
+        #     (
+        #         self.inputs.file.uuid,
+        #         self.inputs.file.filename,
+        #     ),
+        # ]
         #which files to retrieve from directory where job ran
         calcinfo.retrieve_list = [self.metadata.options.output_filename]
 
         return calcinfo
-    #TODO use this starter cli_options and construct one to create cli in aimqb format
+    
     def cli_options(parameters):
      """Return command line options for parameters dictionary.
 
      :param dict parameters: dictionary with command line parameters
      """
-     options = []
-     for key, value in parameters.items():
-         # Could validate: is key a known command-line option?
-         if isinstance(value, bool) and value:
-             options.append(f'--{key}')
-         elif isinstance(value, str):
-             # Could validate: is value a valid regular expression?
-             options.append(f'--{key}')
-             options.append(value)
+     options = [f'-{key}={value}' for key,value in parameters.items()]
+    #  for key, value in parameters.items():
+    #      # Could validate: is key a known command-line option?
+    #      options.append(f'-{key}={value}')
+        #  elif isinstance(value, str):
+        #      # Could validate: is value a valid regular expression?
+        #      options.append(f'--{key}')
+        #      options.append(value)
 
      return options
 
