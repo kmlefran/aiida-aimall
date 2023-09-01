@@ -64,7 +64,6 @@ class AimqbBaseParser(Parser):
         with self.retrieved.open(output_filename.replace('out','sum'), "rb") as handle:
             output_node = SinglefileData(file=handle)
             sum_lines = output_node.get_content()
-            print(sum_lines)
             self.outputs.atomic_properties = self._parse_atomic_props(sum_lines)
             self.outputs.bcp_properties = self._parse_bcp_props(sum_lines)
         #first argument is name for link that connects calculation and data node
@@ -77,7 +76,6 @@ class AimqbBaseParser(Parser):
         return qt.get_atomic_props(sum_file_string.split('\n'))
     
     def _parse_bcp_props(self, sum_file_string):
-        bcp_list = qt._find_all_connections(sum_file_string)
-        print(bcp_list)
+        bcp_list = qt._find_all_connections(sum_file_string.split('\n'))
         return qt.get_bcp_properties(sum_file_string,bcp_list)
         
