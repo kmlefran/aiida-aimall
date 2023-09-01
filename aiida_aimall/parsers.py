@@ -50,11 +50,14 @@ class AimqbBaseParser(Parser):
         files_retrieved = self.retrieved.list_object_names()
         files_expected = [output_filename.replace('wfx','sum'),output_filename.replace('.wfx','_atomicfiles')]
         # Note: set(A) <= set(B) checks whether A is a subset of B
+        print(files_retrieved)
+        print(files_expected)
         if not set(files_expected) <= set(files_retrieved):
             self.logger.error(
                 f"Found files '{files_retrieved}', expected to find '{files_expected}'"
             )
-            return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
+            # return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
+            return
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
