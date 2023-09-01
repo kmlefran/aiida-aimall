@@ -33,7 +33,7 @@ class AimqbCalculation(CalcJob):
             'tot_num_mpiprocs': 1,
         }
         #commented out parser to see default folder structure
-        # spec.inputs["metadata"]["options"]["parser_name"].default = "aimall.base"
+        spec.inputs["metadata"]["options"]["parser_name"].default = "aimqb.base"
         #new ports
         # spec.input(
         #     'metadata.options.output_filename', valid_type=str, default='aiida.out'
@@ -47,12 +47,25 @@ class AimqbCalculation(CalcJob):
             "file", valid_type=SinglefileData, help="fchk, wfn, or wfx to run AimQB on"
         )
         #commented these to see
-        # spec.output(
-        #     'output_parameters',
-        #     valid_type=Dict,
-        #     required=True,
-        #     help="The result parameters of the calculation",
-        # )
+        spec.output(
+            'atomic_properties',
+            valid_type=Dict,
+            required=True,
+            help="The result parameters of the calculation",
+        )
+        spec.output(
+            'bcp_properties',
+            valid_type=Dict,
+            required=True,
+            help = "The properties of all BCPs in the molecule",
+        )
+        spec.output(
+            'cc_properties',
+            valid_type=Dict,
+            required=False,
+            help="The properties of VSCC in the molecule"
+        )
+
         # spec.default_output_node = "output_parameters"
         spec.outputs.dynamic = True
 
@@ -88,7 +101,7 @@ class AimqbCalculation(CalcJob):
         #     ),
         # ]
         #which files to retrieve from directory where job ran
-        calcinfo.retrieve_list = [self.OUTPUT_FILE]
+        calcinfo.retrieve_list = [self.OUTPUT_FILE.replace('out','sum'),self.OUTPUT_FILE.replace('.out','_atomicfiles')]
 
         return calcinfo
     

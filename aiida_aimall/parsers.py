@@ -47,7 +47,7 @@ class AimqbBaseParser(Parser):
 
         # Check that folder content is as expected
         files_retrieved = self.retrieved.list_object_names()
-        files_expected = [output_filename]
+        files_expected = [output_filename.replace('wfx','sum'),output_filename('.wfx','_atomicfiles')]
         # Note: set(A) <= set(B) checks whether A is a subset of B
         if not set(files_expected) <= set(files_retrieved):
             self.logger.error(
@@ -57,11 +57,14 @@ class AimqbBaseParser(Parser):
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
-        with self.retrieved.open(output_filename, "rb") as handle:
+        with self.retrieved.open(output_filename.replace('wfx','sum'), "rb") as handle:
             output_node = SinglefileData(file=handle)
+            sum_lines = output_node.get_content()
+            self.outputs.atomic_properties = self._parse_atomic_props(sum_lines)
+            self.outputs.bcp_properties = self._parse_bcp_props(sum_lines)
         #first argument is name for link that connects calculation and data node
         #second argument is node that should be recorded as output
-        self.out("aimall", output_node)
+        # self.out("aimall", output_node)
 
         return ExitCode(0)
     
