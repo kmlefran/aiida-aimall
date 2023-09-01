@@ -77,5 +77,5 @@ class AimqbBaseParser(Parser):
     
     def _parse_bcp_props(self, sum_file_string):
         bcp_list = qt._find_all_connections(sum_file_string.split('\n'))
-        return qt.get_bcp_properties(sum_file_string,bcp_list)
+        return qt.get_selected_bcps(sum_file_string,bcp_list)
         
