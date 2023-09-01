@@ -48,7 +48,7 @@ class AimqbBaseParser(Parser):
 
         # Check that folder content is as expected
         files_retrieved = self.retrieved.list_object_names()
-        files_expected = [output_filename.replace('wfx','sum'),output_filename.replace('.wfx','_atomicfiles')]
+        files_expected = [output_filename.replace('out','sum'),output_filename.replace('.out','_atomicfiles')]
         # Note: set(A) <= set(B) checks whether A is a subset of B
         print(files_retrieved)
         print(files_expected)
@@ -61,7 +61,7 @@ class AimqbBaseParser(Parser):
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
-        with self.retrieved.open(output_filename.replace('wfx','sum'), "rb") as handle:
+        with self.retrieved.open(output_filename.replace('out','sum'), "rb") as handle:
             output_node = SinglefileData(file=handle)
             sum_lines = output_node.get_content()
             self.outputs.atomic_properties = self._parse_atomic_props(sum_lines)
