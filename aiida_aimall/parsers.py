@@ -5,7 +5,7 @@ Register parsers via the "aiida.parsers" entry point in setup.json.
 """
 from aiida.common import exceptions
 from aiida.engine import ExitCode
-from aiida.orm import SinglefileData
+from aiida.orm import SinglefileData, Dict
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
 import io
@@ -73,9 +73,9 @@ class AimqbBaseParser(Parser):
         return ExitCode(0)
     
     def _parse_atomic_props(self, sum_file_string):
-        return qt.get_atomic_props(sum_file_string.split('\n'))
+        return Dict(dict=qt.get_atomic_props(sum_file_string.split('\n')))
     
     def _parse_bcp_props(self, sum_file_string):
         bcp_list = qt._find_all_connections(sum_file_string.split('\n'))
-        return qt.get_selected_bcps(sum_file_string.split('\n'),bcp_list)
+        return Dict(dict=qt.get_selected_bcps(sum_file_string.split('\n'),bcp_list))
         
