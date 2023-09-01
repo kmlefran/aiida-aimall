@@ -42,7 +42,8 @@ class AimqbBaseParser(Parser):
         :returns: an exit code, if parsing fails (or nothing if parsing succeeds)
         """
         #convenience method to get filename of output file
-        output_filename = self.node.get_option("output_filename")
+        # output_filename = self.node.get_option("output_filename")
+        output_filename = self.OUTPUT_FILE
 
         # Check that folder content is as expected
         files_retrieved = self.retrieved.list_object_names()

@@ -17,7 +17,7 @@ class AimqbCalculation(CalcJob):
 
     AiiDA plugin wrapper for running aimqb on a file
     """
-    INPUT_FILE = "aiida.inp"
+    INPUT_FILE = "aiida.wfx"
     OUTPUT_FILE = "aiida.out"
     PARENT_FOLDER_NAME = "parent_calc"
     DEFAULT_PARSER = "aimqb.base"
@@ -35,9 +35,9 @@ class AimqbCalculation(CalcJob):
         #commented out parser to see default folder structure
         # spec.inputs["metadata"]["options"]["parser_name"].default = "aimall.base"
         #new ports
-        spec.input(
-            'metadata.options.output_filename', valid_type=str, default='aiida.out'
-        )
+        # spec.input(
+        #     'metadata.options.output_filename', valid_type=str, default='aiida.out'
+        # )
         spec.input(
             'parameters',
             valid_type=AimqbParameters,
@@ -66,14 +66,16 @@ class AimqbCalculation(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
-
+        input_string = self.inputs.file.get_content()
+        with open(folder.get_abs_path(self.INPUT_FILE), "w") as out_file:
+            out_file.write(input_string)
         codeinfo = datastructures.CodeInfo()
         #probably modify the next line
         codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
-            file_name=self.inputs.file.filename
+            file_name=self.INPUT_FILE
         )
         codeinfo.code_uuid = self.inputs.code.uuid
-        codeinfo.stdout_name = self.metadata.options.output_filename
+        codeinfo.stdout_name = self.OUTPUT_FILE
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
@@ -86,7 +88,7 @@ class AimqbCalculation(CalcJob):
         #     ),
         # ]
         #which files to retrieve from directory where job ran
-        calcinfo.retrieve_list = [self.metadata.options.output_filename]
+        calcinfo.retrieve_list = [self.OUTPUT_FILE]
 
         return calcinfo
     
