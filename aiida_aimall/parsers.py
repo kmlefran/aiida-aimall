@@ -48,7 +48,7 @@ class AimqbBaseParser(Parser):
 
         # Check that folder content is as expected
         files_retrieved = self.retrieved.list_object_names()
-        files_expected = [output_filename.replace('wfx','sum'),output_filename('.wfx','_atomicfiles')]
+        files_expected = [output_filename.replace('wfx','sum'),output_filename.replace('.wfx','_atomicfiles')]
         # Note: set(A) <= set(B) checks whether A is a subset of B
         if not set(files_expected) <= set(files_retrieved):
             self.logger.error(
