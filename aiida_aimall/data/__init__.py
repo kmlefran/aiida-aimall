@@ -35,7 +35,7 @@ cmdline_options = {
     Optional("intveeaa"): str,
     Optional("atlaprhocps"): bool,
     Optional("wsp"): bool,
-    Optional("nprocs"): int,
+    Optional("nproc"): int,
     Optional("naat"): int,
     Optional("shm_lmax"): int,
     Optional("maxmem"): int,
@@ -86,7 +86,7 @@ class AimqbParameters(Dict): # pylint: disable=too-many-ancestors
     def cmdline_params(self, file_name):
         """Synthesize command line parameters.
 
-        e.g. [ '-atlaprhocps', 'filename']
+        e.g. [ '-atlaprhocps=True',...,'-nogui', 'filename']
 
         :param file_name: Name of first file
         :param type file_name: str
