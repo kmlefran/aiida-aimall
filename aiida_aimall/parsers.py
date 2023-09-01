@@ -10,7 +10,7 @@ from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
 import io
 import re
-
+from subproptools import qtaimExtract as qt
 
 AimqbCalculation = CalculationFactory("aimall")
 
@@ -63,3 +63,11 @@ class AimqbBaseParser(Parser):
         self.out("aimall", output_node)
 
         return ExitCode(0)
+    
+    def _parse_atomic_props(self, sum_file_string):
+        return qt.get_atomic_props(sum_file_string.split('\n'))
+    
+    def _parse_bcp_props(self, sum_file_string):
+        bcp_list = qt._find_all_connections(sum_file_string)
+        return qt.get_bcp_properties(sum_file_string,bcp_list)
+        
