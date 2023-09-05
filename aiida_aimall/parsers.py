@@ -80,7 +80,7 @@ class AimqbBaseParser(Parser):
     def _parse_cc_props(self, OutFolderData):
         output_filename = self.node.process_class.OUTPUT_FILE
         atom_list = list(self.outputs.atomic_properties.keys())
-        cc_dict = {x :qt.get_atom_vscc(filename = self.retrieved.get_object_content(output_filename.replace('.out','_atomicfiles') + '/' + x.str.tolower() + '.agpviz').split('\n'),
+        cc_dict = {x :qt.get_atom_vscc(filename = self.retrieved.get_object_content(output_filename.replace('.out','_atomicfiles') + '/' + x.tolower() + '.agpviz').split('\n'),
                                        atomLabel = x,type='vscc',atomicProps = self.outputs.atomic_properties.get_dict(),is_lines_data=True) for x in atom_list}
         return Dict(dict=cc_dict)
 
