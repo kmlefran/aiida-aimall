@@ -61,17 +61,29 @@ class AimqbBaseParser(Parser):
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
-        with self.retrieved.open(output_filename.replace('out','sum'), "rb") as handle:
+        OutFolderData = self.retrieved
+        with OutFolderData.open(output_filename.replace('out','sum'), "rb") as handle:
             output_node = SinglefileData(file=handle)
             sum_lines = output_node.get_content()
             self.outputs.atomic_properties = self._parse_atomic_props(sum_lines)
             self.outputs.bcp_properties = self._parse_bcp_props(sum_lines)
+        self.outputs.cc_properties = self._parse_cc_props(OutFolderData)
+        # at1_key = list(self.outputs.atomic_properties.keys())[0].str.lower()
+        # at_1_agpviz = output_filename.replace('.out','_atomicfiles') + '/' + at1_key + '.agpviz'
+
         #first argument is name for link that connects calculation and data node
         #second argument is node that should be recorded as output
         # self.out("aimall", output_node)
 
         return ExitCode(0)
     
+    def _parse_cc_props(self, OutFolderData):
+        output_filename = self.node.process_class.OUTPUT_FILE
+        atom_list = list(self.outputs.atomic_properties.keys())
+        cc_dict = {x :qt.get_atom_vscc(filename = self.retrieved.get_object_content(output_filename.replace('.out','_atomicfiles') + '/' + x.str.tolower() + '.agpviz').split('\n'),
+                                       atomLabel = x,type='vscc',atomicProps = self.outputs.atomic_properties.get_dict(),is_lines_data=True) for x in atom_list}
+        return Dict(dict=cc_dict)
+
     def _parse_atomic_props(self, sum_file_string):
         return Dict(dict=qt.get_atomic_props(sum_file_string.split('\n')))
     
