@@ -4,7 +4,7 @@ Parsers provided by aiida_aimall.
 Register parsers via the "aiida.parsers" entry point in setup.json.
 """
 
-from subproptools import qtaimExtract as qt
+from subproptools import qtaimExtract as qt  # pylint: disable=import-error
 
 from aiida.common import exceptions
 from aiida.orm import Dict, SinglefileData
