@@ -2,7 +2,7 @@
 import os
 
 from aiida.engine import run
-from aiida.orm import SinglefileData
+from aiida.orm import Dict, SinglefileData
 from aiida.plugins import CalculationFactory, DataFactory
 
 from . import TEST_DIR
@@ -13,25 +13,23 @@ def test_process(aimall_code):
     note this does not test that the expected outputs are created of output parsing"""
 
     # Prepare input parameters
-    DiffParameters = DataFactory("aimall")
-    parameters = DiffParameters({"ignore-case": True})
+    AimqbParameters = DataFactory("aimall")
+    parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
 
-    file1 = SinglefileData(file=os.path.join(TEST_DIR, "input_files", "file1.txt"))
-    file2 = SinglefileData(file=os.path.join(TEST_DIR, "input_files", "file2.txt"))
+    file = SinglefileData(
+        file=os.path.join(TEST_DIR, "input_files", "water_wb97xd_augccpvtz_qtaim.wfx")
+    )
 
     # set up calculation
     inputs = {
         "code": aimall_code,
         "parameters": parameters,
-        "file1": file1,
-        "file2": file2,
-        "metadata": {
-            "options": {"max_wallclock_seconds": 30},
-        },
+        "file": file,
     }
 
     result = run(CalculationFactory("aimall"), **inputs)
-    computed_diff = result["aimall"].get_content()
+    computed_atomic_props = result["atomic_properties"].get_dict()
+    computed_bcp_props = result["bcp_properties"].get_dict()
 
-    assert "content1" in computed_diff
-    assert "content2" in computed_diff
+    assert computed_atomic_props is Dict
+    assert computed_bcp_props is Dict

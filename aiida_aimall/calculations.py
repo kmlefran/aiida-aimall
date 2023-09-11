@@ -5,11 +5,11 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import SinglefileData, Dict
+from aiida.orm import Dict, SinglefileData
 from aiida.plugins import DataFactory
 
+AimqbParameters = DataFactory("aimall")
 
-AimqbParameters = DataFactory('aimall')
 
 class AimqbCalculation(CalcJob):
     """
@@ -17,61 +17,63 @@ class AimqbCalculation(CalcJob):
 
     AiiDA plugin wrapper for running aimqb on a file
     """
+
     INPUT_FILE = "aiida.wfx"
     OUTPUT_FILE = "aiida.out"
     PARENT_FOLDER_NAME = "parent_calc"
     DEFAULT_PARSER = "aimqb.base"
 
     @classmethod
-    def define(cls,spec):
+    def define(cls, spec):
         """Define inputs and outputs of the calculation"""
         super().define(spec)
 
-        #set default values for AiiDA options
-        spec.inputs['metadata']['options']['resources'].defaults = {
-            'num_machines':1,
-            'tot_num_mpiprocs': 1,
+        # set default values for AiiDA options
+        spec.inputs["metadata"]["options"]["resources"].defaults = {
+            "num_machines": 1,
+            "tot_num_mpiprocs": 2,
         }
-        #commented out parser to see default folder structure
+        # commented out parser to see default folder structure
         spec.inputs["metadata"]["options"]["parser_name"].default = "aimqb.base"
-        #new ports
+        # new ports
         # spec.input(
         #     'metadata.options.output_filename', valid_type=str, default='aiida.out'
         # )
         spec.input(
-            'parameters',
+            "parameters",
             valid_type=AimqbParameters,
-            help='Command line parameters for aimqb'
+            help="Command line parameters for aimqb",
         )
         spec.input(
             "file", valid_type=SinglefileData, help="fchk, wfn, or wfx to run AimQB on"
         )
-        #commented these to see
+        # commented these to see
         spec.output(
-            'atomic_properties',
+            "atomic_properties",
             valid_type=Dict,
             required=True,
             help="The result parameters of the calculation",
         )
         spec.output(
-            'bcp_properties',
+            "bcp_properties",
             valid_type=Dict,
             required=True,
-            help = "The properties of all BCPs in the molecule",
+            help="The properties of all BCPs in the molecule",
         )
         spec.output(
-            'cc_properties',
+            "cc_properties",
             valid_type=Dict,
             required=False,
-            help="The properties of VSCC in the molecule"
+            help="The properties of VSCC in the molecule",
         )
 
         # spec.default_output_node = "output_parameters"
         spec.outputs.dynamic = True
 
-        #would put error codes here
+        # would put error codes here
+
     # ---------------------------------------------------
-    
+
     def prepare_for_submission(self, folder):
         """
         Create input files.
@@ -80,10 +82,12 @@ class AimqbCalculation(CalcJob):
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
         input_string = self.inputs.file.get_content()
-        with open(folder.get_abs_path(self.INPUT_FILE), "w") as out_file:
+        with open(
+            folder.get_abs_path(self.INPUT_FILE), "w", encoding="utf-8"
+        ) as out_file:
             out_file.write(input_string)
         codeinfo = datastructures.CodeInfo()
-        #probably modify the next line
+        # probably modify the next line
         codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
             file_name=self.INPUT_FILE
         )
@@ -92,19 +96,22 @@ class AimqbCalculation(CalcJob):
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
-        calcinfo.codes_info = [codeinfo] #list since can involve more than one
-        #files are already stored in AiiDA file repository, can use local_copy_list to pass the along
+        calcinfo.codes_info = [codeinfo]  # list since can involve more than one
+        # files are already stored in AiiDA file repository, can use local_copy_list to pass the along
         # calcinfo.local_copy_list = [
         #     (
         #         self.inputs.file.uuid,
         #         self.inputs.file.filename,
         #     ),
         # ]
-        #which files to retrieve from directory where job ran
-        calcinfo.retrieve_list = [self.OUTPUT_FILE.replace('out','sum'),self.OUTPUT_FILE.replace('.out','_atomicfiles')]
+        # which files to retrieve from directory where job ran
+        calcinfo.retrieve_list = [
+            self.OUTPUT_FILE.replace("out", "sum"),
+            self.OUTPUT_FILE.replace(".out", "_atomicfiles"),
+        ]
 
         return calcinfo
-    
+
     # def cli_options(parameters):
     #  """Return command line options for parameters dictionary.
 
@@ -114,12 +121,13 @@ class AimqbCalculation(CalcJob):
     #  for key, value in parameters.items():
     #      # Could validate: is key a known command-line option?
     #      options.append(f'-{key}={value}')
-        #  elif isinstance(value, str):
-        #      # Could validate: is value a valid regular expression?
-        #      options.append(f'--{key}')
-        #      options.append(value)
+    #  elif isinstance(value, str):
+    #      # Could validate: is value a valid regular expression?
+    #      options.append(f'--{key}')
+    #      options.append(value)
 
     #  return options
+
 
 # class DiffCalculation(CalcJob):
 #     """
