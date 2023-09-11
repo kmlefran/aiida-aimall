@@ -64,7 +64,7 @@ def cli(codelabel):
 
     Example usage: $ ./example_01.py --code aimqb@localhost
 
-    Alternative (creates aimqb@localhost-test code): $ ./example_01.py
+    Alternative (creates aimall2@localhost-test code): $ ./example_01.py
 
     Help: $ ./example_01.py --help
     """
