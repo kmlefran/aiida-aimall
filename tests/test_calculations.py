@@ -1,6 +1,7 @@
 """ Tests for calculations."""
 import os
 
+from aiida import load_profile
 from aiida.engine import run
 from aiida.orm import Dict, SinglefileData, load_code
 from aiida.plugins import CalculationFactory, DataFactory
@@ -12,7 +13,7 @@ from . import TEST_DIR
 def test_process():
     """Test running a calculation
     note this does not test that the expected outputs are created of output parsing"""
-
+    load_profile()
     # Prepare input parameters
     AimqbParameters = DataFactory("aimall")
     parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})

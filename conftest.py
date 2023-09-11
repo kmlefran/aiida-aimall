@@ -1,4 +1,5 @@
 """pytest fixtures for simplified testing."""
+
 import sys
 
 import pytest
