@@ -28,6 +28,10 @@ def test_process(aimall_code):
         # "code": code,
         "parameters": parameters,
         "file": file,
+        "metadata.options.resources": {
+            "num_machines": 1,
+            "tot_num_mpiprocs": 2,
+        },
     }
 
     result = run(CalculationFactory("aimall"), **inputs)
