@@ -3,14 +3,14 @@ import os
 
 from aiida import load_profile
 from aiida.engine import run
-from aiida.orm import Dict, SinglefileData, load_code
+from aiida.orm import Dict, SinglefileData  # , load_code
 from aiida.plugins import CalculationFactory, DataFactory
 
 from . import TEST_DIR
 
 
-# def test_process(aimall_code):
-def test_process():
+def test_process(aimall_code):
+    # def test_process():
     """Test running a calculation
     note this does not test that the expected outputs are created of output parsing"""
     load_profile()
@@ -21,11 +21,11 @@ def test_process():
     file = SinglefileData(
         file=os.path.join(TEST_DIR, "input_files", "water_wb97xd_augccpvtz_qtaim.wfx")
     )
-    code = load_code("aimall2")
+    # code = load_code("aimall")
     # set up calculation
     inputs = {
-        # "code": aimall_code,
-        "code": code,
+        "code": aimall_code,
+        # "code": code,
         "parameters": parameters,
         "file": file,
     }
