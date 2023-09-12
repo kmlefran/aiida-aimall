@@ -17,7 +17,7 @@ def test_data():
     # Prepare input parameters
     AimqbParameters = DataFactory("aimall")
     parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
-    assert isinstance(parameters is AimqbParameters)
+    assert isinstance(parameters, AimqbParameters)
     # file = SinglefileData(
     #     file=os.path.join(TEST_DIR, "input_files", "water_wb97xd_augccpvtz_qtaim.wfx")
     # )
