@@ -16,7 +16,7 @@ import time
 
 from aiida.manage.configuration import load_documentation_profile
 
-sys.path.insert(0, "/Users/chemlab/anaconda3/bin")
+# sys.path.insert(0, "/Users/chemlab/anaconda3/bin")
 import aiida_aimall
 
 # -- AiiDA-related setup --------------------------------------------------
