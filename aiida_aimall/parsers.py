@@ -71,7 +71,9 @@ class AimqbBaseParser(Parser):
                 "bcp_properties": self._parse_bcp_props(sum_lines),
             }
         if "-atlaprhocps=True" in input_parameters.cmdline_params("foo"):
-            out_dict["cc_properties"] = self._parse_cc_props()
+            out_dict["cc_properties"] = self._parse_cc_props(
+                out_dict["atomic_properties"]
+            )
             # self.outputs.atomic_properties = self._parse_atomic_props(sum_lines)
             # self.outputs.bcp_properties = self._parse_bcp_props(sum_lines)
         self.outputs.output_parameters = Dict(out_dict)
@@ -79,9 +81,9 @@ class AimqbBaseParser(Parser):
 
         return  # ExitCode(0)
 
-    def _parse_cc_props(self):
+    def _parse_cc_props(self, atomic_properties):
         output_filename = self.node.process_class.OUTPUT_FILE
-        atom_list = list(self.outputs.atomic_properties.keys())
+        atom_list = list(atomic_properties.keys())
         cc_dict = {
             x: qt.get_atom_vscc(
                 filename=self.retrieved.get_object_content(
@@ -92,7 +94,7 @@ class AimqbBaseParser(Parser):
                 ).split("\n"),
                 atomLabel=x,
                 type="vscc",
-                atomicProps=self.outputs.atomic_properties.get_dict(),
+                atomicProps=atomic_properties,
                 is_lines_data=True,
             )
             for x in atom_list
