@@ -23,18 +23,27 @@ def test_process(aimall_code):
     )
     # code = load_code("aimall")
     # set up calculation
-    inputs = {
-        "code": aimall_code,
-        # "code": code,
-        "parameters": parameters,
-        "file": file,
-        "metadata.options.resources": {
-            "num_machines": 1,
-            "tot_num_mpiprocs": 2,
-        },
+    builder = CalculationFactory("aimall").get_builder()
+    builder.code = aimall_code
+    builder.parameters = parameters
+    builder.file = file
+    builder.metadata.options.resources = {
+        "num_machines": 1,
+        "tot_num_mpiprocs": 2,
     }
 
-    result = run(CalculationFactory("aimall"), **inputs)
+    # inputs = {
+    #     "code": aimall_code,
+    #     # "code": code,
+    #     "parameters": parameters,
+    #     "file": file,
+    #     "metadata.options.resources": {
+    #         "num_machines": 1,
+    #         "tot_num_mpiprocs": 2,
+    #     },
+    # }
+
+    result = run(builder)
     computed_atomic_props = result["atomic_properties"].get_dict()
     computed_bcp_props = result["bcp_properties"].get_dict()
 
