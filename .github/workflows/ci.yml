@@ -43,6 +43,7 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -e .[testing]
+        pip install git+https://github.com/kmlefran/subproptools
 
     - name: Run test suite
       env:
@@ -63,6 +64,7 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -e .[docs]
+        pip install git+https://github.com/kmlefran/subproptools
     - name: Build docs
       run: cd docs && make
 
