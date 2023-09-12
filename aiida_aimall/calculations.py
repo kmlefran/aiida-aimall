@@ -49,23 +49,29 @@ class AimqbCalculation(CalcJob):
         )
         # commented these to see
         spec.output(
-            "atomic_properties",
+            "output_parameters",
             valid_type=Dict,
             required=True,
-            help="The result parameters of the calculation",
+            help="The computed parameters of an AIMAll calculation",
         )
-        spec.output(
-            "bcp_properties",
-            valid_type=Dict,
-            required=True,
-            help="The properties of all BCPs in the molecule",
-        )
-        spec.output(
-            "cc_properties",
-            valid_type=Dict,
-            required=False,
-            help="The properties of VSCC in the molecule",
-        )
+        # spec.output(
+        #     "atomic_properties",
+        #     valid_type=Dict,
+        #     required=True,
+        #     help="The result parameters of the calculation",
+        # )
+        # spec.output(
+        #     "bcp_properties",
+        #     valid_type=Dict,
+        #     required=True,
+        #     help="The properties of all BCPs in the molecule",
+        # )
+        # spec.output(
+        #     "cc_properties",
+        #     valid_type=Dict,
+        #     required=False,
+        #     help="The properties of VSCC in the molecule",
+        # )
 
         # spec.default_output_node = "output_parameters"
         spec.outputs.dynamic = True

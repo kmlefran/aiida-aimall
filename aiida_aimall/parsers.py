@@ -42,7 +42,7 @@ class AimqbBaseParser(Parser):
         """
         # convenience method to get filename of output file
         # output_filename = self.node.get_option("output_filename")
-
+        input_parameters = self.node.inputs.parameters
         output_filename = self.node.process_class.OUTPUT_FILE
 
         # Check that folder content is as expected
@@ -52,8 +52,7 @@ class AimqbBaseParser(Parser):
             output_filename.replace(".out", "_atomicfiles"),
         ]
         # Note: set(A) <= set(B) checks whether A is a subset of B
-        print(files_retrieved)
-        print(files_expected)
+
         if not set(files_expected) <= set(files_retrieved):
             self.logger.error(
                 f"Found files '{files_retrieved}', expected to find '{files_expected}'"
@@ -67,15 +66,16 @@ class AimqbBaseParser(Parser):
         with OutFolderData.open(output_filename.replace("out", "sum"), "rb") as handle:
             output_node = SinglefileData(file=handle)
             sum_lines = output_node.get_content()
-            self.outputs.atomic_properties = self._parse_atomic_props(sum_lines)
-            self.outputs.bcp_properties = self._parse_bcp_props(sum_lines)
-        self.outputs.cc_properties = self._parse_cc_props()
-        # at1_key = list(self.outputs.atomic_properties.keys())[0].str.lower()
-        # at_1_agpviz = output_filename.replace('.out','_atomicfiles') + '/' + at1_key + '.agpviz'
-
-        # first argument is name for link that connects calculation and data node
-        # second argument is node that should be recorded as output
-        # self.out("aimall", output_node)
+            out_dict = {
+                "atomic_properties": self._parse_atomic_props(sum_lines),
+                "bcp_properties": self._parse_bcp_props(sum_lines),
+            }
+        if "-atlaprhocps=True" in input_parameters.cmdline_params("foo"):
+            out_dict["cc_properties"] = self._parse_cc_props()
+            # self.outputs.atomic_properties = self._parse_atomic_props(sum_lines)
+            # self.outputs.bcp_properties = self._parse_bcp_props(sum_lines)
+        self.outputs.output_parameters = Dict(out_dict)
+        # self.outputs.output_parameters.cc_properties = self._parse_cc_props()
 
         return  # ExitCode(0)
 
@@ -97,11 +97,11 @@ class AimqbBaseParser(Parser):
             )
             for x in atom_list
         }
-        return Dict(dict=cc_dict)
+        return cc_dict
 
     def _parse_atomic_props(self, sum_file_string):
-        return Dict(dict=qt.get_atomic_props(sum_file_string.split("\n")))
+        return qt.get_atomic_props(sum_file_string.split("\n"))
 
     def _parse_bcp_props(self, sum_file_string):
         bcp_list = qt.find_all_connections(sum_file_string.split("\n"))
-        return Dict(dict=qt.get_selected_bcps(sum_file_string.split("\n"), bcp_list))
+        return qt.get_selected_bcps(sum_file_string.split("\n"), bcp_list)
