@@ -84,5 +84,5 @@ def aimall_code(my_aim_code):
     return my_aim_code(
         executable="/Applications/AIMAll/AIMQB.app/Contents/MacOS/aimqb",
         entry_point="aimall",
-        label="aimall2",
+        label="aimall",
     )
