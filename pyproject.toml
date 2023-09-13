@@ -46,7 +46,9 @@ docs = [
     "sphinxcontrib-contentui",
     "sphinxcontrib-details-directive",
     "furo",
-    "markupsafe<2.1"
+    "markupsafe<2.1",
+    "pandas",
+    "numpy"
 ]
 
 [project.entry-points."aiida.data"]
@@ -105,7 +107,7 @@ envlist = py38
 [testenv]
 usedevelop=True
 
-[testenv:py{37,38,39,310}]
+[testenv:py{37,38,39,310,311}]
 description = Run the test suite against a python version
 extras = testing
 commands = pytest {posargs}

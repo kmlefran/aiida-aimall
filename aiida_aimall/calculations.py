@@ -101,8 +101,7 @@ class AimqbCalculation(CalcJob):
 
 
 class GaussianWFXCalculation(CalcJob):
-    """
-    AiiDA calculation plugin wrapping Gaussian
+    """AiiDA calculation plugin wrapping Gaussian
 
     Template:
 
@@ -122,7 +121,6 @@ class GaussianWFXCalculation(CalcJob):
             'opt': 'tight',
         },
     })
-
     """
 
     # Defaults
