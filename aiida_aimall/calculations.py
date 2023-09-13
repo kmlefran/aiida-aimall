@@ -1,7 +1,8 @@
 """
 Calculations provided by aiida_aimall.
 
-Register calculations via the "aiida.calculations" entry point in setup.json.
+Upon pip install, AimqbCalculation is accessible in AiiDA.calculations plugins
+Using the 'aimall' entry point
 """
 from aiida.common import datastructures
 from aiida.engine import CalcJob
@@ -33,7 +34,7 @@ class AimqbCalculation(CalcJob):
             "num_machines": 1,
             "tot_num_mpiprocs": 2,
         }
-        # commented out parser to see default folder structure
+
         spec.inputs["metadata"]["options"]["parser_name"].default = "aimqb.base"
         # new ports
         # spec.input(
@@ -45,35 +46,19 @@ class AimqbCalculation(CalcJob):
             help="Command line parameters for aimqb",
         )
         spec.input(
-            "file", valid_type=SinglefileData, help="fchk, wfn, or wfx to run AimQB on"
+            "file",
+            valid_type=SinglefileData,
+            help="fchk, wfn, or wfx to run AimQB on",
         )
-        # commented these to see
+
         spec.output(
             "output_parameters",
             valid_type=Dict,
             required=True,
             help="The computed parameters of an AIMAll calculation",
         )
-        # spec.output(
-        #     "atomic_properties",
-        #     valid_type=Dict,
-        #     required=True,
-        #     help="The result parameters of the calculation",
-        # )
-        # spec.output(
-        #     "bcp_properties",
-        #     valid_type=Dict,
-        #     required=True,
-        #     help="The properties of all BCPs in the molecule",
-        # )
-        # spec.output(
-        #     "cc_properties",
-        #     valid_type=Dict,
-        #     required=False,
-        #     help="The properties of VSCC in the molecule",
-        # )
 
-        # spec.default_output_node = "output_parameters"
+        spec.default_output_node = "output_parameters"
         spec.outputs.dynamic = True
 
         # would put error codes here
@@ -87,13 +72,14 @@ class AimqbCalculation(CalcJob):
             place all files needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+        # copy wfx file to input file
         input_string = self.inputs.file.get_content()
         with open(
             folder.get_abs_path(self.INPUT_FILE), "w", encoding="utf-8"
         ) as out_file:
             out_file.write(input_string)
         codeinfo = datastructures.CodeInfo()
-        # probably modify the next line
+        # generate command line params
         codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
             file_name=self.INPUT_FILE
         )
@@ -103,7 +89,7 @@ class AimqbCalculation(CalcJob):
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
         calcinfo.codes_info = [codeinfo]  # list since can involve more than one
-
+        # Retrieve the sum file and the folder with atomic files
         calcinfo.retrieve_list = [
             self.OUTPUT_FILE.replace("out", "sum"),
             self.OUTPUT_FILE.replace(".out", "_atomicfiles"),

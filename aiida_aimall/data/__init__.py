@@ -1,15 +1,15 @@
 """
 Data types provided by plugin
 
-Register data types via the "aiida.data" entry point in setup.json.
+Upon pip install, AimqbParameters  is accessible in AiiDA.data plugins
+Using the 'aimall' entry point
 """
-# You can directly use or subclass aiida.orm.data.Data
-# or any other data type listed under 'verdi data'
+
 from voluptuous import Optional, Schema
 
 from aiida.orm import Dict
 
-# AIMQB's command line options
+# AIMQB's command line options and their expected type
 cmdline_options = {
     Optional("bim"): str,
     Optional("iasmesh"): str,
@@ -51,6 +51,8 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
 
     This class represents a python dictionary used to
     pass command line options to the executable.
+    The class takes a dictionary of parameters and validates
+    to ensure the aimqb command line parameters are correct
     """
 
     schema = Schema(cmdline_options)
@@ -58,7 +60,7 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
     def __init__(self, parameter_dict=None, **kwargs):
         """Constructor for the data class
 
-        Usage: ``AimqbParameters(dict{'ignore-case': True})``
+        Usage: ``AimqbParameters(parameter_dict{'ignore-case': True})``
 
         :param parameters_dict: dictionary with commandline parameters
         :param type parameters_dict: dict
@@ -85,17 +87,18 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
 
         e.g. [ '-atlaprhocps=True',...,'-nogui', 'filename']
 
-        :param file_name: Name of first file
+        :param file_name: Name of wfx/fchk/wfn file
         :param type file_name: str
 
         """
-        parameters = []
+        # parameters = []
 
         pm_dict = self.get_dict()
-        for key, value in pm_dict.items():
-            parameters += [f"-{key}={value}"]
-        parameters += ["-nogui"]
-        parameters += [file_name]
+        parameters = [f"-{key}={value}" for key, value in pm_dict.items()]
+        # for key, value in pm_dict.items():
+        #     parameters += [f"-{key}={value}"]
+        parameters += ["-nogui"]  # use no gui when running in aiida
+        parameters += [file_name]  # input file
 
         return [str(p) for p in parameters]
 
@@ -105,7 +108,7 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
         Append values of dictionary to usual representation. E.g.::
 
             uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590)
-            {'ignore-case': True}
+            {'atlaprhocps': True}
 
         """
         string = super().__str__()
