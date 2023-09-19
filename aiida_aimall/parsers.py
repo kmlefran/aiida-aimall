@@ -96,7 +96,6 @@ class AimqbBaseParser(Parser):
                     + ".agpviz"
                 ).split("\n"),
                 atomLabel=x,
-                type="vscc",
                 atomicProps=atomic_properties,
                 is_lines_data=True,
             )
