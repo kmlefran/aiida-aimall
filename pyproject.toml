@@ -60,6 +60,7 @@ docs = [
 
 [project.entry-points."aiida.parsers"]
 "aimqb.base" = "aiida_aimall.parsers:AimqbBaseParser"
+"gaussianwfx" = "aiida_aimall.parsers:GaussianWFXParser"
 
 [project.entry-points."aiida.cmdline.data"]
 "aimall" = "aiida_aimall.cli:data_cli"

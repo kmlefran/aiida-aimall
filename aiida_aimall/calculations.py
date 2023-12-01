@@ -127,7 +127,7 @@ class GaussianWFXCalculation(CalcJob):
     INPUT_FILE = "aiida.inp"
     OUTPUT_FILE = "aiida.out"
     PARENT_FOLDER_NAME = "parent_calc"
-    DEFAULT_PARSER = "gaussian.base"
+    DEFAULT_PARSER = "gaussianwfx"
 
     @classmethod
     def define(cls, spec):
@@ -140,6 +140,12 @@ class GaussianWFXCalculation(CalcJob):
             required=False,
             help="Input structure; will be converted to pymatgen object",
         )
+        spec.input(
+            "wfxgroup",
+            valid_type=Str,
+            required=True,
+            help="Group label that output wfx will be a member of",
+        )
         spec.input("structure_str", valid_type=Str, required=False)
         spec.input(
             "parameters", valid_type=Dict, required=True, help="Input parameters"
@@ -150,7 +156,9 @@ class GaussianWFXCalculation(CalcJob):
             required=False,
             help="additional input parameters",
         )
-
+        spec.input(
+            "fragment_label", valid_type=Str, required=False, help="smiles of fragment"
+        )
         spec.input(
             "parent_calc_folder",
             valid_type=RemoteData,
