@@ -10,13 +10,12 @@ import re
 import ase  # pylint:disable=import-error
 import cclib  # pylint:disable=import-error
 import numpy as np
-from subproptools import qtaim_extract as qt  # pylint: disable=import-error
-
 from aiida.common import NotExistent, exceptions
 from aiida.engine import ExitCode
 from aiida.orm import Dict, Float, SinglefileData, StructureData, load_group
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory, DataFactory
+from subproptools import qtaim_extract as qt  # pylint: disable=import-error
 
 # from aiida.engine import ExitCode
 
@@ -156,6 +155,7 @@ class GaussianWFXParser(Parser):
                     "output.wfx"
                 )
                 sfd = SinglefileData(io.BytesIO(wfx_file_string.encode()))
+                sfd.store()
                 out_group = load_group(self.node.inputs.wfxgroup.value)
                 out_group.add_nodes(sfd)
                 sfd.base.extras.set("smiles", self.node.inputs.fragment_label.value)
