@@ -9,7 +9,7 @@ The aiida-aimall plugin for `AiiDA`_
 
    user_guide/index
    developer_guide/index
-   API documentation <apidoc/aiida_aimall>
+   apidoc/aiida_aimall
    AiiDA Documentation <https://aiida.readthedocs.io>
 
 If you use this plugin for your research, please cite the following work:
