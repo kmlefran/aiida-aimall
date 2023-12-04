@@ -75,7 +75,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
             "aim_code": code,
             "aim_params": aimparameters,
             "file": self.get_parent_node_from_extras(extras_values),
-            "frag_label": extras_values[0],
+            "frag_label": Str(extras_values[0]),
         }
         return inputs, WorkflowFactory(self.WORKFLOW_ENTRY_POINT)
 
