@@ -9,6 +9,9 @@ import sys
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import sphinx_rtd_theme
+from aiida.manage.configuration import load_documentation_profile
+
+load_documentation_profile()
 
 project = "aiida-aimall"
 copyright = "2023, Kevin Lefrancois-Gagnon, Robert Mawhinney"
