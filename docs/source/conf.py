@@ -61,7 +61,7 @@ intersphinx_mapping = {
 }
 
 nitpick_ignore = [
-    ("py:class", "Logger"),
+    ("py:class", "type"),
 ]
 
 
