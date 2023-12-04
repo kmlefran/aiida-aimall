@@ -48,17 +48,17 @@ class AimReorSubmissionController(FromGroupSubmissionController):
         super().__init__(*args, **kwargs)
         self.code_label = code_label
 
-    @validator("code_label")
-    def _check_code_plugin(self, value):
-        """validate provided code label:
-        Note: unsure if works
-        """
-        plugin_type = orm.load_code(value).default_calc_job_plugin
-        if plugin_type == "aiida_aimall.calculations:AimqbCalculation":
-            return value
-        raise ValueError(
-            f"Code with label `{value}` has incorrect plugin type: `{plugin_type}`"
-        )
+    # @validator("code_label")
+    # # def _check_code_plugin(self, value):
+    # #     """validate provided code label:
+    # #     Note: unsure if works
+    # #     """
+    # #     plugin_type = orm.load_code(value).default_calc_job_plugin
+    # #     if plugin_type == "aiida_aimall.calculations:AimqbCalculation":
+    # #         return value
+    # #     raise ValueError(
+    # #         f"Code with label `{value}` has incorrect plugin type: `{plugin_type}`"
+    # #     )
 
     def get_extra_unique_keys(self):
         """Returns a tuple of extras keys in the order needed"""
@@ -112,17 +112,17 @@ class AimAllSubmissionController(FromGroupSubmissionController):
         super().__init__(*args, **kwargs)
         self.code_label = code_label
 
-    @validator("code_label")
-    def _check_code_plugin(self, value):
-        """Make sure code label works.
+    # @validator("code_label")
+    # def _check_code_plugin(self, value):
+    #     """Make sure code label works.
 
-        Note: unsure this works"""
-        plugin_type = orm.load_code(value).default_calc_job_plugin
-        if plugin_type == "aiida_aimall.calculations:AimqbCalculation":
-            return value
-        raise ValueError(
-            f"Code with label `{value}` has incorrect plugin type: `{plugin_type}`"
-        )
+    #     Note: unsure this works"""
+    #     plugin_type = orm.load_code(value).default_calc_job_plugin
+    #     if plugin_type == "aiida_aimall.calculations:AimqbCalculation":
+    #         return value
+    #     raise ValueError(
+    #         f"Code with label `{value}` has incorrect plugin type: `{plugin_type}`"
+    #     )
 
     def get_extra_unique_keys(self):
         """Returns a tuple of extras keys in the order needed"""
@@ -186,18 +186,18 @@ class GaussianSubmissionController(FromGroupSubmissionController):
         self.code_label = code_label
         self.g16_sp_params = g16_sp_params
 
-    @validator("code_label")
-    def _check_code_plugin(self, value):
-        """validate that the code label is a GaussianWFXCalculation
+    # @validator("code_label")
+    # def _check_code_plugin(self, value):
+    #     """validate that the code label is a GaussianWFXCalculation
 
-        Note: unsure if this part works
-        """
-        plugin_type = orm.load_code(value).default_calc_job_plugin
-        if plugin_type == "aiida_aimall.calculations:GaussianWFXCalculation":
-            return value
-        raise ValueError(
-            f"Code with label `{value}` has incorrect plugin type: `{plugin_type}`"
-        )
+    #     Note: unsure if this part works
+    #     """
+    #     plugin_type = orm.load_code(value).default_calc_job_plugin
+    #     if plugin_type == "aiida_aimall.calculations:GaussianWFXCalculation":
+    #         return value
+    #     raise ValueError(
+    #         f"Code with label `{value}` has incorrect plugin type: `{plugin_type}`"
+    #     )
 
     def get_extra_unique_keys(self):
         """Returns a tuple of extras keys in the order needed"""

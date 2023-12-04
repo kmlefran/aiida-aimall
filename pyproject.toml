@@ -53,7 +53,9 @@ docs = [
     "aiida-submission-controller",
     "pydantic",
     "ase",
-    "sphinx-rtd-theme"
+    "sphinx-rtd-theme",
+    "cclib",
+    "aiida-dataframe"
 ]
 
 [project.entry-points."aiida.data"]
