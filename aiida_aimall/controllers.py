@@ -211,7 +211,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
         code = orm.load_code(self.code_label)
         structure = self.get_parent_node_from_extras(extras_values)
         inputs = {
-            "fragment_label": extras_values[0],
+            "fragment_label": Str(extras_values[0]),
             "code": code,
             "parameters": Dict(self.g16_sp_params),
             "structure_str": structure,
