@@ -50,7 +50,9 @@ docs = [
     "markupsafe<2.1",
     "pandas",
     "numpy",
-    "aiida-submission-controller"
+    "aiida-submission-controller",
+    "pydantic",
+    "ase"
 ]
 
 [project.entry-points."aiida.data"]
