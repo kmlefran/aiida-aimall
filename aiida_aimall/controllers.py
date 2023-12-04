@@ -36,7 +36,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
     max_concurrent: int
     code_label: str
 
-    WORKFLOW_ENTRY_POINT = "AIMAllReor"
+    WORKFLOW_ENTRY_POINT = "aimreor"
 
     def __init__(
         self,
