@@ -35,8 +35,3 @@ If you have already set up your own aiida_aimall code using
 
     aimall-submit  # uses aiida_aimall.cli
 
-Available calculations
-++++++++++++++++++++++
-
-.. aiida-calcjob:: AimqbCalculation
-    :module: aiida_aimall.calculations
