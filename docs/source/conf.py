@@ -6,6 +6,9 @@
 import pathlib
 import sys
 import aiida
+import aiida_aimall
+import aiida_dataframe
+import aiida_submission_controller
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
