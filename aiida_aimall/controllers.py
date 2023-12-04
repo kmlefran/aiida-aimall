@@ -146,7 +146,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
                 }
             },
         }
-        return inputs, WorkflowFactory(self.CALCULATION_ENTRY_POINT)
+        return inputs, CalculationFactory(self.CALCULATION_ENTRY_POINT)
 
 
 class GaussianSubmissionController(FromGroupSubmissionController):
