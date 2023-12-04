@@ -23,7 +23,8 @@ keywords = ["aiida", "plugin"]
 requires-python = ">=3.11"
 dependencies = [
     "aiida-core>=2.0,<3",
-    "voluptuous"
+    "voluptuous",
+    "aiida-submission-controller"
 ]
 
 [project.urls]
@@ -48,7 +49,8 @@ docs = [
     "furo",
     "markupsafe<2.1",
     "pandas",
-    "numpy"
+    "numpy",
+    "aiida-submission-controller"
 ]
 
 [project.entry-points."aiida.data"]
@@ -61,6 +63,11 @@ docs = [
 [project.entry-points."aiida.parsers"]
 "aimqb.base" = "aiida_aimall.parsers:AimqbBaseParser"
 "gaussianwfx" = "aiida_aimall.parsers:GaussianWFXParser"
+
+[project.entry-points."aiida.workflows"]
+"multifrag" = "aiida_aimall.workchains:MultiFragmentWorkChain"
+"g16opt" = "aiida_aimall.workchains:G16OptWorkchain"
+"aimreor" = "aiida_aimall.workchains:AIMAllReor"
 
 [project.entry-points."aiida.cmdline.data"]
 "aimall" = "aiida_aimall.cli:data_cli"
@@ -76,6 +83,7 @@ disable = [
     "too-many-ancestors",
     "invalid-name",
     "duplicate-code",
+    "import-error"
 ]
 
 [tool.pytest.ini_options]
