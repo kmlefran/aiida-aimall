@@ -9,6 +9,12 @@ import aiida
 import aiida_aimall
 import aiida_dataframe
 import aiida_submission_controller
+import aiida.orm.nodes.data.dict.Dict
+import aiida.engine.processes.workchains.workchain.WorkChain
+import aiida.parsers.parser.Parser
+import aiida.orm.nodes.process.process.ProcessNode
+import aiida_submission_controller.from_group.FromGroupSubmissionController
+import aiida.engine.processes.calcjobs.calcjob.CalcJob
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
