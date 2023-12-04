@@ -61,9 +61,11 @@ intersphinx_mapping = {
     "aiida": ("https://aiida.readthedocs.io/projects/aiida-core/en/latest/",None)
 }
 
-nitpick_ignore = [
-    ("py:class", "type"),
-]
+nitpicky = True
+with open('nitpick-exceptions', 'r') as handle:
+    nitpick_ignore = [
+        tuple(line.strip().split(None, 1)) for line in handle.readlines() if line.strip() and not line.startswith('#')
+    ]
 
 
 def run_apidoc(_):
