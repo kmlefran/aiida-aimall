@@ -137,7 +137,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
         )
         inputs = {
             "code": code,
-            "frag_label": Str(extras_values[0]),
+            # "frag_label": Str(extras_values[0]),
             "parameters": aimparameters,
             "file": self.get_parent_node_from_extras(extras_values),
             "metadata": {
