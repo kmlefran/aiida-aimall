@@ -303,7 +303,7 @@ class G16OptWorkchain(WorkChain):
         builder = GaussianCalculation.get_builder()
         builder.structure_str = self.ctx.structure
         builder.parameters = self.ctx.params_with_cm
-        builder.fragment_label = self.inputs.fragment_label
+        builder.fragment_label = self.inputs.frag_label
         builder.code = self.inputs.g16_code
         builder.wfxgroup = self.inputs.wfxgroup
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 1}
