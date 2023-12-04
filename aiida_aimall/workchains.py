@@ -373,5 +373,5 @@ class AIMAllReor(WorkChain):
         struct_dict.store()
         reor_struct_group.add_nodes(struct_dict)
         struct_extras = EntityExtras(struct_dict)
-        struct_extras.set("smiles", self.frag_label.value)
+        struct_extras.set("smiles", self.inputs.frag_label.value)
         self.ctx.rot_structure = struct_dict
