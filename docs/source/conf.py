@@ -5,6 +5,7 @@
 
 import pathlib
 import sys
+import aiida
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
