@@ -345,6 +345,7 @@ class AIMAllReor(WorkChain):
             "tot_num_mpiprocs": 2,
         }
         aim_calc = self.submit(builder)
+        aim_calc.store()
         aim_noreor_group = load_group("prereor_aim")
         aim_noreor_group.add_nodes(aim_calc)
         out_dict = {"aim": aim_calc}
@@ -369,6 +370,7 @@ class AIMAllReor(WorkChain):
         """generate the gaussian input from rotated structure"""
         struct_dict = dict_to_structure(self.ctx.rot_struct_dict)
         reor_struct_group = load_group("reor_structs")
+        struct_dict.store()
         reor_struct_group.add_node(struct_dict)
         struct_extras = EntityExtras(struct_dict)
         struct_extras.set("smiles", self.frag_label.value)
