@@ -52,7 +52,8 @@ docs = [
     "numpy",
     "aiida-submission-controller",
     "pydantic",
-    "ase"
+    "ase",
+    "sphinx-rtd-theme"
 ]
 
 [project.entry-points."aiida.data"]
