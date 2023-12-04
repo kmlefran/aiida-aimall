@@ -58,6 +58,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "numpy": ("http://docs.scipy.org/doc/numpy/", None),
+    "aiida": ("https://aiida.readthedocs.io/projects/aiida-core/en/latest/",None)
 }
 
 nitpick_ignore = [

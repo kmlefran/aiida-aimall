@@ -15,10 +15,18 @@ AimqbParameters = DataFactory("aimall")
 
 
 class AimqbCalculation(CalcJob):
-    """
-    AiiDA calculation plugin wrapping the aimqb executable.
+    """AiiDA calculation plugin wrapping the aimqb executable.
 
-    AiiDA plugin wrapper for running aimqb on a file
+    Template:
+        parameters = AimqbParameters(
+            parameter_dict={
+                "naat": 2, 
+                "nproc": 2, 
+                "atlaprhocps": True
+                }
+        )
+        file=SinglefileData(io.BytesIO(file_string.encode()))
+            File can be wfn, wfx or fchk
     """
 
     INPUT_FILE = "aiida.wfx"
