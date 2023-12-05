@@ -5,9 +5,8 @@ Upon pip install, AimqbParameters  is accessible in AiiDA.data plugins
 Using the 'aimall' entry point
 """
 
-from voluptuous import Optional, Schema
-
 from aiida.orm import Dict
+from voluptuous import Optional, Schema
 
 # AIMQB's command line options and their expected type
 cmdline_options = {
