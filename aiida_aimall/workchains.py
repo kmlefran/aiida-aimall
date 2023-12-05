@@ -119,11 +119,12 @@ def generate_cml_fragments(params, cml_Dict):
         frame = identify_connected_fragments(
             inp, bb_patt=bb_patt, input_type=input_type, include_parent=True
         )
-        frame_list.append(frame)
-        mol = frame.at[0, "Parent"]
-        frag_dict, done_smi = output_ifc_dict(mol, frame, done_smi)
-        dict_list.append(frag_dict)
+
         if frame is not None:
+            frame_list.append(frame)
+            mol = frame.at[0, "Parent"]
+            frag_dict, done_smi = output_ifc_dict(mol, frame, done_smi)
+            dict_list.append(frag_dict)
             unique_frame = count_uniques(frame, False, uni_smi_type=True)
             if out_frame.empty:
                 out_frame = unique_frame
