@@ -1,5 +1,5 @@
 #
-# Sphinx configuration for aiida-test
+# Sphinx configuration for aiida-aimall
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.

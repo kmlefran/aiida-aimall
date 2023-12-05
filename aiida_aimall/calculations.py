@@ -4,12 +4,11 @@ Calculations provided by aiida_aimall.
 Upon pip install, AimqbCalculation is accessible in AiiDA.calculations plugins
 Using the 'aimall' entry point
 """
-from pymatgen.io.gaussian import GaussianInput  # pylint: disable=import-error
-
 from aiida.common import CalcInfo, CodeInfo, datastructures
 from aiida.engine import CalcJob, ExitCode
 from aiida.orm import Dict, Float, RemoteData, SinglefileData, Str, StructureData
 from aiida.plugins import DataFactory
+from pymatgen.io.gaussian import GaussianInput  # pylint: disable=import-error
 
 AimqbParameters = DataFactory("aimall")
 
@@ -18,15 +17,10 @@ class AimqbCalculation(CalcJob):
     """AiiDA calculation plugin wrapping the aimqb executable.
 
     Template:
-        parameters = AimqbParameters(
-            parameter_dict={
-                "naat": 2, 
-                "nproc": 2, 
-                "atlaprhocps": True
-                }
-        )
+        parameters = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
         file=SinglefileData(io.BytesIO(file_string.encode()))
             File can be wfn, wfx or fchk
+
     """
 
     INPUT_FILE = "aiida.wfx"
@@ -115,20 +109,21 @@ class GaussianWFXCalculation(CalcJob):
 
     parameters = Dict(dict={
         'link0_parameters': {
-            '%chk':'aiida.chk',
-            '%mem': '1024MB',
-            '%nprocshared': '2',
+        '%chk':'aiida.chk',
+        '%mem': '1024MB',
+        '%nprocshared': '2',
         },
         'functional':'PBE1PBE',
         'basis_set':'6-31g',
         'charge': 0,
         'multiplicity': 1,
         'route_parameters': {
-            'scf': {'cdiis': None}
-            'nosymm': None,
-            'opt': 'tight',
+        'scf': {'cdiis': None}
+        'nosymm': None,
+        'opt': 'tight',
         },
-    })
+        })
+
     """
 
     # Defaults
