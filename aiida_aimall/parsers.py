@@ -138,6 +138,7 @@ class GaussianWFXParser(Parser):
 
     Parses default cclib output as 'output_parameters' node and separates final SCF
     energy as 'energy_ev' and output structure as 'output_structure' (if applicable)
+
     """
 
     def parse(self, **kwargs):

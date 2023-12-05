@@ -19,7 +19,7 @@ class AimqbCalculation(CalcJob):
     Template:
         parameters = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
         file=SinglefileData(io.BytesIO(file_string.encode()))
-            File can be wfn, wfx or fchk
+        File can be wfn, wfx or fchk
 
     """
 
