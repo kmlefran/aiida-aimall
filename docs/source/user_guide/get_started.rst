@@ -34,4 +34,3 @@ If you have already set up your own aiida_aimall code using
 ``verdi code setup``, you may want to try the following command::
 
     aimall-submit  # uses aiida_aimall.cli
-
