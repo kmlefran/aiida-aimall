@@ -154,7 +154,7 @@ def generate_cml_fragments(params, cml_Dict):
             ):  # pylint:disable=consider-iterating-dictionary
                 out_dict[rep_key] = DictData(value)
             else:
-                with open("repeated_smiles.txt", encoding="utf-8") as of:
+                with open("repeated_smiles.txt", "w", encoding="utf-8") as of:
                     of.write(f"{rep_key} repeated\n")
     col_names = list(out_frame.columns)
     # Find indices of relevant columns
