@@ -104,6 +104,7 @@ def generate_cml_fragments(params, cml_Dict):
         dict
     """
     # pylint:disable=too-many-locals
+    # pylint:disable=too-many-statements
     cml_list = (
         cml_Dict.get_dict().values()
     )  # maybe just don't store cml files in database, just pass list to cgis here
@@ -148,7 +149,13 @@ def generate_cml_fragments(params, cml_Dict):
                 .replace("]", "rb")
                 .replace("=", "d")
             )
-            out_dict[rep_key] = DictData(value)
+            if rep_key not in list(
+                out_dict.keys()  # pylint:disable=consider-iterating-dictionary
+            ):  # pylint:disable=consider-iterating-dictionary
+                out_dict[rep_key] = DictData(value)
+            else:
+                with open("repeated_smiles.txt", encoding="utf-8") as of:
+                    of.write(f"{rep_key} repeated\n")
     col_names = list(out_frame.columns)
     # Find indices of relevant columns
     xyz_idx = col_names.index("xyz")
