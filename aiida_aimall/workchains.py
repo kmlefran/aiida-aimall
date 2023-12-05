@@ -126,11 +126,11 @@ def generate_cml_fragments(params, cml_Dict):
             frag_dict, done_smi = output_ifc_dict(mol, frame, done_smi)
             if frag_dict is not None:
                 dict_list.append(frag_dict)
-            unique_frame = count_uniques(frame, False, uni_smi_type=True)
+            unique_frame = count_uniques(frame, False, uni_smi_type=False)
             if out_frame.empty:
                 out_frame = unique_frame
             else:
-                out_frame = merge_uniques(out_frame, unique_frame, True)
+                out_frame = merge_uniques(out_frame, unique_frame, False)
     out_frame = out_frame.drop("Molecule", axis=1)
     out_frame = out_frame.drop("Parent", axis=1)
 
