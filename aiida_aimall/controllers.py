@@ -21,8 +21,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
     Args:
         parent_group_label: the string of a group label which contains various structures as orm.Str nodes
         group_label: the string of the group to put the GaussianCalculations in
-        max_concurrent: maximum number of concurrent processes. Expected behaviour is to set to a large number
-            since we will be submitting to Cedar which will manage
+        max_concurrent: maximum number of concurrent processes.
         code_label: label of code, e.g. gaussian@cedar
 
 

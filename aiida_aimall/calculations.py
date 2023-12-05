@@ -105,28 +105,7 @@ class AimqbCalculation(CalcJob):
 
 
 class GaussianWFXCalculation(CalcJob):
-    """AiiDA calculation plugin wrapping Gaussian
-
-    Template:
-    .. code-block:: python
-        parameters = Dict(dict={
-            'link0_parameters': {
-            '%chk':'aiida.chk',
-            '%mem': '1024MB',
-            '%nprocshared': '2',
-            },
-            'functional':'PBE1PBE',
-            'basis_set':'6-31g',
-            'charge': 0,
-            'multiplicity': 1,
-            'route_parameters': {
-            'scf': {'cdiis': None}
-            'nosymm': None,
-            'opt': 'tight',
-            },
-            })
-
-    """
+    """AiiDA calculation plugin wrapping Gaussian"""
 
     # Defaults
     INPUT_FILE = "aiida.inp"
