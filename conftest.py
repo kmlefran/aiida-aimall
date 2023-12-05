@@ -1,6 +1,5 @@
 """pytest fixtures for simplified testing."""
 import pytest
-
 from aiida.common import exceptions
 from aiida.orm import Computer, InstalledCode, QueryBuilder
 

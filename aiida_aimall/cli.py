@@ -8,7 +8,6 @@ directly into the 'verdi' command by using AiiDA-specific entry points like
 import sys
 
 import click
-
 from aiida.cmdline.commands.cmd_data import verdi_data
 from aiida.cmdline.params.types import DataParamType
 from aiida.cmdline.utils import decorators
