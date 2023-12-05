@@ -24,7 +24,11 @@ requires-python = ">=3.11"
 dependencies = [
     "aiida-core>=2.0,<3",
     "voluptuous",
-    "aiida-submission-controller"
+    "aiida-submission-controller",
+    "pydantic",
+    "ase",
+    "cclib",
+    "aiida-dataframe"
 ]
 
 [project.urls]

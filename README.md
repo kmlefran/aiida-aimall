@@ -17,11 +17,19 @@ intended to help developers get started with their AiiDA plugins.
   * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and builds documentation at every new commit
   * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
 * [`aiida_aimall/`](aiida_aimall/): The main source code of the plugin package
-  * [`data/`](aiida_aimall/data/): A new `DiffParameters` data class, used as input to the `DiffCalculation` `CalcJob` class
-  * [`calculations.py`](aiida_aimall/calculations.py): A new `DiffCalculation` `CalcJob` class
-  * [`cli.py`](aiida_aimall/cli.py): Extensions of the `verdi data` command line interface for the `DiffParameters` class
-  * [`parsers.py`](aiida_aimall/parsers.py): A new `Parser` for the `DiffCalculation`
-* [`docs/`](docs/): A documentation template ready for publication on [Read the Docs](http://aiida-diff.readthedocs.io/en/latest/)
+  * [`data/`](aiida_aimall/data/): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
+  * [`calculations.py`](aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class, and `GaussianWFXCalculation`, a modified version of `GaussianCalculation` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
+  * [`cli.py`](aiida_aimall/cli.py): Extensions of the `verdi data` command line interface for the `AimqbParameters` class
+  * [`parsers.py`](aiida_aimall/parsers.py): A new `Parser` for the `AimqbCalculation`, and `GaussianWFXParser`, a modified version of `GaussianBaseParser` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
+  * [`workchains.py`](aiida_aimall/workchains.py): New `WorkChains`.
+  * * `MultiFragmentWorkChain` to fragment molecules using cml files from the Retrievium database and submit Gaussian calculations for the fragments using functions in `frag_functions` from [subproptools Github](https:github.com/kmlefran/group_decomposition)
+  * * `G16OptWorkchain` to take output from `MultiFragmentWorkChain` and submit Gaussian optimization calculations
+  * * `AimAllReorWorkChain` to run `AimqbCalculation` on output from `GaussianWFXCalculations`, then reorient to coordinate systems defined in `subreor` from [subproptools Github](https:github.com/kmlefran/subproptools)
+* [`controllers.py`](aiida_aimall/controllers.py): Workflow controllers to limit number of running jobs on localhost computers.
+* * `AimReorSubmissionController` to control `AimReorWorkChain`s. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
+* * `AimAllSubmissionController` to control `AimqbCalculations``. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
+* * `GaussianSubmissionController` to control `GaussianWFXCalculations`. This is mostly intended to have a arbitrarily large number of max concurrents and scan for output structures of `AimReorWorkchain`s to submit to a remote cluster
+* [`docs/`](docs/): Source code of documentation for [Read the Docs](http://aiida-diff.readthedocs.io/en/latest/)
 * [`examples/`](examples/): An example of how to submit a calculation using this plugin
 * [`tests/`](tests/): Basic regression tests using the [pytest](https://docs.pytest.org/en/latest/) framework (submitting a calculation, ...). Install `pip install -e .[testing]` and run `pytest`.
 * [`.gitignore`](.gitignore): Telling git which files to ignore
