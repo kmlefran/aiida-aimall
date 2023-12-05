@@ -16,8 +16,7 @@ AimqbParameters = DataFactory("aimall")
 class AimqbCalculation(CalcJob):
     """AiiDA calculation plugin wrapping the aimqb executable.
 
-    Template:
-    .. code-block:: python
+    Args:
         parameters = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
         file=SinglefileData(io.BytesIO(file_string.encode()))
 
