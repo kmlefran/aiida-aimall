@@ -114,8 +114,8 @@ def generate_cml_fragments(params, cml_Dict):
     done_smi = []
     dict_list = []
     out_frame = pd.DataFrame()
-    for inp in cml_list:
-        print(inp)
+    for i, inp in enumerate(cml_list):
+        print(f"{i}/{len(cml_list)}")
         frame = identify_connected_fragments(
             inp, bb_patt=bb_patt, input_type=input_type, include_parent=True
         )
@@ -124,7 +124,8 @@ def generate_cml_fragments(params, cml_Dict):
             frame_list.append(frame)
             mol = frame.at[0, "Parent"]
             frag_dict, done_smi = output_ifc_dict(mol, frame, done_smi)
-            dict_list.append(frag_dict)
+            if frag_dict is not None:
+                dict_list.append(frag_dict)
             unique_frame = count_uniques(frame, False, uni_smi_type=True)
             if out_frame.empty:
                 out_frame = unique_frame
@@ -134,19 +135,20 @@ def generate_cml_fragments(params, cml_Dict):
     out_frame = out_frame.drop("Parent", axis=1)
 
     out_dict = {}
-    for key, value in frag_dict.items():
-        rep_key = (
-            key.replace("*", "Att")
-            .replace("#", "t")
-            .replace("(", "_")
-            .replace(")", "_")
-            .replace("-", "Neg")
-            .replace("+", "Pos")
-            .replace("[", "")
-            .replace("]", "")
-            .replace("=", "d")
-        )
-        out_dict[rep_key] = DictData(value)
+    for fd in dict_list:
+        for key, value in fd.items():
+            rep_key = (
+                key.replace("*", "Att")
+                .replace("#", "t")
+                .replace("(", "_")
+                .replace(")", "_")
+                .replace("-", "Neg")
+                .replace("+", "Pos")
+                .replace("[", "")
+                .replace("]", "")
+                .replace("=", "d")
+            )
+            out_dict[rep_key] = DictData(value)
     col_names = list(out_frame.columns)
     # Find indices of relevant columns
     xyz_idx = col_names.index("xyz")
