@@ -321,7 +321,7 @@ class G16OptWorkchain(WorkChain):
         builder.code = self.inputs.g16_code
         builder.wfxgroup = self.inputs.wfxgroup
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
-        builder.metadata.options.max_memory_kb = 384000
+        builder.metadata.options.max_memory_kb = 6400 * 1.25 * 1024
         builder.metadata.options.max_wallclock_seconds = 604800
         process_node = self.submit(builder)
         g16_opt_group = load_group("g16_opt")
