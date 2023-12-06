@@ -8,6 +8,7 @@ MultiFragmentWorkchain, entry point: multifrag
 G16OptWorkChain, entry point: g16opt
 AimAllReor WorkChain, entry point: aimreor
 """
+import re
 import sys
 
 import pandas as pd
@@ -122,6 +123,9 @@ def generate_cml_fragments(params, cml_Dict):
         )
 
         if frame is not None:
+            frame["Smiles"] = frame["Smiles"].apply(
+                lambda x: re.sub(r"\[[0-9]+\*\]", "*", x)
+            )
             frame_list.append(frame)
             mol = frame.at[0, "Parent"]
             frag_dict, done_smi = output_ifc_dict(mol, frame, done_smi)
@@ -141,12 +145,12 @@ def generate_cml_fragments(params, cml_Dict):
             rep_key = (
                 key.replace("*", "Att")
                 .replace("#", "t")
-                .replace("(", "_")
-                .replace(")", "_")
+                .replace("(", "lb")
+                .replace(")", "rb")
                 .replace("-", "Neg")
                 .replace("+", "Pos")
-                .replace("[", "lb")
-                .replace("]", "rb")
+                .replace("[", "ls")
+                .replace("]", "rs")
                 .replace("=", "d")
             )
             if rep_key not in list(
@@ -154,7 +158,7 @@ def generate_cml_fragments(params, cml_Dict):
             ):  # pylint:disable=consider-iterating-dictionary
                 out_dict[rep_key] = DictData(value)
             else:
-                with open("repeated_smiles.txt", "w", encoding="utf-8") as of:
+                with open("repeated_smiles.txt", "a", encoding="utf-8") as of:
                     of.write(f"{rep_key} repeated\n")
     col_names = list(out_frame.columns)
     # Find indices of relevant columns
