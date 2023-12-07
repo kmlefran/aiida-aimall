@@ -189,13 +189,7 @@ def generate_cml_fragments(params, cml_Dict, n_procs):
         if rep_key not in list(
             out_dict.keys()  # pylint:disable=consider-iterating-dictionary
         ):  # pylint:disable=consider-iterating-dictionary
-            t_data = DictData(value)
-            t_data.store()
-            struct_extras = EntityExtras(t_data)
-            struct_extras.set("smiles", rep_key)
-            g16_opt_group = load_group("inp_frag")
-            g16_opt_group.add_nodes(t_data)
-            out_dict[rep_key] = t_data
+            out_dict[rep_key] = DictData(value)
         else:
             with open("repeated_smiles.txt", "a", encoding="utf-8") as of:
                 of.write(f"{rep_key} repeated\n")
@@ -301,11 +295,22 @@ class MultiFragmentWorkChain(WorkChain):
 
     def generate_fragments(self):
         """perform the fragmenting"""
-        self.ctx.fragments = generate_cml_fragments(
+        fdict = generate_cml_fragments(
             self.inputs.frag_params,
             self.inputs.cml_file_dict,
             self.inputs.procs,
         )
+        g16_opt_group = load_group("inp_frag")
+        for (
+            key
+        ) in (  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
+            fdict.keys()  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
+        ):  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
+            fdict[key].store()
+            struct_extras = EntityExtras(fdict[key])
+            struct_extras.set("smiles", key)
+            g16_opt_group.add_nodes(fdict[key])
+        self.ctx.fragments = fdict
 
     # def submit_fragmenting(self):
     #     """submit all the fragmenting jobs as gaussian calculations"""
