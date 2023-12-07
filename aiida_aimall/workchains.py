@@ -10,10 +10,13 @@ AimAllReor WorkChain, entry point: aimreor
 """
 import re
 import sys
+from functools import partial
+from time import sleep
 
+import multiprocess as mp
 import pandas as pd
 from aiida.engine import ToContext, WorkChain, calcfunction
-from aiida.orm import Code, Dict, SinglefileData, Str, load_group
+from aiida.orm import Code, Dict, Int, SinglefileData, Str, load_group
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
 from group_decomposition.fragfunctions import (
@@ -33,6 +36,37 @@ AimqbParameters = DataFactory("aimall")
 AimqbCalculation = CalculationFactory("aimall")
 DictData = DataFactory("dict")
 PDData = DataFactory("dataframe.frame")
+
+
+def parallel_frags(inp, bb_patt, input_type):
+    """Generate list of dictionaries and unique frame for each cml file
+
+    Args:
+        inp: input for identify_connected_fragments, typically cml file name
+        bb_patt: pattern for third bond break
+        input_type: typically cml file
+
+    Returns:
+        list of dictionaries and unique frame
+
+    """
+    frame = identify_connected_fragments(
+        inp, bb_patt=bb_patt, input_type=input_type, include_parent=True
+    )
+    done_smi = []
+    dict_list = []
+    unique_frame = pd.DataFrame()
+    if frame is not None:
+        frame["Smiles"] = frame["Smiles"].apply(
+            lambda x: re.sub(r"\[[0-9]+\*\]", "*", x)
+        )
+        # frame_list.append(frame)
+        mol = frame.at[0, "Parent"]
+        frag_dict, done_smi = output_ifc_dict(mol, frame, done_smi)
+        if frag_dict is not None:
+            dict_list.append(frag_dict)
+        unique_frame = count_uniques(frame, False, uni_smi_type=False)
+    return [dict_list, unique_frame]
 
 
 @calcfunction
@@ -95,7 +129,7 @@ def parse_cml_files(singlefiledata):
 
 
 @calcfunction
-def generate_cml_fragments(params, cml_Dict):
+def generate_cml_fragments(params, cml_Dict, n_procs):
     """Fragment the molecule defined by a CML
 
     Args:
@@ -112,54 +146,54 @@ def generate_cml_fragments(params, cml_Dict):
     param_dict = params.get_dict()  # get dict from aiida node
     input_type = param_dict["input_type"]  # should set to cmldict
     bb_patt = param_dict["bb_patt"]
-    frame_list = []
-    done_smi = []
-    dict_list = []
-    out_frame = pd.DataFrame()
-    for i, inp in enumerate(cml_list):
-        print(f"{i}/{len(cml_list)}")
-        frame = identify_connected_fragments(
-            inp, bb_patt=bb_patt, input_type=input_type, include_parent=True
-        )
 
-        if frame is not None:
-            frame["Smiles"] = frame["Smiles"].apply(
-                lambda x: re.sub(r"\[[0-9]+\*\]", "*", x)
+    done_smi = []
+    # dict_list = []
+    fd = {}
+    out_frame = pd.DataFrame()
+    with mp.Pool(n_procs.value) as pool:  # pylint:disable=not-callable
+        result_list = list(
+            pool.map(
+                partial(parallel_frags, bb_patt=bb_patt, input_type=input_type),
+                cml_list,
             )
-            frame_list.append(frame)
-            mol = frame.at[0, "Parent"]
-            frag_dict, done_smi = output_ifc_dict(mol, frame, done_smi)
-            if frag_dict is not None:
-                dict_list.append(frag_dict)
-            unique_frame = count_uniques(frame, False, uni_smi_type=False)
-            if out_frame.empty:
-                out_frame = unique_frame
-            else:
-                out_frame = merge_uniques(out_frame, unique_frame, False)
+        )
+    frame_list = [res[1] for res in result_list]
+    for res in result_list:
+        frag_dict = res[0]
+        if frag_dict:
+            for key in frag_dict[0].keys():
+                if key not in done_smi:
+                    done_smi.append(key)
+                    # dict_list.append(frag_dict[0][key])
+                    fd[key] = frag_dict[0][key]
+    while len(frame_list) > 1:
+        frame_list = frame_list[2:] + [merge_uniques(frame_list[0], frame_list[1])]
+    out_frame = frame_list[0]
     out_frame = out_frame.drop("Molecule", axis=1)
     out_frame = out_frame.drop("Parent", axis=1)
 
     out_dict = {}
-    for fd in dict_list:
-        for key, value in fd.items():
-            rep_key = (
-                key.replace("*", "Att")
-                .replace("#", "t")
-                .replace("(", "lb")
-                .replace(")", "rb")
-                .replace("-", "Neg")
-                .replace("+", "Pos")
-                .replace("[", "ls")
-                .replace("]", "rs")
-                .replace("=", "d")
-            )
-            if rep_key not in list(
-                out_dict.keys()  # pylint:disable=consider-iterating-dictionary
-            ):  # pylint:disable=consider-iterating-dictionary
-                out_dict[rep_key] = DictData(value)
-            else:
-                with open("repeated_smiles.txt", "a", encoding="utf-8") as of:
-                    of.write(f"{rep_key} repeated\n")
+    # for fd in dict_list:
+    for key, value in fd.items():
+        rep_key = (
+            key.replace("*", "Att")
+            .replace("#", "t")
+            .replace("(", "lb")
+            .replace(")", "rb")
+            .replace("-", "Neg")
+            .replace("+", "Pos")
+            .replace("[", "ls")
+            .replace("]", "rs")
+            .replace("=", "d")
+        )
+        if rep_key not in list(
+            out_dict.keys()  # pylint:disable=consider-iterating-dictionary
+        ):  # pylint:disable=consider-iterating-dictionary
+            out_dict[rep_key] = DictData(value)
+        else:
+            with open("repeated_smiles.txt", "a", encoding="utf-8") as of:
+                of.write(f"{rep_key} repeated\n")
     col_names = list(out_frame.columns)
     # Find indices of relevant columns
     xyz_idx = col_names.index("xyz")
@@ -253,6 +287,7 @@ class MultiFragmentWorkChain(WorkChain):
         spec.input("cml_file_dict", valid_type=Dict)
         spec.input("frag_params", valid_type=Dict)
         spec.input("g16_code", valid_type=Code)
+        spec.input("procs", valid_type=Int, default=Int(8))
         # spec.input('aim_code',valid_type=Code)
         # spec.input('aim_params',valid_type=AimqbParameters)
         spec.input("g16_opt_params", valid_type=Dict)
@@ -262,7 +297,7 @@ class MultiFragmentWorkChain(WorkChain):
     def generate_fragments(self):
         """perform the fragmenting"""
         self.ctx.fragments = generate_cml_fragments(
-            self.inputs.frag_params, self.inputs.cml_file_dict
+            self.inputs.frag_params, self.inputs.cml_file_dict, self.inputs.procs
         )
 
     def submit_fragmenting(self):
@@ -277,9 +312,10 @@ class MultiFragmentWorkChain(WorkChain):
                     frag_label=Str(key),
                     g16_code=self.inputs.g16_code,
                 )
-                # aim_code=self.inputs.aim_code,
-                # aim_params=self.inputs.aim_params,
-                # g16_sp_params = self.inputs.g16_sp_params)
+            sleep(10)
+            # aim_code=self.inputs.aim_code,
+            # aim_params=self.inputs.aim_params,
+            # g16_sp_params = self.inputs.g16_sp_params)
 
 
 class G16OptWorkchain(WorkChain):
