@@ -297,7 +297,7 @@ class MultiFragmentWorkChain(WorkChain):
         # spec.input('aim_params',valid_type=AimqbParameters)
         # spec.input("g16_opt_params", valid_type=Dict)
         # spec.input('g16_sp_params',valid_type=Dict)
-        # spec.outline(cls.generate_fragments, cls.submit_fragmenting)
+        spec.outline(cls.generate_fragments, cls.submit_fragmenting)
 
     def generate_fragments(self):
         """perform the fragmenting"""
