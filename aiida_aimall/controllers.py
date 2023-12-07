@@ -217,7 +217,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
             "metadata": {
                 "options": {
                     "resources": {"num_machines": 1, "tot_num_mpiprocs": 1},
-                    "max_memory_kb": 384000,
+                    "max_memory_kb": int(3200 * 1.25) * 1024,
                     "max_wallclock_seconds": 604800,
                 }
             },
