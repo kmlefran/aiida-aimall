@@ -306,10 +306,11 @@ class MultiFragmentWorkChain(WorkChain):
         ) in (  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
             fdict.keys()  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
         ):  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
-            fdict[key].store()
-            struct_extras = EntityExtras(fdict[key])
-            struct_extras.set("smiles", key)
-            g16_opt_group.add_nodes(fdict[key])
+            if key != "cgis_frame":
+                fdict[key].store()
+                struct_extras = EntityExtras(fdict[key])
+                struct_extras.set("smiles", key)
+                g16_opt_group.add_nodes(fdict[key])
         self.ctx.fragments = fdict
 
     # def submit_fragmenting(self):
