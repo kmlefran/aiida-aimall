@@ -15,6 +15,48 @@ GaussianCalculation = CalculationFactory("gaussianwfx")
 AimqbCalculation = CalculationFactory("aimall")
 
 
+class G16FragController(FromGroupSubmissionController):
+    """A controller for submitting G16OptWorkChain"""
+
+    parent_group_label: str
+    group_label: str
+    code_label: str
+    max_concurrent: int
+    g16_opt_params: dict
+
+    WORKFLOW_ENTRY_POINT = "g16opt"
+
+    def __init__(
+        self,
+        code_label: str,
+        g16_opt_params: dict,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.code_label = code_label
+        self.g16_opt_params = g16_opt_params
+
+    def get_extra_unique_keys(self):
+        """Returns a tuple of extras keys in the order needed"""
+        return ("smiles",)
+
+    def get_inputs_and_processclass_from_extras(self, extras_values):
+        """Constructs input for a GaussianWFXCalculation from extra_values
+
+        Note: adjust the metadata options later for 6400MB and 7days runtime
+        """
+        code = orm.load_code(self.code_label)
+        structure = self.get_parent_node_from_extras(extras_values)
+        inputs = {
+            "frag_label": Str(extras_values[0]),
+            "fragment_dict": structure,
+            "g16_code": code,
+            "g16_opt_parameters": Dict(self.g16_opt_params),
+        }
+        return inputs, WorkflowFactory(self.WORKFLOW_ENTRY_POINT)
+
+
 class AimReorSubmissionController(FromGroupSubmissionController):
     """A controller for submitting AIMReor Workchains.
 

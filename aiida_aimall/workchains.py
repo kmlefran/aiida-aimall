@@ -11,7 +11,6 @@ AimAllReor WorkChain, entry point: aimreor
 import re
 import sys
 from functools import partial
-from time import sleep
 
 import multiprocess as mp
 import pandas as pd
@@ -190,7 +189,13 @@ def generate_cml_fragments(params, cml_Dict, n_procs):
         if rep_key not in list(
             out_dict.keys()  # pylint:disable=consider-iterating-dictionary
         ):  # pylint:disable=consider-iterating-dictionary
-            out_dict[rep_key] = DictData(value)
+            t_data = DictData(value)
+            t_data.store()
+            struct_extras = EntityExtras(t_data)
+            struct_extras.set("smiles", rep_key)
+            g16_opt_group = load_group("inp_frag")
+            g16_opt_group.add_nodes(t_data)
+            out_dict[rep_key] = t_data
         else:
             with open("repeated_smiles.txt", "a", encoding="utf-8") as of:
                 of.write(f"{rep_key} repeated\n")
@@ -290,32 +295,35 @@ class MultiFragmentWorkChain(WorkChain):
         spec.input("procs", valid_type=Int, default=Int(8))
         # spec.input('aim_code',valid_type=Code)
         # spec.input('aim_params',valid_type=AimqbParameters)
-        spec.input("g16_opt_params", valid_type=Dict)
+        # spec.input("g16_opt_params", valid_type=Dict)
         # spec.input('g16_sp_params',valid_type=Dict)
-        spec.outline(cls.generate_fragments, cls.submit_fragmenting)
+        # spec.outline(cls.generate_fragments, cls.submit_fragmenting)
 
     def generate_fragments(self):
         """perform the fragmenting"""
         self.ctx.fragments = generate_cml_fragments(
-            self.inputs.frag_params, self.inputs.cml_file_dict, self.inputs.procs
+            self.inputs.frag_params,
+            self.inputs.cml_file_dict,
+            self.inputs.procs,
         )
 
-    def submit_fragmenting(self):
-        """submit all the fragmenting jobs as gaussian calculations"""
-        for key, molecule in self.ctx.fragments.items():
-            # print(molecule)
-            if isinstance(molecule, Dict):
-                self.submit(
-                    G16OptWorkchain,
-                    g16_opt_params=self.inputs.g16_opt_params,
-                    fragment_dict=molecule,
-                    frag_label=Str(key),
-                    g16_code=self.inputs.g16_code,
-                )
-            sleep(10)
-            # aim_code=self.inputs.aim_code,
-            # aim_params=self.inputs.aim_params,
-            # g16_sp_params = self.inputs.g16_sp_params)
+    # def submit_fragmenting(self):
+    #     """submit all the fragmenting jobs as gaussian calculations"""
+    #     for key, molecule in self.ctx.fragments.items():
+    #         # print(molecule)
+    #         if isinstance(molecule, Dict):
+    #             self.submit(
+    #                 G16OptWorkchain,
+    #                 g16_opt_params=self.inputs.g16_opt_params,
+    #                 fragment_dict=molecule,
+    #                 frag_label=Str(key),
+    #                 g16_code=self.inputs.g16_code,
+    #             )
+    #         sleep(10)
+
+    # aim_code=self.inputs.aim_code,
+    # aim_params=self.inputs.aim_params,
+    # g16_sp_params = self.inputs.g16_sp_params)
 
 
 class G16OptWorkchain(WorkChain):
