@@ -291,7 +291,7 @@ class MultiFragmentWorkChain(WorkChain):
         super().define(spec)
         spec.input("cml_file_dict", valid_type=Dict)
         spec.input("frag_params", valid_type=Dict)
-        spec.input("g16_code", valid_type=Code)
+        # spec.input("g16_code", valid_type=Code)
         spec.input("procs", valid_type=Int, default=Int(8))
         # spec.input('aim_code',valid_type=Code)
         # spec.input('aim_params',valid_type=AimqbParameters)
