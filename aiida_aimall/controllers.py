@@ -52,7 +52,7 @@ class G16FragController(FromGroupSubmissionController):
             "frag_label": Str(extras_values[0]),
             "fragment_dict": structure,
             "g16_code": code,
-            "g16_opt_parameters": Dict(self.g16_opt_params),
+            "g16_opt_params": Dict(self.g16_opt_params),
         }
         return inputs, WorkflowFactory(self.WORKFLOW_ENTRY_POINT)
 
