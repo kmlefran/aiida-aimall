@@ -59,7 +59,8 @@ docs = [
     "ase",
     "sphinx-rtd-theme",
     "cclib",
-    "aiida-dataframe"
+    "aiida-dataframe",
+    "multiprocess"
 ]
 
 [project.entry-points."aiida.data"]
