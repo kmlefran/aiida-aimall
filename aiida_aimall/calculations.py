@@ -1,8 +1,9 @@
-"""
-Calculations provided by aiida_aimall.
+"""Calculations provided by aiida_aimall.
 
 Upon pip install, AimqbCalculation is accessible in AiiDA.calculations plugins
-Using the 'aimall' entry point
+Using the 'aimall' entry point, and GaussianWFXCalculation is accessible with the 'gaussianwfx'
+entry point
+
 """
 from aiida.common import CalcInfo, CodeInfo, datastructures
 from aiida.engine import CalcJob, ExitCode
@@ -16,11 +17,24 @@ AimqbParameters = DataFactory("aimall")
 class AimqbCalculation(CalcJob):
     """AiiDA calculation plugin wrapping the aimqb executable.
 
+    Attributes:
+        parameters (AimqbParameters): command line parameters for the AimqbCalculation
+        file (SinglefileData): the wfx, wfn, or fchk file to be run
 
-    parameters = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
-    file=SinglefileData(io.BytesIO(file_string.encode()))
+    Example:
+        ::
 
-    File can be wfn, wfx or fchk
+            code = orm.load_code('aimall@localhost')
+            AimqbParameters = DataFactory("aimall")
+            aim_params = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
+            file=SinglefileData(io.BytesIO(file_string.encode()))
+            AimqbCalculation = CalculationFactory("aimall")
+            builder  = AimqbCalculation.get_builder()
+            builder.parameters = aim_params
+            builder.file = file
+            builder.code = code
+            builder.metadata.options.resources = {"num_machines": 1, "num_mpiprocs_per_machine": 2}
+            builder.submit()
 
     """
 

@@ -150,7 +150,7 @@ def generate_cml_fragments(params, cml_Dict, n_procs):
     # dict_list = []
     fd = {}
     out_frame = pd.DataFrame()
-    with mp.Pool(n_procs.value) as pool:  # pylint:disable=not-callable
+    with mp.Pool(n_procs.value) as pool:  # pylint:disable=not-callable no-member
         result_list = list(
             pool.map(
                 partial(parallel_frags, bb_patt=bb_patt, input_type=input_type),
