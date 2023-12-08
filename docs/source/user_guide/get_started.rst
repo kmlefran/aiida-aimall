@@ -2,9 +2,6 @@
 Getting started
 ===============
 
-This page should contain a short guide on what the plugin does and
-a short example on how to use the plugin.
-
 Installation
 ++++++++++++
 
@@ -64,6 +61,8 @@ Step 6: Setup profile
     verdi quicksetup
     verdi profile setdefault <PROFILE>
 
+You will be prompted in the quicksetup command, answer as suits you for profile name etc
+
 Note that in the second line, <PROFILE> should be whatever you set in the prompts for verdi quicksetup.
 
 Step 7: Launch Daemons and Verify
@@ -88,9 +87,130 @@ Step 8: Install aiida-aimall
     verdi plugin list aiida.data # should shoul AimqbParameters
     verdi plugin list aiida.workflows # should show multifrag aimreor and g16opt
 
+Step 8: Computer Setup
+----------------------
+You'll likely need to setup at least two computers: localhost(your desktop) and the remote cluster you are submitting to. To do this, it is easiest to use a .yml file.
+
+First though, you need to ensure that you have an ssh key setup for the remote cluster. That is if you ssh username@cluster.computecanada.ca, you don't need to enter your password. Follow sshSetup_
+
+Back to configuring the computer, here is an example yml file for the remote cluster cedar:
+::
+
+    label: "cedar"
+    hostname: "cedar.computecanada.ca"
+    transport: "core.ssh"
+    scheduler: "core.slurm"
+    work_dir: "/home/kgagnon/project/kgagnon/aiida"
+    mpirun_command: "mpirun -np {tot_num_mpiprocs}"
+    mpiprocs_per_machine: "4"
+    description: "Cedar computer"
+    default_memory_per_machine: "6553600"
+    prepend_text: ""
+    append_text: ""
+    shebang: "#!/bin/bash"
+
+In the directory that this cedar.yml is in, run::
+
+    verdi computer setup --config cedar.yml
+
+You will be prompted asking if you want to escape commands in double quotes. Type "N". This should bring you back to the command line. You then need to configure the computer. Now run::
+
+    verdi -p your_aiida_profile computer configure core.ssh cedar4
+
+
+
+For username, enter your DRAC username. (e.g. kgagnon)
+Use the defaults for the rest as you are prompted. Defaults on Y/n options are shown in capitals. The full list here is:
+
+::
+
+    User name [chemlab]: kgagnon
+    Port number [22]:
+    Look for keys [Y/n]: Y
+    SSH key file []:
+    Connection timeout in s [60]:
+    Allow ssh agent [Y/n]: Y
+    SSH proxy jump []:
+    SSH proxy command []:
+    Compress file transfers [Y/n]: Y
+    GSS auth [False]:
+    GSS kex [False]:
+    GSS deleg_creds [False]:
+    GSS host [cedar.computecanada.ca]:
+    Load system host keys [Y/n]: Y
+    Key policy (RejectPolicy, WarningPolicy, AutoAddPolicy) [RejectPolicy]:
+    Use login shell when executing command [Y/n]: Y
+    Connection cooldown time (s) [30.0]:
+
+Now, test to make sure that the computer workflows::
+
+    verdi computer test cedar
+
+Should return all passes
+
+You need to do similar steps for the localhost computer. yml file. Here is the yml for localhost
+
+::
+
+    hostname: "localhost"
+    transport: "core.local"
+    scheduler: "core.direct"
+    work_dir: "/Users/chemlab/.aiida_run"
+    mpirun_command: "mpirun -np {tot_num_mpiprocs}"
+    mpiprocs_per_machine: "4"
+    description: "localhost computer"
+    prepend_text: ""
+    append_text: ""
+    shebang: "#!/bin/bash"
+
+Still use N for escaping command line arguments
+
+You need to configure and test it again, similar to before but with less prompts
+
+::
+
+    verdi -p your_aiida_profile computer configure core.local localhosttest
+
+    Use login shell when executing command [Y/n]: n
+    Connection cooldown time (s) [0.0]:
+
+    verdi computer test localhost
+
+Should return passes
+
 Step 9: Setup Code plugins
 --------------------------
-Write more info here
+Again, use .yml files like those shown here:
+
+e.g. for AIMAll:
+::
+
+    label: 'aimall'
+    description: 'aimall'
+    default_calc_job_plugin: 'aimall'
+    filepath_executable: '/Applications/AIMAll/AIMQB.app/Contents/MacOS/aimqb'
+    computer: 'localhost'
+    prepend_text: ' '
+    append_text: ' '
+
+e.g. for gaussian::
+
+    label: 'gaussian'
+    description: 'gaussian'
+    default_calc_job_plugin: 'gaussianwfx'
+    filepath_executable: '/opt/software/gaussian/g16.c01/g16'
+    computer: 'cedar'
+    prepend_text: 'module load gaussian/g16.c01'
+    append_text: ' '
+
+For both, run (changing yml file name)
+::
+
+    verdi code create core.code.installed --config aimall.yml
+
+And N for double quotes again
+
+And with that, AiiDA should be all setup!
 
 Usage
 +++++
@@ -102,3 +222,4 @@ Write example here
 .. _AiidaSetup: https://aiida.readthedocs.io/projects/aiida-core/en/latest/intro/install_conda.html#intro-get-started-conda-install
 .. _PostGresSQl: https://postgresapp.com/
 .. _Conda: https://docs.conda.io/en/latest/
+.. _sshSetup: https://docs.alliancecan.ca/wiki/SSH_Keys
