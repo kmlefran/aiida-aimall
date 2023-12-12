@@ -139,6 +139,8 @@ class GaussianWFXParser(Parser):
     Parses default cclib output as 'output_parameters' node and separates final SCF
     energy as 'energy_ev' and output structure as 'output_structure' (if applicable)
 
+    Adapted from aiida-gaussian https://github.com/nanotech-empa/aiida-gaussian, Copyright (c) 2020 Kristjan Eimre.
+
     """
 
     def parse(self, **kwargs):

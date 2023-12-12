@@ -28,7 +28,8 @@ dependencies = [
     "pydantic",
     "ase",
     "cclib",
-    "aiida-dataframe"
+    "aiida-dataframe",
+    "multiprocess"
 ]
 
 [project.urls]

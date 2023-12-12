@@ -118,7 +118,10 @@ class AimqbCalculation(CalcJob):
 
 
 class GaussianWFXCalculation(CalcJob):
-    """AiiDA calculation plugin wrapping Gaussian"""
+    """AiiDA calculation plugin wrapping Gaussian
+
+    Adapted from aiida-gaussian https://github.com/nanotech-empa/aiida-gaussian, Copyright (c) 2020 Kristjan Eimre.
+    """
 
     # Defaults
     INPUT_FILE = "aiida.inp"
