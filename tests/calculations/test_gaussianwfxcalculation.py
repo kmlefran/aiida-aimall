@@ -34,6 +34,7 @@ def test_gaussianwfx_default(fixture_sandbox, generate_calc_job, fixture_code):
         "code": fixture_code("gaussianwfx"),
         "parameters": Dict(g16_sp_params),
         "structure_str": Str("H 0.0 0.0 0.0"),
+        "wfxgroup": Str("test"),
         "metadata": {
             "options": {
                 "resources": {"num_machines": 1, "tot_num_mpiprocs": 1},
