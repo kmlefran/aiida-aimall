@@ -41,7 +41,19 @@ testing = [
     "wheel~=0.31",
     "coverage[toml]",
     "pytest~=6.0",
-    "pytest-cov"
+    "pytest-cov",
+    'pytest~=6.0',
+    'pytest-regressions~=2.3',
+    "pandas",
+    "numpy",
+    "aiida-submission-controller",
+    "pydantic",
+    "ase",
+    "sphinx-rtd-theme",
+    "cclib",
+    "aiida-dataframe",
+    "multiprocess"
+
 ]
 pre-commit = [
     "pre-commit~=2.2",
@@ -97,14 +109,28 @@ disable = [
     "import-error"
 ]
 
+[tool.pylint.basic]
+good-names = [
+    'SinglefileData',
+    'FromGroupSubmissionController'
+]
+
 [tool.pytest.ini_options]
 # Configuration for [pytest](https://docs.pytest.org)
+minversion = '6.0'
+testpaths = [
+    'tests',
+]
 python_files = "test_*.py"
 filterwarnings = [
     "ignore::DeprecationWarning:aiida:",
     "ignore:Creating AiiDA configuration folder:",
     "ignore::DeprecationWarning:plumpy:",
     "ignore::DeprecationWarning:yaml:",
+    'ignore:Creating AiiDA configuration folder.*:UserWarning',
+    'ignore::DeprecationWarning:frozendict:',
+    'ignore::DeprecationWarning:pkg_resources:',
+    'ignore::DeprecationWarning:sqlalchemy_utils:',
 ]
 
 [tool.coverage.run]
@@ -122,19 +148,21 @@ known_aiida = ['aiida']
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py38
+envlist =
+    py311
+    py311-pre-commit
 
 [testenv]
+description = Run the pytest tests
 usedevelop=True
-
-[testenv:py{37,38,39,310,311}]
-description = Run the test suite against a python version
-extras = testing
+extras = tests
 commands = pytest {posargs}
 
-[testenv:pre-commit]
+[testenv:py311-pre-commit]
 description = Run the pre-commit checks
-extras = pre-commit
+extras =
+    tests
+    pre-commit
 commands = pre-commit run {posargs}
 
 [testenv:docs]
