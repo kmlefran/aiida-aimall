@@ -106,7 +106,8 @@ disable = [
     "too-many-ancestors",
     "invalid-name",
     "duplicate-code",
-    "import-error"
+    "import-error",
+    "import-outside-toplevel"
 ]
 
 [tool.pylint.basic]
