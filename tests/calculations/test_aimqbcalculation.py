@@ -19,7 +19,7 @@ def test_aimqb_default(
         "parameters": parameters,
         "file": SinglefileData(
             os.path.join(
-                filepath_tests(),
+                filepath_tests,
                 "calculations/inputs",
                 "water_wb97xd_augccpvtz_qtaim.wfx",
             )
