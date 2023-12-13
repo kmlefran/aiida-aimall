@@ -30,7 +30,7 @@ def test_gaussianwfx_default(fixture_sandbox, generate_calc_job, fixture_code):
         "input_parameters": {"output.wfx": None},  # appended at the end of the input
     }
     inputs = {
-        "fragment_label": "H",
+        "fragment_label": Str("H"),
         "code": fixture_code("gaussianwfx"),
         "parameters": Dict(g16_sp_params),
         "structure_str": Str("H 0.0 0.0 0.0"),
