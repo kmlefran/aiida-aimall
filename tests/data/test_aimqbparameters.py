@@ -1,6 +1,8 @@
 """ Tests for calculations."""
 # import os
 
+import pytest
+
 # from aiida.engine import run
 # from aiida.orm import Dict, SinglefileData  # , load_code
 # from aiida.plugins import CalculationFactory, DataFactory
@@ -10,6 +12,7 @@ from aiida.plugins import DataFactory
 # from . import TEST_DIR
 
 
+@pytest.mark.usefixtures("aiida_profile")
 def test_data():
     # def test_process():
     """Test running a calculation
