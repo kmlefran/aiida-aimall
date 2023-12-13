@@ -1,0 +1,7 @@
+---
+label: aim
+description: aimqb executable
+default_calc_job_plugin: aimall
+computer: localhost
+prepend_text: ' '
+append_text: ' '
