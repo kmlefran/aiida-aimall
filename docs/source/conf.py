@@ -201,6 +201,7 @@ nitpick_ignore = [
         "py:class",
         "aiida_submission_controller.from_group.FromGroupSubmissionController",
     ),
+    ("py:class", "SinglefileData"),
 ]
 
 
