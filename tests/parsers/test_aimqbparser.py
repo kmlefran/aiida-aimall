@@ -39,15 +39,23 @@ def generate_aimqb_inputs():
     return _generate_aimqb_inputs
 
 
-def test_aimqb_parser_default(
-    fixture_localhost, generate_calc_job_node, generate_parser, generate_aimqb_inputs
+def test_aimqb_parser_default(  # pylint:disable=too-many-arguments
+    fixture_localhost,
+    generate_calc_job_node,
+    generate_parser,
+    generate_aimqb_inputs,
+    fixture_code,
+    filepath_tests,
 ):
     """Test an aimqb calculation"""
     name = "default"
     entry_point_calc_job = "aimall"
     entry_point_parser = "aimqb.base"
     node = generate_calc_job_node(
-        entry_point_calc_job, fixture_localhost, name, generate_aimqb_inputs()
+        entry_point_calc_job,
+        fixture_localhost,
+        name,
+        generate_aimqb_inputs(fixture_code, filepath_tests),
     )
     parser = generate_parser(entry_point_parser)
     results, calcfunction = parser.parse_from_node(node, store_provenance=False)
