@@ -66,5 +66,7 @@ def test_aimqb_parser_default(  # pylint:disable=too-many-arguments
     # assert not orm.Log.collection.get_logs_for(node), [
     #     log.message for log in orm.Log.collection.get_logs_for(node)
     # ]
-    assert "atomic_properties" in results
-    assert "bcp_properties" in results
+    assert "output_parameters" in results
+    results_dict = results["output_parameters"].get_dict()
+    assert "atomic_properties" in results_dict
+    assert "bcp_properties" in results_dict
