@@ -1,0 +1,96 @@
+<Title>
+ Title Card Required
+</Title>
+<Keywords>
+ GTO
+</Keywords>
+<Number of Nuclei>
+ 2
+</Number of Nuclei>
+<Number of Occupied Molecular Orbitals>
+ 1
+</Number of Occupied Molecular Orbitals>
+<Number of Perturbations>
+ 0
+</Number of Perturbations>
+<Net Charge>
+ 0
+</Net Charge>
+<Number of Electrons>
+ 2
+</Number of Electrons>
+<Number of Alpha Electrons>
+ 1
+</Number of Alpha Electrons>
+<Number of Beta Electrons>
+ 1
+</Number of Beta Electrons>
+<Electronic Spin Multiplicity>
+ 1
+</Electronic Spin Multiplicity>
+<Number of Core Electrons>
+ 0
+</Number of Core Electrons>
+<Nuclear Names>
+ H1
+ H2
+</Nuclear Names>
+<Atomic Numbers>
+ 1
+ 1
+</Atomic Numbers>
+<Nuclear Charges>
+  1.000000000000e+00
+  1.000000000000e+00
+</Nuclear Charges>
+<Nuclear Cartesian Coordinates>
+  0.000000000000e+00  0.000000000000e+00  6.943070759595e-01
+  8.502809381991e-17  0.000000000000e+00 -6.943070759595e-01
+</Nuclear Cartesian Coordinates>
+<Nuclear Cartesian Energy Gradients>
+ H1 -1.182133304643e-17  5.449834635225e-18 -4.687289578698e-08
+ H2  1.182133304643e-17 -5.449834635225e-18  4.687289578698e-08
+</Nuclear Cartesian Energy Gradients>
+<Nuclear Virial of Energy-Gradient-Based Forces on Nuclei, W>
+ 6.508836643121e-08
+</Nuclear Virial of Energy-Gradient-Based Forces on Nuclei, W>
+<Full Virial Ratio, -(V - W)/T>
+ 2.001850670061e+00
+</Full Virial Ratio, -(V - W)/T>
+<Number of Primitives>
+ 6
+</Number of Primitives>
+<Primitive Centers>
+                   1                   1                   1                   2                   2
+                   2
+</Primitive Centers>
+<Primitive Types>
+                   1                   1                   1                   1                   1
+                   1
+</Primitive Types>
+<Primitive Exponents>
+  5.447178000000e+00  8.245472400000e-01  1.831915800000e-01  5.447178000000e+00  8.245472400000e-01
+  1.831915800000e-01
+</Primitive Exponents>
+<Molecular Orbital Occupation Numbers>
+  2.000000000000e+00
+</Molecular Orbital Occupation Numbers>
+<Molecular Orbital Energies>
+ -5.942416154180e-01
+</Molecular Orbital Energies>
+<Molecular Orbital Spin Types>
+ Alpha and Beta
+</Molecular Orbital Spin Types>
+<Molecular Orbital Primitive Coefficients>
+<MO Number>
+ 1
+</MO Number>
+  1.154317814456e-01  1.621591100870e-01  6.197359654562e-02  1.154317814456e-01
+  1.621591100870e-01  6.197359654562e-02
+</Molecular Orbital Primitive Coefficients>
+<Energy = T + Vne + Vee + Vnn>
+ -1.122959837505e+00
+</Energy = T + Vne + Vee + Vnn>
+<Virial Ratio (-V/T)>
+ 2.001850611992e+00
+</Virial Ratio (-V/T)>
