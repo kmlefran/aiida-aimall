@@ -7,7 +7,16 @@ entry point
 """
 from aiida.common import CalcInfo, CodeInfo, datastructures
 from aiida.engine import CalcJob, ExitCode
-from aiida.orm import Dict, Float, RemoteData, SinglefileData, Str, StructureData
+from aiida.orm import (
+    Dict,
+    Float,
+    Int,
+    List,
+    RemoteData,
+    SinglefileData,
+    Str,
+    StructureData,
+)
 from aiida.plugins import DataFactory
 from pymatgen.io.gaussian import GaussianInput  # pylint: disable=import-error
 
@@ -59,6 +68,18 @@ class AimqbCalculation(CalcJob):
         # spec.input(
         #     'metadata.options.output_filename', valid_type=str, default='aiida.out'
         # )
+        spec.input(
+            "attached_atom_int",
+            valid_type=Int,
+            help="id # of attached atom for graph descriptor",
+            default=1,
+        )
+        spec.input(
+            "group_atoms",
+            valid_type=List,
+            help="Integer ids of atoms in groups to include",
+            default=[],
+        )
         spec.input(
             "parameters",
             valid_type=AimqbParameters,

@@ -85,6 +85,7 @@ docs = [
 
 [project.entry-points."aiida.parsers"]
 "aimqb.base" = "aiida_aimall.parsers:AimqbBaseParser"
+"aimqb.group" = "aiida_aimall.parsers:AimqbGroupParser"
 "gaussianwfx" = "aiida_aimall.parsers:GaussianWFXParser"
 
 [project.entry-points."aiida.workflows"]

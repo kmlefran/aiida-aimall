@@ -1,3 +1,4 @@
+# pylint:disable=too-many-function-args
 """
 Parsers provided by aiida_aimall.
 
@@ -294,3 +295,97 @@ class GaussianWFXParser(Parser):
             return self.exit_codes.ERROR_NO_NORMAL_TERMINATION
 
         return None
+
+
+class AimqbGroupParser(AimqbBaseParser):
+    """
+    Parser class for parsing output of calculation.
+    """
+
+    def parse(self, **kwargs):
+        """Parse outputs, store results in database.
+
+        :returns: an exit code, if parsing fails (or nothing if parsing succeeds)
+        """
+        # convenience method to get filename of output file
+        # output_filename = self.node.get_option("output_filename")
+        input_parameters = self.node.inputs.parameters
+        output_filename = self.node.process_class.OUTPUT_FILE
+
+        # Check that folder content is as expected
+        files_retrieved = self.retrieved.list_object_names()
+        files_expected = [
+            output_filename.replace("out", "sum"),
+            output_filename.replace(".out", "_atomicfiles"),
+        ]
+        # Note: set(A) <= set(B) checks whether A is a subset of B
+        if not set(files_expected) <= set(files_retrieved):
+            self.logger.error(
+                f"Found files '{files_retrieved}', expected to find '{files_expected}'"
+            )
+            # return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
+            return
+
+        # parse output file
+        self.logger.info(f"Parsing '{output_filename}'")
+        OutFolderData = self.retrieved
+        with OutFolderData.open(output_filename.replace("out", "sum"), "rb") as handle:
+            output_node = SinglefileData(file=handle)
+            sum_lines = output_node.get_content()
+            out_dict = {
+                "atomic_properties": self._parse_atomic_props(sum_lines),
+                "bcp_properties": self._parse_bcp_props(sum_lines),
+            }
+        # if laprhocps were calculated, get cc_properties
+        if "-atlaprhocps=True" in input_parameters.cmdline_params("foo"):
+            out_dict["cc_properties"] = self._parse_cc_props(
+                out_dict["atomic_properties"]
+            )
+        out_dict["graph_descriptor"] = self._parse_graph_descriptor(out_dict)
+        # store in node
+        if self.node.inputs.group_atoms:
+            group_nums = self.node.inputs.group_atoms.get_list()
+
+            out_dict["group_descriptor"] = self._parse_group_descriptor(
+                out_dict["atomic_properties"], group_nums
+            )
+        self.outputs.output_parameters = Dict(out_dict)
+
+        return  # ExitCode(0)
+
+    def _parse_graph_descriptor(self, out_dict):
+        """Get atomic, BCP, and VSCC properties of atom 1"""
+        graph_dict = {}
+        at_id = self.node.inputs.attached_atom_int.value
+        # Find the atom property dictionary corresponding to the attached atom
+        # Also add the atomic symbol to the property dictionary
+        for key, value in out_dict["atomic_properties"].items():
+            at_num = int("".join(x for x in key if x.isdigit()))
+            if at_num == at_id:
+                graph_dict["attached_atomic_props"] = value
+                graph_dict["attached_atomic_props"]["symbol"] = "".join(
+                    x for x in key if not x.isdigit()
+                )
+                break
+        graph_dict["attached_bcp_props"] = {}
+        for key, value in out_dict["bcp_properties"]:
+            num_bond = "".join(x for x in key if x.isdigit() or x == "-")
+            at_nums = num_bond.split("-")
+            if str(at_id) in at_nums:
+                graph_dict["attached_bcp_props"][key] = value
+        if "cc_properties" in list(out_dict.keys()):
+            for key, value in out_dict["cc_properties"].items():
+                at_num = int("".join(x for x in key if x.isdigit()))
+                if at_num == at_id:
+                    graph_dict["attached_cc_props"] = value
+                    graph_dict["attached_cc_props"]["symbol"] = "".join(
+                        x for x in key if not x.isdigit()
+                    )
+                    break
+        return graph_dict
+
+    def _parse_group_descriptor(self, atomic_properties, sub_atom_ints):
+        """Convert atomic properties to group properties given atoms in group to use"""
+        atoms = list(atomic_properties.keys())
+        sub_atom_strs = [atoms[x - 1] for x in sub_atom_ints]
+        return qt.get_sub_props(atomic_properties, sub_atom_ints, sub_atom_strs)
