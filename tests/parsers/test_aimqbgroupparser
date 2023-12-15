@@ -34,7 +34,7 @@ def generate_aimqb_inputs():
 
     return _generate_aimqb_group_inputs
 
-def test_aimqb_parser_default(  # pylint:disable=too-many-arguments
+def test_aimqb_parser_group(  # pylint:disable=too-many-arguments
     fixture_localhost,
     generate_calc_job_node,
     generate_parser,
@@ -60,6 +60,7 @@ def test_aimqb_parser_default(  # pylint:disable=too-many-arguments
     # assert not orm.Log.collection.get_logs_for(node), [
     #     log.message for log in orm.Log.collection.get_logs_for(node)
     # ]
+    # check that all the expected output is parsed
     assert "output_parameters" in results
     results_dict = results["output_parameters"].get_dict()
     assert "atomic_properties" in results_dict
