@@ -343,7 +343,7 @@ class AimqbGroupParser(AimqbBaseParser):
             )
         out_dict["graph_descriptor"] = self._parse_graph_descriptor(out_dict)
         # store in node
-        if self.node.inputs.group_atoms:
+        if self.node.inputs.group_atoms.get_list():
             group_nums = self.node.inputs.group_atoms.get_list()
 
             out_dict["group_descriptor"] = self._parse_group_descriptor(

@@ -72,13 +72,13 @@ class AimqbCalculation(CalcJob):
             "attached_atom_int",
             valid_type=Int,
             help="id # of attached atom for graph descriptor",
-            default=1,
+            default=Int(1),
         )
         spec.input(
             "group_atoms",
             valid_type=List,
             help="Integer ids of atoms in groups to include",
-            default=[],
+            default=List([]),
         )
         spec.input(
             "parameters",
