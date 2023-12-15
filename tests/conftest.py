@@ -301,7 +301,7 @@ def generate_workchain_aimreor(generate_workchain, generate_calc_job_node):
                 "aim_params": aimreor_inputs,
                 "file": SinglefileData(
                     os.path.join(
-                        filepath_tests,
+                        filepath_tests(),
                         "workchains/inputs",
                         "water_wb97xd_augccpvtz_qtaim.wfx",
                     )
