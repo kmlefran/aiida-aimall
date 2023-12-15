@@ -8,6 +8,9 @@ import shutil
 from collections.abc import Mapping
 
 import pytest
+from aiida.orm import SinglefileData, Str
+
+from aiida_aimall.data import AimqbParameters
 
 # import tempfile
 # from collections.abc import Mapping
@@ -245,3 +248,87 @@ def generate_calc_job_node(fixture_localhost):
         return node
 
     return _generate_calc_job_node
+
+
+@pytest.fixture
+def generate_workchain():
+    """Generate an instance of a `WorkChain`."""
+
+    def _generate_workchain(entry_point, inputs):
+        """Generate an instance of a `WorkChain` with the given entry point and inputs.
+
+        :param entry_point: entry point name of the work chain subclass.
+        :param inputs: inputs to be passed to process construction.
+        :return: a `WorkChain` instance.
+        """
+        from aiida.engine.utils import instantiate_process
+        from aiida.manage.manager import get_manager
+        from aiida.plugins import WorkflowFactory
+
+        process_class = WorkflowFactory(entry_point)
+        runner = get_manager().get_runner()
+        process = instantiate_process(runner, process_class, **inputs)
+
+        return process
+
+    return _generate_workchain
+
+
+@pytest.fixture
+def generate_workchain_aimreor(generate_workchain, generate_calc_job_node):
+    """Generate an instance of a ``AimReorWorkChain``."""
+
+    def _generate_workchain_aimreor(
+        exit_code=None, inputs=None, return_inputs=False, aimqb_outputs=None
+    ):
+        """Generate an instance of a ``AimReorWorkChain``.
+
+        :param exit_code: exit code for the ``AimqbCalculation``.
+        :param inputs: inputs for the ``AimReorWorkChain``.
+        :param return_inputs: return the inputs of the ``PwBaseWorkChain``.
+        :param pw_outputs: ``dict`` of outputs for the ``PwCalculation``. The keys must correspond to the link labels
+            and the values to the output nodes.
+        """
+        from aiida.common import LinkType
+        from aiida.orm import Dict
+        from plumpy import ProcessState
+
+        entry_point = "aimreor"
+
+        if inputs is None:
+            aimreor_inputs = AimqbParameters({"naat": 2, "nproc": 2})
+            inputs = {
+                "aim_params": aimreor_inputs,
+                "file": SinglefileData(
+                    os.path.join(
+                        filepath_tests,
+                        "workchains/inputs",
+                        "water_wb97xd_augccpvtz_qtaim.wfx",
+                    )
+                ),
+                "aim_code": fixture_code("aimall"),
+                "frag_label": Str("Water"),
+            }
+
+        if return_inputs:
+            return inputs
+
+        process = generate_workchain(entry_point, inputs)
+
+        aimqb_node = generate_calc_job_node(inputs={"parameters": Dict()})
+        process.ctx.children = [aimqb_node]
+
+        if aimqb_outputs is not None:
+            for link_label, output_node in aimqb_outputs.items():
+                output_node.base.links.add_incoming(
+                    aimqb_node, link_type=LinkType.CREATE, link_label=link_label
+                )
+                output_node.store()
+
+        if exit_code is not None:
+            aimqb_node.set_process_state(ProcessState.FINISHED)
+            aimqb_node.set_exit_status(exit_code.status)
+
+        return process
+
+    return _generate_workchain_aimreor
