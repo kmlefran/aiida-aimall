@@ -276,7 +276,7 @@ def generate_workchain():
 
 @pytest.fixture
 def generate_workchain_aimreor(
-    generate_workchain, generate_calc_job_node, filepath_tests
+    generate_workchain, generate_calc_job_node, filepath_tests, fixture_code
 ):
     """Generate an instance of a ``AimReorWorkChain``."""
 
