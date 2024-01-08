@@ -346,10 +346,12 @@ class G16OptWorkchain(WorkChain):
         spec.input("frag_label", valid_type=Str)
         spec.input("g16_code", valid_type=Code)
         spec.input("wfxgroup", valid_type=Str, default=Str("opt_wfx"))
+        spec.output("output", valid_type=Dict)
         spec.outline(
             cls.dict_to_struct,
             cls.update_g16_param,
             cls.g16_opt,
+            cls.result,
         )  # ,cls.aimall)#, cls.aimall,cls.reorient,cls.aimall)
 
     def dict_to_struct(self):
@@ -380,6 +382,10 @@ class G16OptWorkchain(WorkChain):
         # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
         return ToContext(out_dict)
 
+    def result(self):
+        """Parse the results"""
+        self.out("output", self.ctx.opt.outputs.output_parameters)
+
 
 class AIMAllReor(WorkChain):
     """Workchain to run AIM and then reorient the molecule using the results
@@ -394,8 +400,9 @@ class AIMAllReor(WorkChain):
         # spec.output('aim_dict',valid_type=Dict)
         spec.input("aim_code", valid_type=Code)
         spec.input("frag_label", valid_type=Str)
+        spec.output("rotated_structure", valid_type=Dict)
         spec.outline(
-            cls.aimall, cls.rotate, cls.dict_to_struct_reor
+            cls.aimall, cls.rotate, cls.dict_to_struct_reor, cls.result
         )  # ,cls.aimall)#, cls.aimall,cls.reorient,cls.aimall)
 
     def aimall(self):
@@ -439,3 +446,7 @@ class AIMAllReor(WorkChain):
         struct_extras = EntityExtras(struct_dict)
         struct_extras.set("smiles", self.inputs.frag_label.value)
         self.ctx.rot_structure = struct_dict
+
+    def result(self):
+        """Parse results"""
+        self.out("rotated_structure", self.ctx.rot_structure)
