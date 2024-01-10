@@ -400,7 +400,7 @@ class AIMAllReor(WorkChain):
         # spec.output('aim_dict',valid_type=Dict)
         spec.input("aim_code", valid_type=Code)
         spec.input("frag_label", valid_type=Str)
-        spec.output("rotated_structure", valid_type=Dict)
+        spec.output("rotated_structure", valid_type=Str)
         spec.outline(
             cls.aimall, cls.rotate, cls.dict_to_struct_reor, cls.result
         )  # ,cls.aimall)#, cls.aimall,cls.reorient,cls.aimall)
@@ -439,13 +439,13 @@ class AIMAllReor(WorkChain):
 
     def dict_to_struct_reor(self):
         """generate the gaussian input from rotated structure"""
-        struct_dict = dict_to_structure(self.ctx.rot_struct_dict)
+        struct_str = dict_to_structure(self.ctx.rot_struct_dict)
         reor_struct_group = load_group("reor_structs")
-        struct_dict.store()
-        reor_struct_group.add_nodes(struct_dict)
-        struct_extras = EntityExtras(struct_dict)
+        struct_str.store()
+        reor_struct_group.add_nodes(struct_str)
+        struct_extras = EntityExtras(struct_str)
         struct_extras.set("smiles", self.inputs.frag_label.value)
-        self.ctx.rot_structure = struct_dict
+        self.ctx.rot_structure = struct_str
 
     def result(self):
         """Parse results"""
