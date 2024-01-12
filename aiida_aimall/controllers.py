@@ -139,18 +139,21 @@ class AimAllSubmissionController(FromGroupSubmissionController):
     group_label: str
     max_concurrent: int
     code_label: str
+    aim_parser: str
 
     CALCULATION_ENTRY_POINT = "aimall"
 
     def __init__(
         self,
         code_label: str,
+        aim_parser: str,
         *args,
         **kwargs,
     ):
         """Initialize the class, modifying with new values"""
         super().__init__(*args, **kwargs)
         self.code_label = code_label
+        self.aim_parser = aim_parser
 
     # @validator("code_label")
     # def _check_code_plugin(self, value):
@@ -183,6 +186,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
             "metadata": {
                 "options": {
                     "resources": {"num_machines": 1, "num_mpiprocs_per_machine": 2},
+                    "parser_name": self.aim_parser,
                 }
             },
         }
