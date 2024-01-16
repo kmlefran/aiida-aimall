@@ -368,7 +368,7 @@ class AimqbGroupParser(AimqbBaseParser):
                 )
                 break
         graph_dict["attached_bcp_props"] = {}
-        for key, value in out_dict["bcp_properties"]:
+        for key, value in out_dict["bcp_properties"].items():
             num_bond = "".join(x for x in key if x.isdigit() or x == "-")
             at_nums = num_bond.split("-")
             if str(at_id) in at_nums:
