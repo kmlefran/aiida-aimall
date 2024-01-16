@@ -60,6 +60,7 @@ pre-commit = [
     "pylint~=2.15.10"
 ]
 docs = [
+    "aiida-core",
     "sphinx",
     "sphinxcontrib-contentui",
     "sphinxcontrib-details-directive",
