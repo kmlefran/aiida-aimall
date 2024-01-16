@@ -162,7 +162,8 @@ class GaussianWFXParser(Parser):
                 sfd.store()
                 out_group = load_group(self.node.inputs.wfxgroup.value)
                 out_group.add_nodes(sfd)
-                sfd.base.extras.set("smiles", self.node.inputs.fragment_label.value)
+                if "fragment_label" in self.node.inputs:
+                    sfd.base.extras.set("smiles", self.node.inputs.fragment_label.value)
                 self.out("wfx", sfd)
         except NotExistent:
             return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER

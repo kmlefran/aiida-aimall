@@ -15,7 +15,7 @@ from functools import partial
 import multiprocess as mp
 import pandas as pd
 from aiida.engine import ToContext, WorkChain, calcfunction
-from aiida.orm import Code, Dict, Int, SinglefileData, Str, load_group
+from aiida.orm import Code, Dict, Int, List, SinglefileData, Str, load_group
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
 from group_decomposition.fragfunctions import (
@@ -399,7 +399,7 @@ class AIMAllReor(WorkChain):
         spec.input("file", valid_type=SinglefileData)
         # spec.output('aim_dict',valid_type=Dict)
         spec.input("aim_code", valid_type=Code)
-        spec.input("frag_label", valid_type=Str)
+        spec.input("frag_label", valid_type=Str, required=False)
         spec.output("rotated_structure", valid_type=Str)
         spec.outline(
             cls.aimall, cls.rotate, cls.dict_to_struct_reor, cls.result
@@ -450,3 +450,102 @@ class AIMAllReor(WorkChain):
     def result(self):
         """Parse results"""
         self.out("rotated_structure", self.ctx.rot_structure)
+
+
+class OptAimReorSPAimWorkChain(WorkChain):
+    """A workchain to perform the full suite of KLG's substituent parameter determining"""
+
+    @classmethod
+    def define(cls, spec):
+        """Define workchain steps"""
+        super().define(spec)
+        spec.input("g16_opt_params", valid_type=Dict, required=True)
+        spec.input("g16_sp_params", valid_type=Dict, required=True)
+        spec.input("aim_params", valid_type=AimqbParameters, required=True)
+        spec.input("structure_str", valid_type=Str, required=True)
+        spec.input("g16_code", valid_type=Code)
+        spec.input(
+            "frag_label",
+            valid_type=Str,
+            help="Label for substituent fragment, stored as extra",
+        )
+        spec.input("wfxgroup", valid_type=Str, default=Str("opt_wfx"))
+        # spec.input("file", valid_type=SinglefileData)
+        # spec.output('aim_dict',valid_type=Dict)
+        spec.input("aim_code", valid_type=Code)
+        # spec.input("frag_label", valid_type=Str)
+        # spec.output("rotated_structure", valid_type=Str)
+        spec.output("parameter_dict", valid_type=Dict)
+        spec.outline(cls.g16_opt, cls.aim_reor, cls.g16_sp, cls.aim, cls.result)
+
+    def g16_opt(self):
+        """Submit the Gaussian optimization"""
+        builder = GaussianCalculation.get_builder()
+        builder.structure_str = self.inputs.structure_str
+        builder.parameters = self.ctx.g16_opt_params
+        builder.fragment_label = self.inputs.frag_label
+        builder.code = self.inputs.g16_code
+        builder.wfxgroup = self.inputs.wfxgroup
+        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
+        builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
+        builder.metadata.options.max_wallclock_seconds = 604800
+        process_node = self.submit(builder)
+        g16_opt_group = load_group("g16_opt")
+        g16_opt_group.add_nodes(process_node)
+        out_dict = {"opt": process_node}
+        # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
+        return ToContext(out_dict)
+
+    def aim_reor(self):
+        """Submit the Aimqb calculation and reorientation"""
+        builder = AIMAllReor.get_builder()
+        builder.aim_params = self.inputs.aim_params
+        builder.file = self.ctx.opt.get_outgoing().get_node_by_label("wfx")
+        builder.aim_code = self.inputs.aim_code
+        builder.frag_label = self.inputs.frag_label
+        process_node = self.submit(builder)
+        out_dict = {"prereor_aim": process_node}
+        return ToContext(out_dict)
+
+    def g16_sp(self):
+        """Run Gaussian Single Point calculation"""
+        builder = GaussianCalculation.get_builder()
+        builder.structure_str = self.inputs.structure_str
+        builder.parameters = self.ctx.g16_sp_params
+        builder.fragment_label = self.inputs.frag_label
+        builder.code = self.inputs.g16_code
+        builder.wfxgroup = self.inputs.wfxgroup
+        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
+        builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
+        builder.metadata.options.max_wallclock_seconds = 604800
+        process_node = self.submit(builder)
+        g16_opt_group = load_group("g16_sp")
+        g16_opt_group.add_nodes(process_node)
+        out_dict = {"sp": process_node}
+        # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
+        return ToContext(out_dict)
+
+    def aim(self):
+        """Run Final AIM Calculation"""
+        builder = AimqbCalculation.get_builder()
+        builder.aim_params = self.inputs.aim_params
+        builder.file = self.ctx.sp.get_outgoing().get_node_by_label("wfx")
+        builder.aim_code = self.inputs.aim_code
+        builder.frag_label = self.inputs.frag_label
+        builder.metadata.options.parser_name = "aimqb.group"
+        num_atoms = len(
+            self.ctx.prereor_aim.get_outgoing()
+            .get_node_by_label("rotated_structure")
+            .value.split("\n")
+        )
+        #  generalize for substrates other than H
+        builder.group_atoms = List([x + 1 for x in range(0, num_atoms) if x != 1])
+        process_node = self.submit(builder)
+        out_dict = {"final_aim": process_node}
+        return ToContext(out_dict)
+
+    def result(self):
+        """Put results in output node"""
+        self.outputs.parameter_dict = (
+            self.ctx.final_aim.get_outgoing().get_node_by_label("output_parameters")
+        )

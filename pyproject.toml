@@ -92,6 +92,7 @@ docs = [
 "multifrag" = "aiida_aimall.workchains:MultiFragmentWorkChain"
 "g16opt" = "aiida_aimall.workchains:G16OptWorkchain"
 "aimreor" = "aiida_aimall.workchains:AIMAllReor"
+"optaimreor" = "aiida_aimall.workchains:OptAimReorSPAimWorkChain"
 
 [project.entry-points."aiida.cmdline.data"]
 "aimall" = "aiida_aimall.cli:data_cli"
