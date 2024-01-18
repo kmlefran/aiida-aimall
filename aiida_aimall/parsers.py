@@ -75,6 +75,7 @@ class AimqbBaseParser(Parser):
             out_dict = {
                 "atomic_properties": self._parse_atomic_props(sum_lines),
                 "bcp_properties": self._parse_bcp_props(sum_lines),
+                "ldm": self._parse_ldm(sum_lines),
             }
         # if laprhocps were calculated, get cc_properties
         if "-atlaprhocps=True" in input_parameters.cmdline_params("foo"):
@@ -85,6 +86,9 @@ class AimqbBaseParser(Parser):
         self.outputs.output_parameters = Dict(out_dict)
 
         return  # ExitCode(0)
+
+    def _parse_ldm(self, sum_lines):
+        return qt.get_ldm(sum_lines)
 
     def _parse_cc_props(self, atomic_properties):
         """Extract VSCC properties from output files
@@ -336,6 +340,7 @@ class AimqbGroupParser(AimqbBaseParser):
             out_dict = {
                 "atomic_properties": self._parse_atomic_props(sum_lines),
                 "bcp_properties": self._parse_bcp_props(sum_lines),
+                "ldm": self._parse_ldm(sum_lines),
             }
         # if laprhocps were calculated, get cc_properties
         if "-atlaprhocps=True" in input_parameters.cmdline_params("foo"):
