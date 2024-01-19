@@ -74,7 +74,9 @@ docs = [
     "sphinx-rtd-theme",
     "cclib",
     "aiida-dataframe",
-    "multiprocess"
+    "multiprocess",
+    "subproptools",
+    "group_decomposition"
 ]
 
 [project.entry-points."aiida.data"]
