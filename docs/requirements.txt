@@ -1,0 +1,17 @@
+aiida-core
+sphinx
+sphinxcontrib-contentui
+sphinxcontrib-details-directive
+furo
+markupsafe<2.1
+pandas
+numpy
+aiida-submission-controller
+pydantic
+ase
+sphinx-rtd-theme
+cclib
+aiida-dataframe
+multiprocess
+subproptools
+group_decomposition
