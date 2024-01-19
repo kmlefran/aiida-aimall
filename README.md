@@ -3,6 +3,14 @@
 [![Docs status][docs-badge]][docs-link]
 [![PyPI version][pypi-badge]][pypi-link]
 
+# Copyright notice
+
+This repository contains modified versions of the calculations and parsers presented in [Aiida-Gaussian](https://github.com/nanotech-empa/aiida-gaussian). Copyright (c) 2020 Kristjan Eimre. The modifications basically amount to adding the wfx file to the retrieved nodes and adding some groups/extras to calculation output.
+
+Also, the (incomplete) testing framework is heavily influenced by the infrastructure presented in [aiida-quantumespresso](https://github.com/aiidateam/aiida-quantumespresso).  Copyright (c), 2015-2020, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE
+(Theory and Simulation of Materials (THEOS) and National Centre for
+Computational Design and Discovery of Novel Materials (NCCR MARVEL))
+
 # aiida-aimall
 
 A plugin to interface AIMAll with AiiDA
