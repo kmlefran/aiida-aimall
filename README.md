@@ -22,13 +22,21 @@ intended to help developers get started with their AiiDA plugins.
 ## Repository contents
 
 * [`.github/`](.github/): [Github Actions](https://github.com/features/actions) configuration
-  * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and builds documentation at every new commit
-  * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
+  * [`workflows/`](.github/workflows/)
+    * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and builds documentation at every new commit
+    * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
+  * [`config/`](.github/config)
+    * [`code-aim.yaml`](.github/workflows/config/code-aim.yaml) config file for building precommit and test envs
+    * [`code-gwfx.yaml`](.github/workflows/config/code-gwfx.yaml) config file for building precommit and test envs
+    * [`profile.yaml`](.github/workflows/config/profile.yaml) config file for aiida profile
+    * [`profile.yaml`](.github/workflows/config/localhost-config.yaml) config file for localhost computer
+    * [`profile.yaml`](.github/workflows/config/localhost-setup.yaml) setup file for localhost computer
 * [`aiida_aimall/`](aiida_aimall/): The main source code of the plugin package
   * [`data/`](aiida_aimall/data/): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
   * [`calculations.py`](aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class, and `GaussianWFXCalculation`, a modified version of `GaussianCalculation` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
   * [`cli.py`](aiida_aimall/cli.py): Extensions of the `verdi data` command line interface for the `AimqbParameters` class
   * [`parsers.py`](aiida_aimall/parsers.py): A new `Parser` for the `AimqbCalculation`, and `GaussianWFXParser`, a modified version of `GaussianBaseParser` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
+  * [`controllers.py`](aiida_aimall/controllers.py): New `FromGroupSubmissionController`s
   * [`workchains.py`](aiida_aimall/workchains.py): New `WorkChains`.
   * * `MultiFragmentWorkChain` to fragment molecules using cml files from the Retrievium database and submit Gaussian calculations for the fragments using functions in `frag_functions` from [subproptools Github](https:github.com/kmlefran/group_decomposition)
   * * `G16OptWorkchain` to take output from `MultiFragmentWorkChain` and submit Gaussian optimization calculations
