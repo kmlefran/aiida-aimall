@@ -1,7 +1,7 @@
 [![ci](https://github.com/kmlefran/aiida-aimall/actions/workflows/ci.yml/badge.svg)](https://github.com/kmlefran/aiida-aimall/actions/workflows/ci.yml)
 [![Coverage Status][cov-badge]][cov-link]
 [![Docs status][docs-badge]][docs-link]
-[![PyPI version][pypi-badge]][pypi-link]
+[![PyPI version][pypi-badge]][https://pypi.org/project/aiida-aimall/]
 
 # Copyright notice
 
