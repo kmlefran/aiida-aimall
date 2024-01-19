@@ -36,11 +36,10 @@ intended to help developers get started with their AiiDA plugins.
   * [`calculations.py`](aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class, and `GaussianWFXCalculation`, a modified version of `GaussianCalculation` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
   * [`cli.py`](aiida_aimall/cli.py): Extensions of the `verdi data` command line interface for the `AimqbParameters` class
   * [`parsers.py`](aiida_aimall/parsers.py): A new `Parser` for the `AimqbCalculation`, and `GaussianWFXParser`, a modified version of `GaussianBaseParser` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
-  * [`controllers.py`](aiida_aimall/controllers.py): Four new `FromGroupSubmissionController`s
   * [`workchains.py`](aiida_aimall/workchains.py): New `WorkChains`.
   * * `MultiFragmentWorkChain` to fragment molecules using cml files from the Retrievium database and submit Gaussian calculations for the fragments using functions in `frag_functions` from [subproptools Github](https:github.com/kmlefran/group_decomposition)
-  * * `G16OptWorkchain` to take output from `MultiFragmentWorkChain` and submit Gaussian optimization calculations
-  * * `AimAllReorWorkChain` to run `AimqbCalculation` on output from `GaussianWFXCalculations`, then reorient to coordinate systems defined in `subreor` from [subproptools Github](https:github.com/kmlefran/subproptools)
+    * `G16OptWorkchain` to take output from `MultiFragmentWorkChain` and submit Gaussian optimization calculations
+    * `AimAllReorWorkChain` to run `AimqbCalculation` on output from `GaussianWFXCalculations`, then reorient to coordinate systems defined in `subreor` from [subproptools Github](https:github.com/kmlefran/subproptools)
 * [`controllers.py`](aiida_aimall/controllers.py): Workflow controllers to limit number of running jobs on localhost computers.
 * * `AimReorSubmissionController` to control `AimReorWorkChain`s. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
 * * `AimAllSubmissionController` to control `AimqbCalculations``. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
