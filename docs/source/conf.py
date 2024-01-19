@@ -18,9 +18,11 @@ import sys
 import time
 
 import sphinx_rtd_theme
-from aiida.manage.configuration import load_documentation_profile
 
 import aiida_aimall
+
+# from aiida.manage.configuration import load_documentation_profile
+
 
 # -- AiiDA-related setup --------------------------------------------------
 
