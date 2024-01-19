@@ -57,7 +57,10 @@ jobs:
         # show timings of tests
         PYTEST_ADDOPTS: "--durations=0"
       run: pytest -sv tests
-
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   integration:
 
     runs-on: ubuntu-latest
@@ -114,7 +117,6 @@ jobs:
 
     -   name: Setup `g16wfx`
         run: verdi code create core.code.installed -n --config .github/config/code-gwfx.yaml --filepath-executable /Users/chemlab/Desktop/g16/g16
-
   docs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
