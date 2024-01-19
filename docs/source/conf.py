@@ -27,7 +27,7 @@ import aiida_aimall
 # -- AiiDA-related setup --------------------------------------------------
 
 # Load the dummy documentation profile
-load_documentation_profile()
+# load_documentation_profile()
 
 # -- General configuration ------------------------------------------------
 
