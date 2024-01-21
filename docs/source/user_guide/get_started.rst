@@ -2,6 +2,8 @@
 Getting started
 ===============
 
+This guide was written for my group, but still including in docs for now - maybe you will find it useful. Near complete AiiDA setup and instructions.
+
 Installation
 ++++++++++++
 
@@ -78,9 +80,7 @@ Step 8: Install aiida-aimall
 ----------------------------
 ::
 
-    git clone https://github.com/kmlefran/aiida-aimall .
-    cd aiida-aimall
-    pip install -e .  # also installs aiida, if missing (but not postgres)
+    pip install aiida-aimall
     #verify that entry points are registered
     verdi plugin list aiida.calculations # should show aimall and gaussianwfx
     verdi plugin list aiida.parsers # should show aimqb.base and gaussianwfx

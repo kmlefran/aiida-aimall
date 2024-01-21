@@ -21,7 +21,7 @@ from subproptools import qtaim_extract as qt  # pylint: disable=import-error
 # from aiida.engine import ExitCode
 
 
-AimqbCalculation = CalculationFactory("aimall")
+AimqbCalculation = CalculationFactory("aimall.aimqb")
 
 
 class AimqbBaseParser(Parser):

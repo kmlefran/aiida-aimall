@@ -10,9 +10,9 @@ from aiida.orm import Dict, Str
 from aiida.plugins import CalculationFactory, DataFactory, WorkflowFactory
 from aiida_submission_controller import FromGroupSubmissionController
 
-AimqbParameters = DataFactory("aimall")
-GaussianCalculation = CalculationFactory("gaussianwfx")
-AimqbCalculation = CalculationFactory("aimall")
+AimqbParameters = DataFactory("aimall.aimqb")
+GaussianCalculation = CalculationFactory("aimall.gaussianwfx")
+AimqbCalculation = CalculationFactory("aimall.aimqb")
 
 
 class G16FragController(FromGroupSubmissionController):
@@ -24,7 +24,7 @@ class G16FragController(FromGroupSubmissionController):
     max_concurrent: int
     g16_opt_params: dict
 
-    WORKFLOW_ENTRY_POINT = "g16opt"
+    WORKFLOW_ENTRY_POINT = "aimall.g16opt"
 
     def __init__(
         self,
@@ -76,7 +76,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
     max_concurrent: int
     code_label: str
 
-    WORKFLOW_ENTRY_POINT = "aimreor"
+    WORKFLOW_ENTRY_POINT = "aimall.aimreor"
 
     def __init__(
         self,
@@ -141,7 +141,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
     code_label: str
     aim_parser: str
 
-    CALCULATION_ENTRY_POINT = "aimall"
+    CALCULATION_ENTRY_POINT = "aimall.aimqb"
 
     def __init__(
         self,
@@ -216,7 +216,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
     code_label: str
     g16_sp_params: dict
     # GaussianWFXCalculation entry point as defined in aiida-aimall pyproject.toml
-    CALCULATION_ENTRY_POINT = "gaussianwfx"
+    CALCULATION_ENTRY_POINT = "aimall.gaussianwfx"
 
     def __init__(
         self,

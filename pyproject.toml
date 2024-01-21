@@ -80,25 +80,25 @@ docs = [
 ]
 
 [project.entry-points."aiida.data"]
-"aimall" = "aiida_aimall.data:AimqbParameters"
+"aimall.aimqb" = "aiida_aimall.data:AimqbParameters"
 
 [project.entry-points."aiida.calculations"]
-"aimall" = "aiida_aimall.calculations:AimqbCalculation"
-"gaussianwfx" = "aiida_aimall.calculations:GaussianWFXCalculation"
+"aimall.aimqb" = "aiida_aimall.calculations:AimqbCalculation"
+"aimall.gaussianwfx" = "aiida_aimall.calculations:GaussianWFXCalculation"
 
 [project.entry-points."aiida.parsers"]
-"aimqb.base" = "aiida_aimall.parsers:AimqbBaseParser"
-"aimqb.group" = "aiida_aimall.parsers:AimqbGroupParser"
-"gaussianwfx" = "aiida_aimall.parsers:GaussianWFXParser"
+"aimall.base" = "aiida_aimall.parsers:AimqbBaseParser"
+"aimall.group" = "aiida_aimall.parsers:AimqbGroupParser"
+"aimall.gaussianwfx" = "aiida_aimall.parsers:GaussianWFXParser"
 
 [project.entry-points."aiida.workflows"]
-"multifrag" = "aiida_aimall.workchains:MultiFragmentWorkChain"
-"g16opt" = "aiida_aimall.workchains:G16OptWorkchain"
-"aimreor" = "aiida_aimall.workchains:AIMAllReor"
-"optaimreor" = "aiida_aimall.workchains:OptAimReorSPAimWorkChain"
+"aimall.multifrag" = "aiida_aimall.workchains:MultiFragmentWorkChain"
+"aimall.g16opt" = "aiida_aimall.workchains:G16OptWorkchain"
+"aimall.aimreor" = "aiida_aimall.workchains:AIMAllReor"
+"aimall.optaimreor" = "aiida_aimall.workchains:OptAimReorSPAimWorkChain"
 
-[project.entry-points."aiida.cmdline.data"]
-"aimall" = "aiida_aimall.cli:data_cli"
+#[project.entry-points."aiida.cmdline.data"]
+#"aimall" = "aiida_aimall.cli:data_cli"
 
 [tool.flit.module]
 name = "aiida_aimall"

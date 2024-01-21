@@ -34,7 +34,6 @@ intended to help developers get started with their AiiDA plugins.
 * [`aiida_aimall/`](aiida_aimall/): The main source code of the plugin package
   * [`data/`](aiida_aimall/data/): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
   * [`calculations.py`](aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class, and `GaussianWFXCalculation`, a modified version of `GaussianCalculation` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
-  * [`cli.py`](aiida_aimall/cli.py): Extensions of the `verdi data` command line interface for the `AimqbParameters` class
   * [`parsers.py`](aiida_aimall/parsers.py): A new `Parser` for the `AimqbCalculation`, and `GaussianWFXParser`, a modified version of `GaussianBaseParser` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
   * [`workchains.py`](aiida_aimall/workchains.py): New `WorkChains`.
   * * `MultiFragmentWorkChain` to fragment molecules using cml files from the Retrievium database and submit Gaussian calculations for the fragments using functions in `frag_functions` from [subproptools Github](https:github.com/kmlefran/group_decomposition)

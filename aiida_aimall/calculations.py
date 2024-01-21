@@ -20,7 +20,7 @@ from aiida.orm import (
 from aiida.plugins import DataFactory
 from pymatgen.io.gaussian import GaussianInput  # pylint: disable=import-error
 
-AimqbParameters = DataFactory("aimall")
+AimqbParameters = DataFactory("aimall.aimqb")
 
 
 class AimqbCalculation(CalcJob):
@@ -34,10 +34,10 @@ class AimqbCalculation(CalcJob):
         ::
 
             code = orm.load_code('aimall@localhost')
-            AimqbParameters = DataFactory("aimall")
+            AimqbParameters = DataFactory("aimall.aimqb")
             aim_params = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
             file=SinglefileData(io.BytesIO(file_string.encode()))
-            AimqbCalculation = CalculationFactory("aimall")
+            AimqbCalculation = CalculationFactory("aimall.aimqb")
             builder  = AimqbCalculation.get_builder()
             builder.parameters = aim_params
             builder.file = file
