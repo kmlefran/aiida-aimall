@@ -39,10 +39,9 @@ Source = "https://github.com/kmlefran/aiida-aimall"
 testing = [
     "pgtest~=1.3.1",
     "wheel~=0.31",
-    "coverage[toml]",
-    "pytest~=6.0",
-    "pytest-cov",
+    "coverage",
     'pytest~=6.0',
+    "pytest-cov",
     'pytest-regressions~=2.3',
     "pandas",
     "numpy",
@@ -140,10 +139,10 @@ filterwarnings = [
     'ignore::DeprecationWarning:sqlalchemy_utils:',
 ]
 
-[tool.coverage.run]
+#[tool.coverage.run]
 # Configuration of [coverage.py](https://coverage.readthedocs.io)
 # reporting which lines of your plugin are covered by tests
-source=["aiida_aimall"]
+#source=["aiida_aimall"]
 
 [tool.isort]
 # Configuration of [isort](https://isort.readthedocs.io)
