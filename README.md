@@ -1,5 +1,5 @@
 [![ci](https://github.com/kmlefran/aiida-aimall/actions/workflows/ci.yml/badge.svg)](https://github.com/kmlefran/aiida-aimall/actions/workflows/ci.yml)
-[![Coverage Status][cov-badge]][cov-link]
+[![Coverage Status](https://coveralls.io/repos/github/kmlefran/group_decomposition/badge.svg?branch=main)](https://coveralls.io/github/kmlefran/group_decomposition?branch=main)
 [![Documentation Status](https://readthedocs.org/projects/aiida-aimall/badge/?version=latest)](https://aiida-aimall.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version][pypi-badge]](https://pypi.org/project/aiida-aimall/)
 
