@@ -53,7 +53,8 @@ testing = [
     "cclib",
     "aiida-dataframe",
     "multiprocess",
-    "pymatgen"
+    "pymatgen",
+    "coveralls"
 ]
 pre-commit = [
     "pre-commit~=2.2",
