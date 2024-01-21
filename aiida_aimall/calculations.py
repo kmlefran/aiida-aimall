@@ -63,7 +63,7 @@ class AimqbCalculation(CalcJob):
             "tot_num_mpiprocs": 2,
         }
 
-        spec.inputs["metadata"]["options"]["parser_name"].default = "aimall.aimqb"
+        spec.inputs["metadata"]["options"]["parser_name"].default = "aimall.base"
         # new ports
         # spec.input(
         #     'metadata.options.output_filename', valid_type=str, default='aiida.out'
