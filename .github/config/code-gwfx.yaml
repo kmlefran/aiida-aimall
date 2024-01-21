@@ -1,7 +1,7 @@
 ---
 label: g16
 description: g16
-default_calc_job_plugin: gaussianwfx
+default_calc_job_plugin: aimall.gaussianwfx
 computer: localhost
 prepend_text: ' '
 append_text: ' '

@@ -1,7 +1,7 @@
 ---
 label: aim
 description: aimqb executable
-default_calc_job_plugin: aimall
+default_calc_job_plugin: aimall.aimqb
 computer: localhost
 prepend_text: ' '
 append_text: ' '
