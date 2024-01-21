@@ -7,7 +7,7 @@ from aiida.orm import Dict, Str
 
 def test_gaussianwfx_default(fixture_sandbox, generate_calc_job, fixture_code):
     """Tests that a GaussianWFXCalculation can be instantiated"""
-    entry_point_name = "gaussianwfx"
+    entry_point_name = "aimall.gaussianwfx"
     g16_sp_params = {
         "functional": "PBE1PBE",
         "basis_set": "6-31g",

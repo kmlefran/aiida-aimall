@@ -50,8 +50,8 @@ def test_aimqb_parser_default(  # pylint:disable=too-many-arguments
 ):
     """Test an aimqb calculation"""
     name = "default"
-    entry_point_calc_job = "aimall"
-    entry_point_parser = "aimqb.base"
+    entry_point_calc_job = "aimall.aimqb"
+    entry_point_parser = "aimall.base"
     node = generate_calc_job_node(
         entry_point_calc_job,
         fixture_localhost,

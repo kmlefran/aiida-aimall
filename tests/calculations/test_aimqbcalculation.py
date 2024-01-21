@@ -12,7 +12,7 @@ def test_aimqb_default(
     fixture_sandbox, generate_calc_job, fixture_code, filepath_tests
 ):
     """Tests that an aimcalculation can be instantiated"""
-    entry_point_name = "aimall"
+    entry_point_name = "aimall.aimqb"
     parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
     inputs = {
         "code": fixture_code("aimall"),

@@ -44,8 +44,8 @@ def test_aimqb_parser_group(  # pylint:disable=too-many-arguments
 ):
     """Test an aimqb calculation"""
     name = "group"
-    entry_point_calc_job = "aimall"
-    entry_point_parser = "aimqb.group"
+    entry_point_calc_job = "aimall.aimqb"
+    entry_point_parser = "aimall.group"
     node = generate_calc_job_node(
         entry_point_calc_job,
         fixture_localhost,

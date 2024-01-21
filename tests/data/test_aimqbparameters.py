@@ -19,7 +19,7 @@ def test_data():
     note this does not test that the expected outputs are created of output parsing"""
     # load_profile()
     # Prepare input parameters
-    AimqbParameters = DataFactory("aimall")
+    AimqbParameters = DataFactory("aimall.aimqb")
     parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
     assert isinstance(parameters, AimqbParameters)
     # file = SinglefileData(

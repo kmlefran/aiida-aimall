@@ -295,7 +295,7 @@ def generate_workchain_aimreor(
         from aiida.orm import Dict
         from plumpy import ProcessState
 
-        entry_point = "aimreor"
+        entry_point = "aimall.aimreor"
 
         if inputs is None:
             aimreor_inputs = AimqbParameters({"naat": 2, "nproc": 2})
