@@ -30,10 +30,10 @@ from subproptools.sub_reor import rotate_substituent_aiida
 old_stdout = sys.stdout
 
 # load the needed calculations and data types
-GaussianCalculation = CalculationFactory("gaussianwfx")
-AimqbParameters = DataFactory("aimall")
-AimqbCalculation = CalculationFactory("aimall")
-DictData = DataFactory("dict")
+GaussianCalculation = CalculationFactory("aimall.gaussianwfx")
+AimqbParameters = DataFactory("aimall.aimqb")
+AimqbCalculation = CalculationFactory("aimall.aimqb")
+DictData = DataFactory("core.dict")
 PDData = DataFactory("dataframe.frame")
 
 
