@@ -50,7 +50,7 @@ class AimqbCalculation(CalcJob):
     INPUT_FILE = "aiida.wfx"
     OUTPUT_FILE = "aiida.out"
     PARENT_FOLDER_NAME = "parent_calc"
-    DEFAULT_PARSER = "aimqb.base"
+    DEFAULT_PARSER = "aimall.base"
 
     @classmethod
     def define(cls, spec):
@@ -148,7 +148,7 @@ class GaussianWFXCalculation(CalcJob):
     INPUT_FILE = "aiida.inp"
     OUTPUT_FILE = "aiida.out"
     PARENT_FOLDER_NAME = "parent_calc"
-    DEFAULT_PARSER = "gaussianwfx"
+    DEFAULT_PARSER = "aimall.gaussianwfx"
 
     @classmethod
     def define(cls, spec):
