@@ -392,6 +392,9 @@ class AimqbGroupParser(AimqbBaseParser):
 
     def _parse_group_descriptor(self, atomic_properties, sub_atom_ints):
         """Convert atomic properties to group properties given atoms in group to use"""
+        print(sub_atom_ints)
         atoms = list(atomic_properties.keys())
         sub_atom_strs = [atoms[x - 1] for x in sub_atom_ints]
+        print(sub_atom_strs)
+        print(atomic_properties.keys())
         return qt.get_sub_props(atomic_properties, sub_atom_ints, sub_atom_strs)

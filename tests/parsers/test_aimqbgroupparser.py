@@ -1,17 +1,20 @@
-from aiida.orm import SinglefileData, Int, List
+"""Test aiida-aimall group parser"""
+import os
+
+import pytest
+from aiida.common import AttributeDict
+from aiida.orm import Int, List, SinglefileData
 
 from aiida_aimall.data import AimqbParameters
-import pytest
-import os
-from aiida.common import AttributeDict
 
-@pytest.fixture
-def generate_aimqb_inputs():
+
+@pytest.fixture(name="generate_aimqb_group_inputs")
+def fixture_generate_aimqb_group_inputs():
     """Generates inputs of a default aimqb calculation"""
 
     def _generate_aimqb_group_inputs(fixture_code, filepath_tests):
         """Return only those inputs the parser will expect to be there"""
-        parameters = AimqbParameters({"naat": 2, "nproc": 2,"atlaprhocps": True})
+        parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
         inputs = {
             "code": fixture_code("aimall"),
             "parameters": parameters,
@@ -22,8 +25,8 @@ def generate_aimqb_inputs():
                     "h2_opt.wfx",
                 )
             ),
-            "attached_atom_int" : Int(1),
-            "group_atoms": List(list[1,3]),
+            "attached_atom_int": Int(1),
+            "group_atoms": List([1, 3]),
             "metadata": {
                 "options": {
                     "resources": {"num_machines": 1, "num_mpiprocs_per_machine": 2},
@@ -33,6 +36,7 @@ def generate_aimqb_inputs():
         return AttributeDict(inputs)
 
     return _generate_aimqb_group_inputs
+
 
 def test_aimqb_parser_group(  # pylint:disable=too-many-arguments
     fixture_localhost,
