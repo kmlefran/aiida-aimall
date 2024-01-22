@@ -52,13 +52,16 @@ def test_aimqb_parser_default(  # pylint:disable=too-many-arguments
     name = "default"
     entry_point_calc_job = "aimall.aimqb"
     entry_point_parser = "aimall.base"
+
     node = generate_calc_job_node(
         entry_point_calc_job,
         fixture_localhost,
         name,
         generate_aimqb_inputs(fixture_code, filepath_tests),
     )
+
     parser = generate_parser(entry_point_parser)
+
     results, calcfunction = parser.parse_from_node(node, store_provenance=False)
 
     assert calcfunction.is_finished, calcfunction.exception
