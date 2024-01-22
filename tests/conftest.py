@@ -166,6 +166,7 @@ def generate_calc_job_node(fixture_localhost):
         if test_name is not None:
             basepath = os.path.dirname(os.path.abspath(__file__))
             filename = os.path.join(entry_point_name, test_name)
+            print(filename)
             filepath_folder = os.path.join(basepath, "parsers", "fixtures", filename)
             filepath_input = os.path.join(filepath_folder, "aiida.in")
 
