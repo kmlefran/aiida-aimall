@@ -72,3 +72,31 @@ def test_aimqb_parser_group(  # pylint:disable=too-many-arguments
     assert "cc_properties" in results_dict
     assert "graph_descriptor" in results_dict
     assert "group_descriptor" in results_dict
+
+
+def test_group_empty_outfolder_returns_exitcode(  # pylint:disable=too-many-arguments
+    fixture_localhost,
+    generate_calc_job_node,
+    generate_parser,
+    generate_aimqb_group_inputs,
+    fixture_code,
+    filepath_tests,
+):
+    """Test an aimqb calculation"""
+
+    name = "empty"
+    entry_point_calc_job = "aimall.aimqb"
+    entry_point_parser = "aimall.group"
+    node = generate_calc_job_node(
+        entry_point_calc_job,
+        fixture_localhost,
+        name,
+        generate_aimqb_group_inputs(fixture_code, filepath_tests),
+    )
+    parser = generate_parser(entry_point_parser)
+    _, calcfunction = parser.parse_from_node(node, store_provenance=False)
+
+    assert (
+        calcfunction.exit_status
+        == node.process_class.exit_codes.ERROR_MISSING_OUTPUT_FILES.status
+    )

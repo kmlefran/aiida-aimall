@@ -8,7 +8,7 @@ import shutil
 from collections.abc import Mapping
 
 import pytest
-from aiida.orm import SinglefileData, Str
+from aiida.orm import FolderData, SinglefileData, Str
 
 from aiida_aimall.data import AimqbParameters
 
@@ -121,6 +121,28 @@ def generate_parser():
 
 
 @pytest.fixture
+def generate_workchain_folderdata():
+    """Generate FolderData of an AIM calculation"""
+
+    def _generate_workchain_folderdata(
+        entry_point_name="base",
+        test_name=None,
+    ):
+        filepath_folder = None
+
+        if test_name is not None:
+            basepath = os.path.dirname(os.path.abspath(__file__))
+            filename = os.path.join(entry_point_name, test_name)
+            filepath_folder = os.path.join(basepath, "workchains", "fixtures", filename)
+        if filepath_folder:
+            retrieved = FolderData()
+            retrieved.base.repository.put_object_from_tree(filepath_folder)
+        return retrieved
+
+    return _generate_workchain_folderdata
+
+
+@pytest.fixture
 def generate_calc_job_node(fixture_localhost):
     """Generate a mock `CalcJobNode` for testing parsers"""
 
@@ -225,7 +247,6 @@ def generate_calc_job_node(fixture_localhost):
         if filepath_folder:
             retrieved = orm.FolderData()
             retrieved.base.repository.put_object_from_tree(filepath_folder)
-            print(retrieved.list_object_names())
             # Remove files that are supposed to be only present in the retrieved temporary folder
             if retrieve_temporary:
                 for filename in filenames:

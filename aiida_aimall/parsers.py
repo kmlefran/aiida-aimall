@@ -327,8 +327,8 @@ class AimqbGroupParser(AimqbBaseParser):
             self.logger.error(
                 f"Found files '{files_retrieved}', expected to find '{files_expected}'"
             )
-            # return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
-            return
+            return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
+            # return
 
         # parse output file
         self.logger.info(f"Parsing '{output_filename}'")
@@ -356,7 +356,7 @@ class AimqbGroupParser(AimqbBaseParser):
             )
         self.outputs.output_parameters = Dict(out_dict)
 
-        return  # ExitCode(0)
+        return ExitCode(0)
 
     def _parse_graph_descriptor(self, out_dict):
         """Get atomic, BCP, and VSCC properties of atom 1"""
