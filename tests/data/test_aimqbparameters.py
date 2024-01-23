@@ -22,6 +22,9 @@ def test_data():
     AimqbParameters = DataFactory("aimall.aimqb")
     parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
     assert isinstance(parameters, AimqbParameters)
+    assert isinstance(
+        parameters.__str__(), str  # pylint:disable=unnecessary-dunder-call
+    )  # pylint:disable=unnecessary-dunder-call
     # file = SinglefileData(
     #     file=os.path.join(TEST_DIR, "input_files", "water_wb97xd_augccpvtz_qtaim.wfx")
     # )

@@ -29,7 +29,9 @@ dependencies = [
     "ase",
     "cclib",
     "aiida-dataframe",
-    "multiprocess"
+    "multiprocess",
+    "subproptools",
+    "group_decomposition"
 ]
 
 [project.urls]
@@ -52,6 +54,7 @@ testing = [
     "cclib",
     "aiida-dataframe",
     "multiprocess",
+    "subproptools",
     "pymatgen",
     "coveralls"
 ]

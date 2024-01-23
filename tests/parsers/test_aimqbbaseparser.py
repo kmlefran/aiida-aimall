@@ -6,7 +6,7 @@ import os
 import pytest
 
 # from aiida import orm
-from aiida.common import AttributeDict
+from aiida.common import AttributeDict, exceptions
 from aiida.orm import SinglefileData
 
 from aiida_aimall.data import AimqbParameters
@@ -18,7 +18,7 @@ def generate_aimqb_inputs():
 
     def _generate_aimqb_inputs(fixture_code, filepath_tests):
         """Return only those inputs the parser will expect to be there"""
-        parameters = AimqbParameters({"naat": 2, "nproc": 2})
+        parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
         inputs = {
             "code": fixture_code("aimall"),
             "parameters": parameters,
@@ -73,3 +73,27 @@ def test_aimqb_parser_default(  # pylint:disable=too-many-arguments
     results_dict = results["output_parameters"].get_dict()
     assert "atomic_properties" in results_dict
     assert "bcp_properties" in results_dict
+
+
+def test_gaussiannode_returns_error(  # pylint:disable=too-many-arguments
+    fixture_localhost,
+    generate_calc_job_node,
+    fixture_code,
+    filepath_tests,
+    generate_parser,
+    generate_aimqb_inputs,
+):
+    """Test that a Gaussian node returns error on parser"""
+    entry_point_calc_job = "aimall.gaussianwfx"
+    entry_point_parser = "aimall.base"
+    name = "default"
+    node = generate_calc_job_node(
+        entry_point_calc_job,
+        fixture_localhost,
+        name,
+        generate_aimqb_inputs(fixture_code, filepath_tests),
+    )
+    parser = generate_parser(entry_point_parser)
+    with pytest.raises(exceptions.ParsingError) as excinfo:
+        parser.parse_from_node(node, store_provenance=False)
+    assert str(excinfo.value) == "Can only parse AimqbCalculation"
