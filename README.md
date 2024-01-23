@@ -3,6 +3,8 @@
 [![Documentation Status](https://readthedocs.org/projects/aiida-aimall/badge/?version=latest)](https://aiida-aimall.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/aiida-aimall.svg)](https://badge.fury.io/py/aiida-aimall)
 
+!This README and all documentation is a work in progress!
+
 # Copyright notice
 
 This repository contains modified versions of the calculations and parsers presented in [Aiida-Gaussian](https://github.com/nanotech-empa/aiida-gaussian). Copyright (c) 2020 Kristjan Eimre. The modifications basically amount to adding the wfx file to the retrieved nodes and adding some groups/extras to calculation output.
@@ -25,7 +27,7 @@ intended to help developers get started with their AiiDA plugins.
   * [`workflows/`](.github/workflows/)
     * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and builds documentation at every new commit
     * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
-  * [`config/`](.github/config)
+  * [`config/`](.github/config) config files for testing/docs environment
     * [`code-aim.yaml`](.github/workflows/config/code-aim.yaml) config file for building precommit and test envs
     * [`code-gwfx.yaml`](.github/workflows/config/code-gwfx.yaml) config file for building precommit and test envs
     * [`profile.yaml`](.github/workflows/config/profile.yaml) config file for aiida profile
@@ -36,38 +38,24 @@ intended to help developers get started with their AiiDA plugins.
   * [`calculations.py`](aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class, and `GaussianWFXCalculation`, a modified version of `GaussianCalculation` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
   * [`parsers.py`](aiida_aimall/parsers.py): A new `Parser` for the `AimqbCalculation`, and `GaussianWFXParser`, a modified version of `GaussianBaseParser` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
   * [`workchains.py`](aiida_aimall/workchains.py): New `WorkChains`.
-  * * `MultiFragmentWorkChain` to fragment molecules using cml files from the Retrievium database and submit Gaussian calculations for the fragments using functions in `frag_functions` from [subproptools Github](https:github.com/kmlefran/group_decomposition)
+    * `MultiFragmentWorkChain` to fragment molecules using cml files from the Retrievium database and submit Gaussian calculations for the fragments using functions in `frag_functions` from [subproptools Github](https:github.com/kmlefran/group_decomposition)
     * `G16OptWorkchain` to take output from `MultiFragmentWorkChain` and submit Gaussian optimization calculations
     * `AimAllReorWorkChain` to run `AimqbCalculation` on output from `GaussianWFXCalculations`, then reorient to coordinate systems defined in `subreor` from [subproptools Github](https:github.com/kmlefran/subproptools)
 * [`controllers.py`](aiida_aimall/controllers.py): Workflow controllers to limit number of running jobs on localhost computers.
-* * `AimReorSubmissionController` to control `AimReorWorkChain`s. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
-* * `AimAllSubmissionController` to control `AimqbCalculations``. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
-* * `GaussianSubmissionController` to control `GaussianWFXCalculations`. This is mostly intended to have a arbitrarily large number of max concurrents and scan for output structures of `AimReorWorkchain`s to submit to a remote cluster
+  * `AimReorSubmissionController` to control `AimReorWorkChain`s. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
+  * `AimAllSubmissionController` to control `AimqbCalculations``. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
+  * `GaussianSubmissionController` to control `GaussianWFXCalculations`. This is mostly intended to have a arbitrarily large number of max concurrents and scan for output structures of `AimReorWorkchain`s to submit to a remote cluster
 * [`docs/`](docs/): Source code of documentation for [Read the Docs](http://aiida-diff.readthedocs.io/en/latest/)
-* [`examples/`](examples/): An example of how to submit a calculation using this plugin
+* [`examples/`](examples/): An example of how to link the four controllers in an overall workflow
 * [`tests/`](tests/): Basic regression tests using the [pytest](https://docs.pytest.org/en/latest/) framework (submitting a calculation, ...). Install `pip install -e .[testing]` and run `pytest`.
+  * [`conftest.py`](conftest.py): Configuration of fixtures for [pytest](https://docs.pytest.org/en/latest/)
 * [`.gitignore`](.gitignore): Telling git which files to ignore
 * [`.pre-commit-config.yaml`](.pre-commit-config.yaml): Configuration of [pre-commit hooks](https://pre-commit.com/) that sanitize coding style and check for syntax errors. Enable via `pip install -e .[pre-commit] && pre-commit install`
 * [`.readthedocs.yml`](.readthedocs.yml): Configuration of documentation build for [Read the Docs](https://readthedocs.org/)
+* [`.isort.cfg`](.isort.cfg): Configuration to make isort and black precommit actions compatible
 * [`LICENSE`](LICENSE): License for your plugin
 * [`README.md`](README.md): This file
-* [`conftest.py`](conftest.py): Configuration of fixtures for [pytest](https://docs.pytest.org/en/latest/)
 * [`pyproject.toml`](setup.json): Python package metadata for registration on [PyPI](https://pypi.org/) and the [AiiDA plugin registry](https://aiidateam.github.io/aiida-registry/) (including entry points)
-
-See also the following video sequences from the 2019-05 AiiDA tutorial:
-
- * [run aiida-diff example calculation](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=403s)
- * [aiida-diff CalcJob plugin](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=685s)
- * [aiida-diff Parser plugin](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=936s)
- * [aiida-diff computer/code helpers](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=1238s)
- * [aiida-diff input data (with validation)](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=1353s)
- * [aiida-diff cli](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=1621s)
- * [aiida-diff tests](https://www.youtube.com/watch?v=2CxiuiA1uVs&t=1931s)
- * [Adding your plugin to the registry](https://www.youtube.com/watch?v=760O2lDB-TM&t=112s)
- * [pre-commit hooks](https://www.youtube.com/watch?v=760O2lDB-TM&t=333s)
-
-For more information, see the [developer guide](https://aiida-diff.readthedocs.io/en/latest/developer_guide) of your plugin.
-
 
 ## Features
 
