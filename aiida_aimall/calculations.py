@@ -99,6 +99,11 @@ class AimqbCalculation(CalcJob):
         )
 
         spec.default_output_node = "output_parameters"
+        spec.exit_code(
+            210,
+            "ERROR_OUTPUT_MISSING",
+            message="The retrieved folder did not contain the output file.",
+        )
         spec.outputs.dynamic = True
 
         # would put error codes here
