@@ -26,7 +26,7 @@ def generate_aimqb_inputs():
                 os.path.join(
                     filepath_tests,
                     "parsers/inputs",
-                    "h2_opt.wfx",
+                    "water_wb97xd_augccpvtz_qtaim.wfx",
                 )
             ),
             "metadata": {
@@ -73,6 +73,7 @@ def test_aimqb_parser_default(  # pylint:disable=too-many-arguments
     results_dict = results["output_parameters"].get_dict()
     assert "atomic_properties" in results_dict
     assert "bcp_properties" in results_dict
+    assert "cc_properties" in results_dict
 
 
 def test_gaussiannode_returns_error(  # pylint:disable=too-many-arguments
