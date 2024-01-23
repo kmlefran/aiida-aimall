@@ -38,9 +38,15 @@ def test_generate_rotated_structure_aiida(generate_workchain_folderdata):
     }
     rot_Dict = generate_rotated_structure_aiida(aim_folder, a_props, cc_dict)
     rot_dict = rot_Dict.get_dict()
-    assert isinstance(rot_dict, Dict)
+    assert isinstance(rot_Dict, Dict)
     assert "atom_symbols" in rot_dict
     assert "geom" in rot_dict
+    assert abs(rot_dict["geom"][0][0]) < 0.0001
+    assert abs(rot_dict["geom"][0][1]) < 0.0001
+    assert abs(rot_dict["geom"][0][2]) < 0.0001
+    assert rot_dict["geom"][1][0] < 0
+    assert abs(rot_dict["geom"][1][1]) < 0.0001
+    assert abs(rot_dict["geom"][1][2]) < 0.0001
 
 
 def test_dict_to_structure():
