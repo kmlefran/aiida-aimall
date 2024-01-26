@@ -20,52 +20,6 @@ jobs:
       run: |
         pre-commit install
         pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
-  tests:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        python-version: ["3.11"]
-        aiida-version: ["stable"]
-
-    services:
-      postgres:
-        image: postgres:10
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install python dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -e .[testing]
-        pip install subproptools
-        pip install aiida-submission-controller
-        pip install group_decomposition
-
-    - name: Run test suite
-      env:
-        # show timings of tests
-        PYTEST_ADDOPTS: --durations=0
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        py.test --cov aiida_aimall --cov-append .
-        coveralls --service=github
-      #run: pytest -sv tests
-    # - name: Upload coverage reports to Codecov
-    #   uses: codecov/codecov-action@v3
-    #   env:
-    #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   integration:
 
     runs-on: ubuntu-latest
@@ -125,6 +79,53 @@ jobs:
 
     -   name: Setup groups
         run: verdi group create inp_frag
+
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+        aiida-version: ["stable"]
+
+    services:
+      postgres:
+        image: postgres:10
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install python dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -e .[testing]
+        pip install subproptools
+        pip install aiida-submission-controller
+        pip install group_decomposition
+
+    - name: Run test suite
+      env:
+        # show timings of tests
+        PYTEST_ADDOPTS: --durations=0
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        py.test --cov aiida_aimall --cov-append .
+        coveralls --service=github
+      #run: pytest -sv tests
+    # - name: Upload coverage reports to Codecov
+    #   uses: codecov/codecov-action@v3
+    #   env:
+    #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   docs:
     runs-on: ubuntu-latest
