@@ -29,7 +29,7 @@ def test_g16frag_controller(fixture_code):
 
     gr = Group(label="inp_frag")
     gr.store()
-    code = fixture_code("aimall.aimqb")
+    code = fixture_code("aimall")
     # with pytest.raises(NotExistent) as excinfo:
     con = G16FragController(
         parent_group_label="inp_frag",
