@@ -42,12 +42,13 @@ def test_g16frag_controller(fixture_code):
     struct.store()
     struct.base.extras.set("smiles", "unique")
     gr.add_nodes(struct)
-    ins, _ = con.get_inputs_and_processclass_from_extras(extras_values=["unique"])
+    ins, wf = con.get_inputs_and_processclass_from_extras(extras_values=["unique"])
     assert isinstance(ins, dict)
     assert "frag_label" in ins
     assert "fragment_dict" in ins
     assert "g16_code" in ins
     assert "g16_opt_params" in ins
+    assert wf.get_name() == "G16OptWorkchain"
     # pylint:disable=no-member
     # assert isinstance(wfs, aiida_aimall.workchains.G16OptWorkchain)
     # pylint:disable=no-member
