@@ -42,7 +42,7 @@ def test_g16frag_controller(fixture_code):
     struct = Str("C 0.0 0.0 0.0\nH -0.5,0.0,0.0\nC 0.5 0.0 0.0\n H 1.0, 0.0,0.0")
     struct.base.extras.set("smiles", "CtC")
     struct.store()
-    ins, wfs = con.get_inputs_and_processclass_from_extras(extras_values="CtC")
+    ins, wfs = con.get_inputs_and_processclass_from_extras(extras_values=["CtC"])
     assert isinstance(ins, dict)
     assert "frag_label" in ins
     assert "fragment_dict" in ins
