@@ -3,11 +3,10 @@ import pytest
 from aiida.common.exceptions import NotExistent
 from aiida.orm import Group, Str
 
-# pylint:disable=no-name-in-module
-from aiida_aimall.controllers import G16FragController
+import aiida_aimall
 
 # pylint:disable=no-name-in-module
-from aiida_aimall.workchains import G16OptWorkchain  # pylint:disable=no-name-in-module
+from aiida_aimall.controllers import G16FragController
 
 
 def test_unstored_parentgrouplabel_returns_error():
@@ -49,4 +48,6 @@ def test_g16frag_controller(fixture_code):
     assert "fragment_dict" in ins
     assert "g16_code" in ins
     assert "g16_opt_params" in ins
-    assert isinstance(wfs, G16OptWorkchain)
+    # pylint:disable=no-member
+    assert isinstance(wfs, aiida_aimall.workchains.G16OptWorkchain)
+    # pylint:disable=no-member
