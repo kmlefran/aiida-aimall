@@ -24,16 +24,18 @@ def test_unstored_parentgrouplabel_returns_error():
 
 
 @pytest.mark.usefixtures("aiida_profile")
-def test_g16frag_controller():
+def test_g16frag_controller(fixture_code):
     """Test that error returns when groups are not defined"""
+
     gr = Group(label="inp_frag")
     gr.store()
+    code = fixture_code("aimall.aimqb")
     # with pytest.raises(NotExistent) as excinfo:
     con = G16FragController(
         parent_group_label="inp_frag",
         group_label="opt_workchain",
         max_concurrent=1,
-        code_label="test.aimall.aimqb",
+        code_label=code.label + "@" + code.computer.label,
         g16_opt_params={},
     )
     assert con.get_extra_unique_keys() == ("smiles",)
