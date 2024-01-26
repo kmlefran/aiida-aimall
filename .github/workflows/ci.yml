@@ -122,6 +122,10 @@ jobs:
 
     -   name: Setup `g16wfx`
         run: verdi code create core.code.installed -n --config .github/config/code-gwfx.yaml --filepath-executable /Users/chemlab/Desktop/g16/g16
+
+    -   name: Setup groups
+        run: verdi group create inp_frag
+
   docs:
     runs-on: ubuntu-latest
     timeout-minutes: 15

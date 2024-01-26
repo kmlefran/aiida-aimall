@@ -1,7 +1,7 @@
 """Tests for aiida_aimall.controllers"""
 import pytest
 from aiida.common.exceptions import NotExistent
-from aiida.orm import Group, Str
+from aiida.orm import Str
 
 # pylint:disable=no-name-in-module
 from aiida_aimall.controllers import G16FragController
@@ -14,7 +14,7 @@ def test_unstored_parentgrouplabel_returns_error():
     """Test that error returns when groups are not defined"""
     with pytest.raises(NotExistent) as excinfo:
         G16FragController(
-            parent_group_label="inp_frag",
+            parent_group_label="empty",
             group_label="opt_workchain",
             max_concurrent=1,
             code_label="test.aimall.aimqb",
@@ -25,10 +25,7 @@ def test_unstored_parentgrouplabel_returns_error():
 
 def test_g16frag_controller():
     """Test that error returns when groups are not defined"""
-    gr = Group(label="opt_workchain")
-    gr.store()
-    gr = Group(label="inp_frag")
-    gr.store()
+
     # with pytest.raises(NotExistent) as excinfo:
     con = G16FragController(
         parent_group_label="inp_frag",
