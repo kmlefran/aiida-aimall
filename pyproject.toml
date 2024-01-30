@@ -24,7 +24,6 @@ requires-python = ">=3.11"
 dependencies = [
     "aiida-core>=2.0,<3",
     "voluptuous",
-    "h5py",
     "aiida-submission-controller",
     "pydantic",
     "ase",
