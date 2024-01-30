@@ -354,6 +354,12 @@ class AimqbGroupParser(AimqbBaseParser):
             out_dict["group_descriptor"] = self._parse_group_descriptor(
                 out_dict["atomic_properties"], group_nums
             )
+        else:  # default to using only atom # 2 as the substrate
+            num_ats = len(out_dict["atomic_properties"])
+            group_nums = [x + 1 for x in range(num_ats) if x != 1]
+            out_dict["group_descriptor"] = self._parse_group_descriptor(
+                out_dict["atomic_properties"], group_nums
+            )
         self.outputs.output_parameters = Dict(out_dict)
 
         return ExitCode(0)
