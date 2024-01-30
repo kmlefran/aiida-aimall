@@ -15,7 +15,7 @@ from functools import partial
 import multiprocess as mp
 import pandas as pd
 from aiida.engine import ToContext, WorkChain, calcfunction
-from aiida.orm import Code, Dict, Group, Int, List, SinglefileData, Str, load_group
+from aiida.orm import Code, Dict, Int, List, SinglefileData, Str, load_group
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
 from group_decomposition.fragfunctions import (
@@ -223,8 +223,7 @@ def generate_cml_fragments(params, cml_Dict, n_procs, prev_smi):
     out_frame = out_frame.drop("atom_types", axis=1)
     out_frame = out_frame.drop("count", axis=1)
     out_frame = out_frame.drop("numAttachments", axis=1)
-    g = Group(label="fragment_frames")
-    g.store()
+    g = load_group(identifier="fragment_frames")
     node_frame = PDData(out_frame)
     node_frame.store()
     g.add_nodes(node_frame)
