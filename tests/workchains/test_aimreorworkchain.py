@@ -2,6 +2,8 @@
 # import os
 
 from aiida.orm import Dict, SinglefileData, Str
+
+# from aiida.plugins import WorkflowFactory
 from plumpy.utils import AttributesFrozendict
 from subproptools import qtaim_extract as qt
 
@@ -56,3 +58,9 @@ def test_dict_to_structure():
     )
     str_str = dict_to_structure(str_dict)
     assert isinstance(str_str, Str)
+
+
+# def test_aimall():
+#     """Test aimall step of AIMReor"""
+#     AIMAllReor = WorkflowFactory("aimall.aimreor")
+#     wf = AIMAllReor()

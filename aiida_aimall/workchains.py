@@ -15,7 +15,7 @@ from functools import partial
 import multiprocess as mp
 import pandas as pd
 from aiida.engine import ToContext, WorkChain, calcfunction
-from aiida.orm import Code, Dict, Int, List, SinglefileData, Str, load_group
+from aiida.orm import Code, Dict, Group, Int, List, SinglefileData, Str, load_group
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
 from group_decomposition.fragfunctions import (
@@ -128,7 +128,7 @@ def parse_cml_files(singlefiledata):
 
 
 @calcfunction
-def generate_cml_fragments(params, cml_Dict, n_procs):
+def generate_cml_fragments(params, cml_Dict, n_procs, prev_smi):
     """Fragment the molecule defined by a CML
 
     Args:
@@ -139,6 +139,7 @@ def generate_cml_fragments(params, cml_Dict, n_procs):
     """
     # pylint:disable=too-many-locals
     # pylint:disable=too-many-statements
+    done_smi = prev_smi.get_list()
     cml_list = (
         cml_Dict.get_dict().values()
     )  # maybe just don't store cml files in database, just pass list to cgis here
@@ -146,10 +147,10 @@ def generate_cml_fragments(params, cml_Dict, n_procs):
     input_type = param_dict["input_type"]  # should set to cmldict
     bb_patt = param_dict["bb_patt"]
 
-    done_smi = []
+    # done_smi = []
     # dict_list = []
     fd = {}
-    out_frame = pd.DataFrame()
+    # out_frame = pd.DataFrame()
     with mp.Pool(n_procs.value) as pool:  # pylint:disable=not-callable no-member
         result_list = list(
             pool.map(
@@ -166,6 +167,7 @@ def generate_cml_fragments(params, cml_Dict, n_procs):
                     done_smi.append(key)
                     # dict_list.append(frag_dict[0][key])
                     fd[key] = frag_dict[0][key]
+
     while len(frame_list) > 1:
         frame_list = frame_list[2:] + [merge_uniques(frame_list[0], frame_list[1])]
     out_frame = frame_list[0]
@@ -221,7 +223,13 @@ def generate_cml_fragments(params, cml_Dict, n_procs):
     out_frame = out_frame.drop("atom_types", axis=1)
     out_frame = out_frame.drop("count", axis=1)
     out_frame = out_frame.drop("numAttachments", axis=1)
-    out_dict["cgis_frame"] = PDData(out_frame)
+    g = Group(label="fragment_frames")
+    g.store()
+    node_frame = PDData(out_frame)
+    node_frame.store()
+    g.add_nodes()
+    out_dict["cgis_frame"] = node_frame
+    out_dict["done_smi"] = List(done_smi)
     return out_dict
 
 
@@ -285,6 +293,7 @@ class MultiFragmentWorkChain(WorkChain):
         super().define(spec)
         spec.input("cml_file_dict", valid_type=Dict)
         spec.input("frag_params", valid_type=Dict)
+        spec.input("prev_smi", valid_type=List, default=List([]), required=False)
         # spec.input("g16_code", valid_type=Code)
         spec.input("procs", valid_type=Int, default=Int(8))
         # spec.input('aim_code',valid_type=Code)
@@ -299,6 +308,7 @@ class MultiFragmentWorkChain(WorkChain):
             self.inputs.frag_params,
             self.inputs.cml_file_dict,
             self.inputs.procs,
+            self.inputs.prev_smi,
         )
         g16_opt_group = load_group("inp_frag")
         for (
