@@ -31,7 +31,8 @@ dependencies = [
     "aiida-dataframe",
     "multiprocess",
     "subproptools",
-    "group_decomposition"
+    "group_decomposition",
+    "pymatgen"
 ]
 
 [project.urls]

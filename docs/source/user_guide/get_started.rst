@@ -81,6 +81,7 @@ Step 8: Install aiida-aimall
 
 Note that first hdf5  headers need to be installed for the tables dependency of aiida dataframe, which can be installed using conda
 ::
+
     conda install h5py
     pip install aiida-aimall
     #verify that entry points are registered
