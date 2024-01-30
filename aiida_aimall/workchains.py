@@ -225,7 +225,6 @@ def generate_cml_fragments(params, cml_Dict, n_procs, prev_smi):
     out_frame = out_frame.drop("numAttachments", axis=1)
 
     node_frame = PDData(out_frame)
-    node_frame.store()
 
     out_dict["cgis_frame"] = node_frame
     out_dict["done_smi"] = List(done_smi)
