@@ -227,7 +227,7 @@ def generate_cml_fragments(params, cml_Dict, n_procs, prev_smi):
     g.store()
     node_frame = PDData(out_frame)
     node_frame.store()
-    g.add_nodes()
+    g.add_nodes(node_frame)
     out_dict["cgis_frame"] = node_frame
     out_dict["done_smi"] = List(done_smi)
     return out_dict
