@@ -223,10 +223,10 @@ def generate_cml_fragments(params, cml_Dict, n_procs, prev_smi):
     out_frame = out_frame.drop("atom_types", axis=1)
     out_frame = out_frame.drop("count", axis=1)
     out_frame = out_frame.drop("numAttachments", axis=1)
-    g = load_group(identifier="fragment_frames")
+
     node_frame = PDData(out_frame)
     node_frame.store()
-    g.add_nodes(node_frame)
+
     out_dict["cgis_frame"] = node_frame
     out_dict["done_smi"] = List(done_smi)
     return out_dict
@@ -310,16 +310,15 @@ class MultiFragmentWorkChain(WorkChain):
             self.inputs.prev_smi,
         )
         g16_opt_group = load_group("inp_frag")
-        for (
-            key
-        ) in (  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
-            fdict.keys()  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
-        ):  # pylint:disable=consider-using-dict-items consider-iterating-dictionary
-            if key != "cgis_frame":
-                fdict[key].store()
-                struct_extras = EntityExtras(fdict[key])
+        for key, val in fdict.items():
+            if key not in ["done_smi", "cgis_frame"]:
+                val.store()
+                struct_extras = EntityExtras(val)
                 struct_extras.set("smiles", key)
-                g16_opt_group.add_nodes(fdict[key])
+                g16_opt_group.add_nodes(val)
+            elif key == "cgis_frame":
+                g = load_group(identifier="fragment_frames")
+                g.add_nodes(val)
         self.ctx.fragments = fdict
 
     # def submit_fragmenting(self):
