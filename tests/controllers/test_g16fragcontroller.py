@@ -18,6 +18,7 @@ def test_unstored_parentgrouplabel_returns_error():
             max_concurrent=1,
             code_label="test.aimall.aimqb",
             g16_opt_params={},
+            wfxgroup="test",
         )
     assert str(excinfo.value) == "No result was found"
 
@@ -36,6 +37,7 @@ def test_g16frag_controller(fixture_code):
         max_concurrent=1,
         code_label=code.label + "@" + code.computer.label,
         g16_opt_params={},
+        wfxgroup="test",
     )
     assert con.get_extra_unique_keys() == ("smiles",)
     struct = Str("C 0.0 0.0 0.0\nH -0.5,0.0,0.0\nC 0.5 0.0 0.0\n H 1.0, 0.0,0.0")

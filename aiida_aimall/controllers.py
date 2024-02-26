@@ -132,6 +132,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
         In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
             Either there may be new members of the parent_group to run, or some of the currently running jobs have run.
             So once a controller is defined, we can run it in a loop.
+
         ::
 
             controller = AimReorSubmissionController(
@@ -220,6 +221,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
         In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
             Either there may be new members of the parent_group to run, or some of the currently running jobs have run.
             So once a controller is defined, we can run it in a loop.
+
         ::
 
             controller = AimAllSubmissionController(
@@ -322,6 +324,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
         In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
             Either there may be new members of the parent_group to run, or some of the currently running jobs have run.
             So once a controller is defined, we can run it in a loop.
+
         ::
 
             controller = GaussianSubmissionController(
