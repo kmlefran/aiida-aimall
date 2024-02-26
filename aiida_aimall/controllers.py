@@ -16,13 +16,63 @@ AimqbCalculation = CalculationFactory("aimall.aimqb")
 
 
 class G16FragController(FromGroupSubmissionController):
-    """A controller for submitting G16OptWorkChain"""
+    """A controller for submitting G16OptWorkChain
+
+    Args:
+        parent_group_label: the string of a group label which contains various structures as orm.Str nodes
+        group_label: the string of the group to put the GaussianCalculations in
+        max_concurrent: maximum number of concurrent processes.
+        code_label: label of code, e.g. gaussian@cedar
+        g16_opt_params: Dict of Gaussian parameters to use
+        wfxgroup: group in which to store the resulting wfx files
+
+    Returns:
+        Controller object, periodically use run_in_batches to submit new results
+
+    Note:
+        In the typical use case, this is run on the outputs of the MultiFragmentWorkchain, which are by default added
+            to the group inp_frag, so make sure `parent_group_label` matches that
+
+    Example:
+        In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
+            Either there may be new members of the parent_group to run, or some of the currently running jobs have run.
+            So once a controller is defined, we can run it in a loop.
+        ::
+
+            controller = G16FragController(
+                code_label='gaussian@localhost',
+                parent_group_label = 'struct', # Add structures to run to struct group
+                group_label = 'gaussianopt', # Resulting nodes will be in the gaussianopt group
+                max_concurrent = 1,
+                wfxgroup = "opt_wfx"
+                g16_sp_params = Dict(dict={
+                    'link0_parameters': {
+                        '%chk':'aiida.chk',
+                        "%mem": "4000MB",
+                        "%nprocshared": 4,
+                    },
+                    'functional':'wb97xd',
+                    'basis_set':'aug-cc-pvtz',
+                    'charge': 0,
+                    'multiplicity': 1,
+                    'route_parameters': {'nosymmetry':None, 'Output':'WFX', 'opt':None, 'freq':None},
+                    "input_parameters": {"output.wfx": None},
+                    })
+            )
+
+            while True:
+                #submit Gaussian batches every hour
+                controller.submit_new_batch()
+                time.sleep(3600)
+
+    """
 
     parent_group_label: str
     group_label: str
     code_label: str
     max_concurrent: int
     g16_opt_params: dict
+    wfxgroup: str
 
     WORKFLOW_ENTRY_POINT = "aimall.g16opt"
 
@@ -30,12 +80,14 @@ class G16FragController(FromGroupSubmissionController):
         self,
         code_label: str,
         g16_opt_params: dict,
+        wfxgroup: str,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.code_label = code_label
         self.g16_opt_params = g16_opt_params
+        self.wfxgroup = wfxgroup
 
     def get_extra_unique_keys(self):
         """Returns a tuple of extras keys in the order needed"""
@@ -53,6 +105,7 @@ class G16FragController(FromGroupSubmissionController):
             "fragment_dict": structure,
             "g16_code": code,
             "g16_opt_params": Dict(self.g16_opt_params),
+            "wfxgroup": Str(self.wfxgroup),
         }
         return inputs, WorkflowFactory(self.WORKFLOW_ENTRY_POINT)
 
@@ -69,6 +122,31 @@ class AimReorSubmissionController(FromGroupSubmissionController):
 
     Returns:
         Controller object, periodically use run_in_batches to submit new results
+
+    Note:
+        A typical use case is using this as a controller on wfx files created by GaussianWFXCalculation. In that case,
+            match the `parent_group_label` here to the `wfxgroup` provided to the GaussianWFXCalculation.
+            In GaussianOptWorkchain, this is `opt_wfx` by default
+
+    Example:
+        In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
+            Either there may be new members of the parent_group to run, or some of the currently running jobs have run.
+            So once a controller is defined, we can run it in a loop.
+        ::
+
+            controller = AimReorSubmissionController(
+                code_label='aimall@localhost',
+                parent_group_label = 'wfx', # Add wfx files to run to group wfx
+                group_label = 'aim',
+                max_concurrent = 1,
+            )
+
+            while True:
+                #submit AIM batches every 5 minutes
+                i = i+1
+                controller.submit_new_batch()
+                time.sleep(300)
+
     """
 
     parent_group_label: str
@@ -130,9 +208,34 @@ class AimAllSubmissionController(FromGroupSubmissionController):
           since we will be submitting to Cedar which will manage
         code_label: label of code, e.g. gaussian@cedar
 
-
     Returns:
         Controller object, periodically use run_in_batches to submit new results
+
+    Note:
+        A typical use case is using this as a controller on wfx files created by GaussianWFXCalculation. In that case,
+            match the `parent_group_label` here to the `wfxgroup` provided to the GaussianWFXCalculation.
+            In GaussianSubmissionController, this is `reor_wfx`
+
+    Example:
+        In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
+            Either there may be new members of the parent_group to run, or some of the currently running jobs have run.
+            So once a controller is defined, we can run it in a loop.
+        ::
+
+            controller = AimAllSubmissionController(
+                code_label='aimall@localhost',
+                parent_group_label = 'wfx', # Add wfx files to run to group wfx
+                group_label = 'aim_reor',
+                max_concurrent = 1,
+                aim_parser = 'aimqb.group'
+            )
+
+            while True:
+                #submit AIM batches every 5 minutes
+                i = i+1
+                controller.submit_new_batch()
+                time.sleep(300)
+
     """
 
     parent_group_label: str
@@ -207,7 +310,45 @@ class GaussianSubmissionController(FromGroupSubmissionController):
     Returns:
         Controller object, periodically use run_in_batches to submit new results
 
-    Process continues and finishes in AimAllSubmissionController
+    Note:
+        A typical use case is using this as a controller on Str structures generated by AIMAllReor workchain. These are by
+            default assigned to the `reor_structs` group, so have `parent_group_label` match that
+
+    Note:
+        In overall workchain(fragment->optimize->aim+rotate->single point->aim), this is the single point step.
+        Process continues and finishes in AimAllSubmissionController
+
+    Example:
+        In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
+            Either there may be new members of the parent_group to run, or some of the currently running jobs have run.
+            So once a controller is defined, we can run it in a loop.
+        ::
+
+            controller = GaussianSubmissionController(
+                code_label='gaussian@localhost',
+                parent_group_label = 'struct', # Add structures to run to struct group
+                group_label = 'gaussiansp', # Resulting nodes will be in the gaussiansp group
+                max_concurrent = 1,
+                g16_sp_params = Dict(dict={
+                    'link0_parameters': {
+                        '%chk':'aiida.chk',
+                        "%mem": "4000MB",
+                        "%nprocshared": 4,
+                    },
+                    'functional':'wb97xd',
+                    'basis_set':'aug-cc-pvtz',
+                    'charge': 0,
+                    'multiplicity': 1,
+                    'route_parameters': {'nosymmetry':None, 'Output':'WFX'},
+                    "input_parameters": {"output.wfx": None},
+                    })
+            )
+
+            while True:
+                #submit Gaussian batches every hour
+                controller.submit_new_batch()
+                time.sleep(3600)
+
     """
 
     parent_group_label: str

@@ -231,44 +231,6 @@ def generate_cml_fragments(params, cml_Dict, n_procs, prev_smi):
     return out_dict
 
 
-# @calcfunction
-# def dict_to_structure(fragment_dict):
-#     """Generate a string of xyz coordinates for Gaussian input file
-
-#     :param fragment_dict:
-#     :param type fragment_dict: aiida.orm.nodes.data.dict.Dict
-#     """
-#     inp_dict = fragment_dict.get_dict()
-#     symbols = inp_dict["atom_symbols"]
-#     coords = inp_dict["geom"]
-#     outstr = ""
-#     for i in range(0, len(symbols)):
-#         if i != len(symbols) - 1:
-#             outstr = (
-#                 outstr
-#                 + symbols[i]
-#                 + "   "
-#                 + str(coords[i][0])
-#                 + "   "
-#                 + str(coords[i][1])
-#                 + "   "
-#                 + str(coords[i][2])
-#                 + "\n"
-#             )
-#         else:
-#             outstr = (
-#                 outstr
-#                 + symbols[i]
-#                 + "   "
-#                 + str(coords[i][0])
-#                 + "   "
-#                 + str(coords[i][1])
-#                 + "   "
-#                 + str(coords[i][2])
-#             )
-#     return Str(outstr)
-
-
 @calcfunction
 def update_g16_params(g16dict, fragdict):
     """Update input g16 params with charge and multiplicity
@@ -292,6 +254,8 @@ class MultiFragmentWorkChain(WorkChain):
         spec.input("cml_file_dict", valid_type=Dict)
         spec.input("frag_params", valid_type=Dict)
         spec.input("prev_smi", valid_type=List, default=List([]), required=False)
+        spec.input("frag_group", valid_type=Str, required=False)
+        spec.input("frame_group", valid_type=Str, required=False)
         # spec.input("g16_code", valid_type=Code)
         spec.input("procs", valid_type=Int, default=Int(8))
         # spec.input('aim_code',valid_type=Code)
@@ -308,15 +272,17 @@ class MultiFragmentWorkChain(WorkChain):
             self.inputs.procs,
             self.inputs.prev_smi,
         )
-        g16_opt_group = load_group("inp_frag")
+        if "frag_group" in self.inputs:
+            g16_opt_group = load_group(self.inputs.frag_group)
         for key, val in fdict.items():
             if key not in ["done_smi", "cgis_frame"]:
                 val.store()
                 struct_extras = EntityExtras(val)
                 struct_extras.set("smiles", key)
-                g16_opt_group.add_nodes(val)
-            elif key == "cgis_frame":
-                g = load_group(identifier="fragment_frames")
+                if "frag_group" in self.inputs:
+                    g16_opt_group.add_nodes(val)
+            elif key == "cgis_frame" and "frame_group" in self.inputs:
+                g = load_group(self.inputs.frame_group)
                 g.add_nodes(val)
         self.ctx.fragments = fdict
 
@@ -352,7 +318,7 @@ class G16OptWorkchain(WorkChain):
         spec.input("fragment_dict", valid_type=Dict)
         spec.input("frag_label", valid_type=Str)
         spec.input("g16_code", valid_type=Code)
-        spec.input("wfxgroup", valid_type=Str, default=Str("opt_wfx"))
+        spec.input("wfxgroup", valid_type=Str, required=False)
         spec.output("output", valid_type=Dict)
         spec.outline(
             cls.dict_to_struct,
@@ -378,13 +344,15 @@ class G16OptWorkchain(WorkChain):
         builder.parameters = self.ctx.params_with_cm
         builder.fragment_label = self.inputs.frag_label
         builder.code = self.inputs.g16_code
-        builder.wfxgroup = self.inputs.wfxgroup
+        if "wfxgroup" in self.inputs:
+            builder.wfxgroup = self.inputs.wfxgroup
+            g16_opt_group = load_group(self.inputs.wfxgroup)
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
         builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
         builder.metadata.options.max_wallclock_seconds = 604800
         process_node = self.submit(builder)
-        g16_opt_group = load_group("g16_opt")
-        g16_opt_group.add_nodes(process_node)
+        if "wfxgroup" in self.inputs:
+            g16_opt_group.add_nodes(process_node)
         out_dict = {"opt": process_node}
         # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
         return ToContext(out_dict)
@@ -407,6 +375,8 @@ class AIMAllReor(WorkChain):
         # spec.output('aim_dict',valid_type=Dict)
         spec.input("aim_code", valid_type=Code)
         spec.input("frag_label", valid_type=Str, required=False)
+        spec.input("aim_group", valid_type=Str, required=False)
+        spec.input("reor_group", valid_type=Str, required=False)
         spec.output("rotated_structure", valid_type=Str)
         spec.outline(
             cls.aimall, cls.rotate, cls.dict_to_struct_reor, cls.result
@@ -424,8 +394,9 @@ class AIMAllReor(WorkChain):
         }
         aim_calc = self.submit(builder)
         aim_calc.store()
-        aim_noreor_group = load_group("prereor_aim")
-        aim_noreor_group.add_nodes(aim_calc)
+        if "aim_group" in self.inputs:
+            aim_noreor_group = load_group(self.inputs.aim_group)
+            aim_noreor_group.add_nodes(aim_calc)
         out_dict = {"aim": aim_calc}
         return ToContext(out_dict)
 
@@ -447,11 +418,13 @@ class AIMAllReor(WorkChain):
     def dict_to_struct_reor(self):
         """generate the gaussian input from rotated structure"""
         struct_str = dict_to_structure(self.ctx.rot_struct_dict)
-        reor_struct_group = load_group("reor_structs")
         struct_str.store()
-        reor_struct_group.add_nodes(struct_str)
-        struct_extras = EntityExtras(struct_str)
-        struct_extras.set("smiles", self.inputs.frag_label.value)
+        if "reor_group" in self.inputs:
+            reor_struct_group = load_group(self.inputs.reor_group)
+            reor_struct_group.add_nodes(struct_str)
+        if "frag_label" in self.inputs:
+            struct_extras = EntityExtras(struct_str)
+            struct_extras.set("smiles", self.inputs.frag_label.value)
         self.ctx.rot_structure = struct_str
 
     def result(self):
@@ -475,8 +448,12 @@ class OptAimReorSPAimWorkChain(WorkChain):
             "frag_label",
             valid_type=Str,
             help="Label for substituent fragment, stored as extra",
+            required=False,
         )
-        spec.input("wfxgroup", valid_type=Str, default=Str("opt_wfx"))
+        spec.input("opt_wfx_group", valid_type=Str, required=False)
+        spec.input("sp_wfx_group", valid_type=Str, required=False)
+        spec.input("gaussian_opt_group", valid_type=Str, required=False)
+        spec.input("gaussian_sp_group", valid_type=Str, required=False)
         # spec.input("file", valid_type=SinglefileData)
         # spec.output('aim_dict',valid_type=Dict)
         spec.input("aim_code", valid_type=Code)
@@ -490,15 +467,18 @@ class OptAimReorSPAimWorkChain(WorkChain):
         builder = GaussianCalculation.get_builder()
         builder.structure_str = self.inputs.structure_str
         builder.parameters = self.ctx.g16_opt_params
-        builder.fragment_label = self.inputs.frag_label
+        if "frag_label" in self.inputs:
+            builder.fragment_label = self.inputs.frag_label
         builder.code = self.inputs.g16_code
-        builder.wfxgroup = self.inputs.wfxgroup
+        if "opt_wfx_group" in self.inputs:
+            builder.wfxgroup = self.inputs.opt_wfx_group
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
         builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
         builder.metadata.options.max_wallclock_seconds = 604800
         process_node = self.submit(builder)
-        g16_opt_group = load_group("g16_opt")
-        g16_opt_group.add_nodes(process_node)
+        if "gaussian_opt_group" in self.inputs:
+            g16_opt_group = load_group(self.inputs.gaussian_opt_group)
+            g16_opt_group.add_nodes(process_node)
         out_dict = {"opt": process_node}
         # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
         return ToContext(out_dict)
@@ -509,7 +489,8 @@ class OptAimReorSPAimWorkChain(WorkChain):
         builder.aim_params = self.inputs.aim_params
         builder.file = self.ctx.opt.get_outgoing().get_node_by_label("wfx")
         builder.aim_code = self.inputs.aim_code
-        builder.frag_label = self.inputs.frag_label
+        if "frag_label" in self.inputs:
+            builder.frag_label = self.inputs.frag_label
         process_node = self.submit(builder)
         out_dict = {"prereor_aim": process_node}
         return ToContext(out_dict)
@@ -519,15 +500,18 @@ class OptAimReorSPAimWorkChain(WorkChain):
         builder = GaussianCalculation.get_builder()
         builder.structure_str = self.inputs.structure_str
         builder.parameters = self.ctx.g16_sp_params
-        builder.fragment_label = self.inputs.frag_label
+        if "frag_label" in self.inputs:
+            builder.fragment_label = self.inputs.frag_label
         builder.code = self.inputs.g16_code
-        builder.wfxgroup = self.inputs.wfxgroup
+        if "sp_wfx_group" in self.inputs:
+            builder.wfxgroup = self.inputs.sp_wfx_group
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
         builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
         builder.metadata.options.max_wallclock_seconds = 604800
         process_node = self.submit(builder)
-        g16_opt_group = load_group("g16_sp")
-        g16_opt_group.add_nodes(process_node)
+        if "gaussian_sp_group" in self.inputs:
+            g16_sp_group = load_group(self.inputs.gaussian_sp_group)
+        g16_sp_group.add_nodes(process_node)
         out_dict = {"sp": process_node}
         # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
         return ToContext(out_dict)
@@ -538,7 +522,8 @@ class OptAimReorSPAimWorkChain(WorkChain):
         builder.aim_params = self.inputs.aim_params
         builder.file = self.ctx.sp.get_outgoing().get_node_by_label("wfx")
         builder.aim_code = self.inputs.aim_code
-        builder.frag_label = self.inputs.frag_label
+        if "frag_label" in self.inputs:
+            builder.frag_label = self.inputs.frag_label
         builder.metadata.options.parser_name = "aimqb.group"
         num_atoms = len(
             self.ctx.prereor_aim.get_outgoing()

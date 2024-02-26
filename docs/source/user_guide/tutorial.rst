@@ -29,4 +29,17 @@ Having created the parameters for the program, we provide those parameters and a
     # builder.file = SinglefileData(io.BytesIO(wfx_file_string.encode()))
     submit(builder)
 
+Using the AimqbGroupParser
+--------------------------
+If you wish to extract, group properties as defined by the authors, the steps are similar, but an additional option is provided to the builder.
+::
+
+    AimqbCalculation = CalculationFactory('aimall.aimqb')
+    builder = AimqbCalculation.get_builder()
+    builder.parameters = aim_params
+    builder.file = SinglefileData('/absolute/path/to/file')
+    builder.code = orm.load_code('aimall@localhost')
+    builder.metadata.options.parser_name = "aimall.group"
+    submit(builder)
+
 .. _aimqbCMDLine: https://aim.tkgristmill.com/manual/aimqb/aimqb.html#AIMQBCommandLine
