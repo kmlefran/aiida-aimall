@@ -29,6 +29,9 @@ class AimqbCalculation(CalcJob):
     Attributes:
         parameters (AimqbParameters): command line parameters for the AimqbCalculation
         file (SinglefileData): the wfx, wfn, or fchk file to be run
+        code (Code): code of the AIMQB executable
+        attached_atom_int (Int): the integer label of the atom in the group that is attached to the rest of the molecule
+        group_atoms (List(Int)): integer ids of atoms comprising the group for AimqbGroupParser
 
     Example:
         ::
@@ -36,7 +39,9 @@ class AimqbCalculation(CalcJob):
             code = orm.load_code('aimall@localhost')
             AimqbParameters = DataFactory("aimall.aimqb")
             aim_params = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
-            file=SinglefileData(io.BytesIO(file_string.encode()))
+            file = SinglefileData("/absolute/path/to/file")
+            # Alternatively, if you have the file as a string, you can build the file with:
+            # file=SinglefileData(io.BytesIO(file_string.encode()))
             AimqbCalculation = CalculationFactory("aimall.aimqb")
             builder  = AimqbCalculation.get_builder()
             builder.parameters = aim_params
@@ -44,6 +49,14 @@ class AimqbCalculation(CalcJob):
             builder.code = code
             builder.metadata.options.resources = {"num_machines": 1, "num_mpiprocs_per_machine": 2}
             builder.submit()
+
+    Note:
+        By default, the AimqbBaseParser is used, getting atomic, BCP, and (if applicable) LapRhoCps.
+            You can opt to use the AimqbGroupParser, which also returns the integrated group properties model
+            of a group, as well as the atomic graph descriptor of the group. This is done by providing this to the builder:
+        ::
+
+            builder.metadata.options.parser_name = "aimall.group"
 
     """
 
@@ -169,7 +182,7 @@ class GaussianWFXCalculation(CalcJob):
         spec.input(
             "wfxgroup",
             valid_type=Str,
-            required=True,
+            required=False,
             help="Group label that output wfx will be a member of",
         )
         spec.input("structure_str", valid_type=Str, required=False)

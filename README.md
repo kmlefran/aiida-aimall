@@ -17,10 +17,6 @@ Computational Design and Discovery of Novel Materials (NCCR MARVEL))
 
 A plugin to interface AIMAll with AiiDA
 
-This plugin is the default output of the
-[AiiDA plugin cutter](https://github.com/aiidateam/aiida-plugin-cutter),
-intended to help developers get started with their AiiDA plugins.
-
 ## Repository contents
 
 * [`.github/`](.github/): [Github Actions](https://github.com/features/actions) configuration
@@ -57,33 +53,49 @@ intended to help developers get started with their AiiDA plugins.
 * [`README.md`](README.md): This file
 * [`pyproject.toml`](setup.json): Python package metadata for registration on [PyPI](https://pypi.org/) and the [AiiDA plugin registry](https://aiidateam.github.io/aiida-registry/) (including entry points)
 
+
+
 ## Features
 
- * Add input files using `SinglefileData`:
+### Feature specificity
+Many of the workflows provided are specific to my field of study, but the calculations and parsers should be widely useful. Again, as many things designed here were specific to my usage, there are some quirks that must be used at this time, but as I progress with this, I'll endeavour to replace them as optional parts.
+
+  * Many calculations and parsers store results in groups. I have used this, due to my usage of the FromGroupSubmissionController from aiida-submission-controller. I wrote for wfx files to be stored in a group in a Gaussian calculation because then a submission controller looks for wfx files in that group.
+    * What this means for the general user is that currently, some nodes are going to be stored in groups, and some group labels are to be provided to certain CalcJobs
+  * For similar reasons as above, many Parsers/CalcJobs add extras to the node, typically SMILES in my case
+    * Some calculations then, require an extra label (frag_label or fragment_label) to be provided as input to tag the output
+
+### Feature List
+
+ * AimqbParameters Data class to validate command line parameters used to run AIMAll calculations
+    ```python
+    AimqbParameters = DataFactory('aimall.aimqb')
+    aim_params = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
+    ```
+    * will check for instance, that the value supplied for naat (number of atoms at a time) is an integer.
+    * Most of the options provided at [AIMQB Command Line](https://aim.tkgristmill.com/manual/aimqb/aimqb.html#AIMQBCommandLine) are defined and validated
+
+
+ * Run an AIMQB calculation using a valid starting file format (WFN/WFX/FCHK as SinglefileData)
    ```python
-   SinglefileData = DataFactory('singlefile')
-   inputs['file1'] = SinglefileData(file='/path/to/file1')
-   inputs['file2'] = SinglefileData(file='/path/to/file2')
+   AimqbCalculation = CalculationFactory('aimall.aimqb')
+   builder = AimqbCalculation.get_builder()
+   builder.parameters = aim_params
+   builder.file = SinglefileData('/absolute/path/to/file')
+   # Alternatively, if you have file stored as a string:
+   # builder.file = SinglefileData(io.BytesIO(wfx_file_string.encode()))
+   submit(builder)
    ```
 
- * Specify command line options via a python dictionary and `DiffParameters`:
-   ```python
-   d = { 'ignore-case': True }
-   DiffParameters = DataFactory('aimall')
-   inputs['parameters'] = DiffParameters(dict=d)
-   ```
-
- * `DiffParameters` dictionaries are validated using [voluptuous](https://github.com/alecthomas/voluptuous).
-   Find out about supported options:
-   ```python
-   DiffParameters = DataFactory('aimall')
-   print(DiffParameters.schema.schema)
-   ```
+ *
 
 ## Installation
 
+The aiida-dataframe dependency tables requires h5 headers on your system. You may already have this, or not. One easy way that allows installation of the headers using the h5py package
+
 ```shell
-pip install aiida-aimall
+(conda-env) conda install h5py
+(conda-env) pip install aiida-aimall
 verdi quicksetup  # better to set up a new profile
 verdi plugin list aiida.calculations  # should now show your calclulation plugins
 ```
@@ -99,12 +111,6 @@ verdi daemon start     # make sure the daemon is running
 cd examples
 ./example_01.py        # run test calculation
 verdi process list -a  # check record of calculation
-```
-
-The plugin also includes verdi commands to inspect its data types:
-```shell
-verdi data aimall list
-verdi data aimall export <PK>
 ```
 
 ## Development

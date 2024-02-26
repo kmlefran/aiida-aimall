@@ -215,14 +215,31 @@ And N for double quotes again
 
 And with that, AiiDA should be all setup!
 
-Usage
-+++++
+Basic Usage
++++++++++++
 
-A quick demo of how to submit a calculation:
+aiida-aimall provides a Data class that validates the parameters you are supplying to AIMAll. You can  create such a data type as follows, referring to the list of command line parameters set out in aimqbCMDLine_:
+::
 
-Write example here
+    AimqbParameters = DataFactory('aimall.aimqb')
+    aim_params = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
+
+Having created the parameters for the progra, we provide those parameters and a SinglefileData of a AIMQB input file (.fchk, .wfn, .wfx) to AimqbCalculation.
+::
+
+    AimqbCalculation = CalculationFactory('aimall.aimqb')
+    builder = AimqbCalculation.get_builder()
+    builder.parameters = aim_params
+    builder.code = orm.load_code('aimall@localhost')
+    builder.file = SinglefileData('/absolute/path/to/file')
+    # Alternatively, if you have file stored as a string:
+    # builder.file = SinglefileData(io.BytesIO(wfx_file_string.encode()))
+    submit(builder)
+
+
 
 .. _AiidaSetup: https://aiida.readthedocs.io/projects/aiida-core/en/latest/intro/install_conda.html#intro-get-started-conda-install
 .. _PostGresSQl: https://postgresapp.com/
 .. _Conda: https://docs.conda.io/en/latest/
 .. _sshSetup: https://docs.alliancecan.ca/wiki/SSH_Keys
+.. _aimqbCMDLine: https://aim.tkgristmill.com/manual/aimqb/aimqb.html#AIMQBCommandLine

@@ -4,20 +4,29 @@ Tutorial
 
 This page can contain a simple tutorial for your code.
 
-What we want to achieve
-+++++++++++++++++++++++
+Basic Usage
++++++++++++
 
-Step 1
-------
+Create AimqbParameters instance
+-------------------------------
+aiida-aimall provides a Data class that validates the parameters you are supplying to AIMAll. You can  create such a data type as follows, referring to the list of command line parameters set out in aimqbCMDLine_:
+::
 
-Some text
+    AimqbParameters = DataFactory('aimall.aimqb')
+    aim_params = AimqbParameters(parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True})
 
-Step 2
-------
+Create and Submit AimqbCalculation
+----------------------------------
+Having created the parameters for the program, we provide those parameters and a SinglefileData of a AIMQB input file (.fchk, .wfn, .wfx) to AimqbCalculation.
+::
 
-Some other text
+    AimqbCalculation = CalculationFactory('aimall.aimqb')
+    builder = AimqbCalculation.get_builder()
+    builder.parameters = aim_params
+    builder.file = SinglefileData('/absolute/path/to/file')
+    builder.code = orm.load_code('aimall@localhost')
+    # Alternatively, if you have file stored as a string:
+    # builder.file = SinglefileData(io.BytesIO(wfx_file_string.encode()))
+    submit(builder)
 
-The final result
-+++++++++++++++++++++++
-
-Some text
+.. _aimqbCMDLine: https://aim.tkgristmill.com/manual/aimqb/aimqb.html#AIMQBCommandLine

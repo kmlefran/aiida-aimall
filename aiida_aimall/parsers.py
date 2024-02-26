@@ -163,8 +163,9 @@ class GaussianWFXParser(Parser):
                 )
                 sfd = SinglefileData(io.BytesIO(wfx_file_string.encode()))
                 sfd.store()
-                out_group = load_group(self.node.inputs.wfxgroup.value)
-                out_group.add_nodes(sfd)
+                if "wfxgroup" in self.node.inputs:
+                    out_group = load_group(self.node.inputs.wfxgroup.value)
+                    out_group.add_nodes(sfd)
                 if "fragment_label" in self.node.inputs:
                     sfd.base.extras.set("smiles", self.node.inputs.fragment_label.value)
                 self.out("wfx", sfd)
