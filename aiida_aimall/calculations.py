@@ -54,6 +54,7 @@ class AimqbCalculation(CalcJob):
         By default, the AimqbBaseParser is used, getting atomic, BCP, and (if applicable) LapRhoCps.
             You can opt to use the AimqbGroupParser, which also returns the integrated group properties model
             of a group, as well as the atomic graph descriptor of the group. This is done by providing this to the builder:
+
         ::
 
             builder.metadata.options.parser_name = "aimall.group"
