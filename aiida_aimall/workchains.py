@@ -466,7 +466,7 @@ class OptAimReorSPAimWorkChain(WorkChain):
         """Submit the Gaussian optimization"""
         builder = GaussianCalculation.get_builder()
         builder.structure_str = self.inputs.structure_str
-        builder.parameters = self.ctx.g16_opt_params
+        builder.parameters = self.inputs.g16_opt_params
         if "frag_label" in self.inputs:
             builder.fragment_label = self.inputs.frag_label
         builder.code = self.inputs.g16_code
