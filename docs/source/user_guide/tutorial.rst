@@ -57,7 +57,6 @@ The original intent of the Workflows defined in this package is extracting group
     from aiida_aimall.controllers import AimAllSubmissionController, AimReorSubmissionController, GaussianSubmissionController, G16FragController
     # load the first workchain
     MultiFragmentWorkChain = WorkflowFactory('aimall.multifrag')
-
     #Restart the daemons just to make sure they are on
     %verdi daemon stop
     %verdi daemon start 5
@@ -65,7 +64,6 @@ The original intent of the Workflows defined in this package is extracting group
     # At the bottom of that report, see the usage of daemons. You may need to start some more daemons depending
     # on what you set as the number of chains to run
     %verdi status
-
     builder = MultiFragmentWorkChain.get_builder()
     cfd = {}
     #as an example, get 100 cml files in the cfd dictionary. Here, I have some cmls in /Users/chemlab/Documents/Coding/Testing AiiDA/Data/cml_files
@@ -81,14 +79,12 @@ The original intent of the Workflows defined in this package is extracting group
     # create fragmenting parameters
     frag_params = Dict({'input':'/Users/chemlab/Documents/KLG Notes/Python Packages/klg_fragmentation_workchain/DUDE_03770066_mk14_decoys_C26H23FN4O4S_CIR.cml','bb_patt':'[$([C;X4;!R]):1]-[$([R,!$([C;X4]);!#0;!#9;!#17;!#35;!#1]):2]','keep_only_children':True,'cml_file':'','include_parent':True,'input_type':'cmlfile'})
     frag_dict = Dict(dict=frag_params)
-
     # pass the inputs to the fragmenting workchain
     builder.frag_params = frag_params
     builder.cml_file_dict = cml_dict
     submit(builder) # launch the fragmenting
     #IMPORTANT!!!
     # Wait until this workchain is DONE before continuing with the while loop
-
     #Gaussian optimization parameters
     parameters = Dict(dict={
             'link0_parameters': {
@@ -103,8 +99,6 @@ The original intent of the Workflows defined in this package is extracting group
             'route_parameters': {'opt': None, 'Output':'WFX'},
             "input_parameters": {"output.wfx": None},
         })
-
-
     # Gaussian optimization controller
     g16opt_controller = G16FragController(
         parent_group_label = "inp_frag", # group to look for fragment structures
@@ -114,7 +108,6 @@ The original intent of the Workflows defined in this package is extracting group
         g16_opt_params = parameters.get_dict() # for creating the Gaussian input file
         wfxgroup = "opt_wfx"
     )
-
     # AIM Reor Controller
     controller = AimReorSubmissionController(
         parent_group_label = 'opt_wfx',
@@ -125,7 +118,6 @@ The original intent of the Workflows defined in this package is extracting group
         reor_group = "reor_structs",
         aimparameters = {"naat": 2, "nproc": 2, "atlaprhocps": True}
     )
-
     # Gaussian Single Point parameters
     sp_parameters = Dict(dict={
             'link0_parameters': {
@@ -139,7 +131,6 @@ The original intent of the Workflows defined in this package is extracting group
             'multiplicity': 1,
             'route_parameters': {'nosymmetry':None, 'Output':'WFX'},
             "input_parameters": {"output.wfx": None},
-
         })
     #Gaussian single point controller
     controller2 = GaussianSubmissionController(
@@ -150,7 +141,6 @@ The original intent of the Workflows defined in this package is extracting group
         g16_sp_params=sp_parameters,
         wfxgroup = "reor_wfx"
     )
-
     # Final AIM Controller
     controller3 = AimAllSubmissionController(
         code_label='aimall@localhost',
@@ -160,7 +150,6 @@ The original intent of the Workflows defined in this package is extracting group
         aim_parser = 'aimqb.group'
         aimparameters = {"naat": 2, "nproc": 2, "atlaprhocps": True}
     )
-
     # loop over submitting in batches every interval until all are run
     from aiida.engine.processes.control import play_processes
     while controller3.num_already_run < g16opt_controller.num_to_run + g16opt_controller.num_already_run:

@@ -18,6 +18,7 @@ def test_unstored_parentgrouplabel_returns_error():
             max_concurrent=1,
             code_label="test.aimall.aimqb",
             reor_group="test",
+            aimparameters={"naat": 2, "nproc": 2, "atlaprhocps": True},
         )
     assert str(excinfo.value) == "No result was found"
 
@@ -36,6 +37,7 @@ def test_aimreor_controller(fixture_code):
         max_concurrent=1,
         code_label=code.label + "@" + code.computer.label,
         reor_group="test",
+        aimparameters={"naat": 2, "nproc": 2, "atlaprhocps": True},
     )
     assert con.get_extra_unique_keys() == ("smiles",)
     wfx = SinglefileData(
