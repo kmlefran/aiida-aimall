@@ -539,6 +539,7 @@ class OptAimReorSPAimWorkChain(WorkChain):
 
     def result(self):
         """Put results in output node"""
-        self.outputs.parameter_dict = (
-            self.ctx.final_aim.get_outgoing().get_node_by_label("output_parameters")
+        self.out(
+            "parameter_dict",
+            self.ctx.final_aim.get_outgoing().get_node_by_label("output_parameters"),
         )
