@@ -166,19 +166,15 @@ class GaussianWFXCalculation(CalcJob):
 
     Args:
         structure: StructureData for molecule to be run. Do not provide structure AND structure_str, but provide
-            at least one
-
+        at least one
         structure_str: Str for molecule to be run. e.g. orm.Str(H 0.0 0.0 0.0\n H -1.0 0.0 0.0)
-            Do not provide structure AND structure_str, but provide at least one
-
+        Do not provide structure AND structure_str, but provide at least one
         wfxgroup: Str of a group to add the .wfx files to
         parameters: required: Dict of Gaussian parameters, same as from aiida-gaussian. Note that the options provided should
-            generate a wfx file. See Example
-
+        generate a wfx file. See Example
         settings: optional, additional input parameters
         fragment_label: Str, optional: an extra to add to the wfx file node. Involved in the controllers,
-            which check extras
-
+        which check extras
         parent_calc_folder: RemoteData, optional: the folder of a completed gaussian calculation
 
     Example:
