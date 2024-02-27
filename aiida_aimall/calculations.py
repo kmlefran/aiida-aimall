@@ -158,9 +158,49 @@ class AimqbCalculation(CalcJob):
 
 
 class GaussianWFXCalculation(CalcJob):
-    """AiiDA calculation plugin wrapping Gaussian
+    """AiiDA calculation plugin wrapping Gaussian. Adapted from aiida-gaussian
+        https://github.com/nanotech-empa/aiida-gaussian, Copyright (c) 2020 Kristjan Eimre.
+        Additions made to enable providing molecule input as orm.Str,
+        and wfx files are retrieved by default. We further define another input wfxgroup in which you can provide an
+        optional group to store the wfx file in and fragment_label as an optional extra to add on the output.
 
-    Adapted from aiida-gaussian https://github.com/nanotech-empa/aiida-gaussian, Copyright (c) 2020 Kristjan Eimre.
+    Args:
+        structure: StructureData for molecule to be run. Do not provide structure AND structure_str, but provide
+            at least one
+        structure_str: Str for molecule to be run. e.g. orm.Str(H 0.0 0.0 0.0\n H -1.0 0.0 0.0)
+            Do not provide structure AND structure_str, but provide at least one
+        wfxgroup: Str of a group to add the .wfx files to
+        parameters: required: Dict of Gaussian parameters, same as from aiida-gaussian. Note that the options provided should
+            generate a wfx file. See Example
+        settings: optional, additional input parameters
+        fragment_label: Str, optional: an extra to add to the wfx file node. Involved in the controllers,
+            which check extras
+        parent_calc_folder: RemoteData, optional: the folder of a completed gaussian calculation
+
+    Example:
+    ::
+
+        builder = GaussianCalculation.get_builder()
+        builder.structure_str = orm.Str("H 0.0 0.0 0.0\n -1.0 0.0 0.0)
+        builder.parameters = orm.Dict(dict={
+            'link0_parameters': {
+                '%chk':'aiida.chk',
+                "%mem": "3200MB", # Currently set to use 8000 MB in .sh files
+                "%nprocshared": 4,
+            },
+            'functional':'wb97xd',
+            'basis_set':'aug-cc-pvtz',
+            'charge': 0,
+            'multiplicity': 1,
+            'route_parameters': {'opt': None, 'Output':'WFX'},
+            "input_parameters": {"output.wfx": None},
+        })
+        builder.code = orm.load_code("g16@localhost")
+        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
+        builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
+        builder.metadata.options.max_wallclock_seconds = 604800
+        submit(builder)
+
     """
 
     # Defaults
