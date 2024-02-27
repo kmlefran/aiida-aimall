@@ -525,6 +525,7 @@ class OptAimReorSPAimWorkChain(WorkChain):
         # if "frag_label" in self.inputs:
         #     builder.frag_label = self.inputs.frag_label
         builder.metadata.options.parser_name = "aimall.group"
+        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
         num_atoms = len(
             self.ctx.prereor_aim.get_outgoing()
             .get_node_by_label("rotated_structure")
