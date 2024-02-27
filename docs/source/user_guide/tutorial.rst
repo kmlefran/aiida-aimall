@@ -48,6 +48,7 @@ The original intent of the Workflows defined in this package is extracting group
     In this example, I show the whole workflow enabled through the use of controllers. So this code will identify groups present in the 100 cml files, as defined by the group_decomposition package, (groupdecomp_) attach each group to a hydrogen atom, optimize the group-H molecules, reorient them to the coordinate system defined in subproptoolsp packge (subproptools_), run a Gaussian single point on the reoriented geometry, then run AIM on the final reoriented geometry
 
 ::
+
     # imports
     from aiida.engine import submit # submit the workchain
     import time # delays the while loop
@@ -77,7 +78,9 @@ The original intent of the Workflows defined in this package is extracting group
                 cfd[str(i)] = line
     cml_dict = Dict(dict = cfd)
     # create fragmenting parameters
-    frag_params = Dict({'input':'/Users/chemlab/Documents/KLG Notes/Python Packages/klg_fragmentation_workchain/DUDE_03770066_mk14_decoys_C26H23FN4O4S_CIR.cml','bb_patt':'[$([C;X4;!R]):1]-[$([R,!$([C;X4]);!#0;!#9;!#17;!#35;!#1]):2]','keep_only_children':True,'cml_file':'','include_parent':True,'input_type':'cmlfile'})
+    frag_params = Dict({'input':'/Users/chemlab/Documents/KLG Notes/Python Packages/klg_fragmentation_workchain/DUDE_03770066_mk14_decoys_C26H23FN4O4S_CIR.cml',
+        'bb_patt':'[$([C;X4;!R]):1]-[$([R,!$([C;X4]);!#0;!#9;!#17;!#35;!#1]):2]','keep_only_children':True,'cml_file':'',
+        'include_parent':True,'input_type':'cmlfile'})
     frag_dict = Dict(dict=frag_params)
     # pass the inputs to the fragmenting workchain
     builder.frag_params = frag_params
@@ -172,4 +175,4 @@ The original intent of the Workflows defined in this package is extracting group
 .. _aimqbCMDLine: https://aim.tkgristmill.com/manual/aimqb/aimqb.html#AIMQBCommandLine
 .. _retrievium: https://retrievium.ca
 .. _groupdecomp: https://github.com/kmlefran/group_decomposition
-.._subproptools: https://github.com/kmlefran/subproptools
+.. _subproptools: https://github.com/kmlefran/subproptools
