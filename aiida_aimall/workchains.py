@@ -511,7 +511,7 @@ class OptAimReorSPAimWorkChain(WorkChain):
         process_node = self.submit(builder)
         if "gaussian_sp_group" in self.inputs:
             g16_sp_group = load_group(self.inputs.gaussian_sp_group)
-        g16_sp_group.add_nodes(process_node)
+            g16_sp_group.add_nodes(process_node)
         out_dict = {"sp": process_node}
         # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
         return ToContext(out_dict)
