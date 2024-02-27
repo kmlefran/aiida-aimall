@@ -498,7 +498,9 @@ class OptAimReorSPAimWorkChain(WorkChain):
     def g16_sp(self):
         """Run Gaussian Single Point calculation"""
         builder = GaussianCalculation.get_builder()
-        builder.structure_str = self.inputs.structure_str
+        builder.structure_str = self.ctx.prereor_aim.get_outgoing().get_node_by_label(
+            "rotated_structure"
+        )
         builder.parameters = self.inputs.g16_sp_params
         if "frag_label" in self.inputs:
             builder.fragment_label = self.inputs.frag_label
