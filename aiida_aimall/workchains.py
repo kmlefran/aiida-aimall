@@ -521,7 +521,7 @@ class OptAimReorSPAimWorkChain(WorkChain):
         builder = AimqbCalculation.get_builder()
         builder.parameters = self.inputs.aim_params
         builder.file = self.ctx.sp.get_outgoing().get_node_by_label("wfx")
-        builder.aim_code = self.inputs.aim_code
+        builder.code = self.inputs.aim_code
         if "frag_label" in self.inputs:
             builder.frag_label = self.inputs.frag_label
         builder.metadata.options.parser_name = "aimqb.group"
