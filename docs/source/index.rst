@@ -3,6 +3,7 @@ The aiida-aimall plugin for `AiiDA`_
 
 ``aiida-aimall`` is available at http://github.com/kmlefran/aiida-aimall
 
+The documentation is mostly functional, but still a work in progress. Please contact the authors if you have any questions.
 
 .. toctree::
    :maxdepth: 2

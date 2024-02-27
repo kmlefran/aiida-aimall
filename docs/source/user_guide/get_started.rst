@@ -86,9 +86,9 @@ Note that first hdf5  headers need to be installed for the tables dependency of 
     pip install aiida-aimall
     #verify that entry points are registered
     verdi plugin list aiida.calculations # should show aimall.aimqb and aimall.gaussianwfx
-    verdi plugin list aiida.parsers # should show aimqb.base,aimqb.group and aimall.gaussianwfx
-    verdi plugin list aiida.data # should shoul AimqbParameters
-    verdi plugin list aiida.workflows # should show aimall.multifrag aimall.aimreor and aimall.g16opt
+    verdi plugin list aiida.parsers # should show aimall.base,aimall.group and aimall.gaussianwfx
+    verdi plugin list aiida.data # should show aimall.aimqb
+    verdi plugin list aiida.workflows # should show aimall.multifrag, aimall.aimreor, aimall.optaimreor, and aimall.g16opt
 
 Step 8: Computer Setup
 ----------------------
