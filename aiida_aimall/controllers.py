@@ -154,18 +154,21 @@ class AimReorSubmissionController(FromGroupSubmissionController):
     group_label: str
     max_concurrent: int
     code_label: str
+    reor_group: str
 
     WORKFLOW_ENTRY_POINT = "aimall.aimreor"
 
     def __init__(
         self,
         code_label: str,
+        reor_group: str,
         *args,
         **kwargs,
     ):
         """initialize class"""
         super().__init__(*args, **kwargs)
         self.code_label = code_label
+        self.reor_group = reor_group
 
     # @validator("code_label")
     # # def _check_code_plugin(self, value):
@@ -195,6 +198,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
             "aim_params": aimparameters,
             "file": self.get_parent_node_from_extras(extras_values),
             "frag_label": Str(extras_values[0]),
+            "reor_group": Str(self.reor_group),
         }
         return inputs, WorkflowFactory(self.WORKFLOW_ENTRY_POINT)
 
@@ -359,6 +363,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
     max_concurrent: int
     code_label: str
     g16_sp_params: dict
+    wfxgroup: str
     # GaussianWFXCalculation entry point as defined in aiida-aimall pyproject.toml
     CALCULATION_ENTRY_POINT = "aimall.gaussianwfx"
 
@@ -366,6 +371,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
         self,
         code_label: str,
         g16_sp_params: dict,
+        wfxgroup: str,
         *args,
         **kwargs,
     ):
@@ -373,6 +379,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
         super().__init__(*args, **kwargs)
         self.code_label = code_label
         self.g16_sp_params = g16_sp_params
+        self.wfxgroup = wfxgroup
 
     # @validator("code_label")
     # def _check_code_plugin(self, value):
@@ -403,7 +410,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
             "code": code,
             "parameters": Dict(self.g16_sp_params),
             "structure_str": structure,
-            "wfxgroup": Str("reor_wfx"),
+            "wfxgroup": Str(self.wfxgroup),
             "metadata": {
                 "options": {
                     "resources": {"num_machines": 1, "tot_num_mpiprocs": 1},

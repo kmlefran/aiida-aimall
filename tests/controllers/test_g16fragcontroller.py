@@ -50,6 +50,7 @@ def test_g16frag_controller(fixture_code):
     assert "fragment_dict" in ins
     assert "g16_code" in ins
     assert "g16_opt_params" in ins
+    assert "wfxgroup" in ins
     assert wf.get_name() == "G16OptWorkchain"
     # pylint:disable=no-member
     # assert isinstance(wfs, aiida_aimall.workchains.G16OptWorkchain)

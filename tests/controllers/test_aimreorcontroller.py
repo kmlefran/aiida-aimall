@@ -17,6 +17,7 @@ def test_unstored_parentgrouplabel_returns_error():
             group_label="opt_workchain",
             max_concurrent=1,
             code_label="test.aimall.aimqb",
+            reor_group="test",
         )
     assert str(excinfo.value) == "No result was found"
 
@@ -34,6 +35,7 @@ def test_aimreor_controller(fixture_code):
         group_label="prereor_aim",
         max_concurrent=1,
         code_label=code.label + "@" + code.computer.label,
+        reor_group="test",
     )
     assert con.get_extra_unique_keys() == ("smiles",)
     wfx = SinglefileData(
@@ -48,4 +50,5 @@ def test_aimreor_controller(fixture_code):
     assert "aim_code" in ins
     assert "aim_params" in ins
     assert "file" in ins
+    assert "reor_group" in ins
     assert wf.get_name() == "AIMAllReor"

@@ -17,6 +17,7 @@ def test_unstored_parentgrouplabel_returns_error():
             group_label="opt_workchain",
             max_concurrent=1,
             code_label="test.aimall.aimqb",
+            wfxgroup="test",
             g16_sp_params={},
         )
     assert str(excinfo.value) == "No result was found"
@@ -36,6 +37,7 @@ def test_gaussiansubmission_controller(fixture_code):
         max_concurrent=1,
         code_label=code.label + "@" + code.computer.label,
         g16_sp_params={},
+        wfxgroup="test",
     )
     assert con.get_extra_unique_keys() == ("smiles",)
     struct = Str("C 0.0 0.0 0.0\nH -0.5,0.0,0.0\nC 0.5 0.0 0.0\n H 1.0, 0.0,0.0")
@@ -50,4 +52,5 @@ def test_gaussiansubmission_controller(fixture_code):
     assert "parameters" in ins
     assert "structure_str" in ins
     assert "metadata" in ins
+    assert "wfxgroup" in ins
     assert wf.get_name() == "GaussianWFXCalculation"
