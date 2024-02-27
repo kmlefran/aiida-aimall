@@ -519,7 +519,7 @@ class OptAimReorSPAimWorkChain(WorkChain):
     def aim(self):
         """Run Final AIM Calculation"""
         builder = AimqbCalculation.get_builder()
-        builder.aim_params = self.inputs.aim_params
+        builder.parameters = self.inputs.aim_params
         builder.file = self.ctx.sp.get_outgoing().get_node_by_label("wfx")
         builder.aim_code = self.inputs.aim_code
         if "frag_label" in self.inputs:
