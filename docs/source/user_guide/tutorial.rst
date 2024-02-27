@@ -41,11 +41,60 @@ If you wish to extract group properties as defined by the authors, the steps are
     builder.metadata.options.parser_name = "aimall.group"
     submit(builder)
 
+Workflow Usage
+++++++++++++++
+
+Calculation KLG's AIM properties for a single molecules
+-------------------------------------------------------
+Author KLG defines some QTAIM group properties to be used in evaluating properties. This generally involves a multistep
+calculation optimize, aim, reorient, single point, aim. The process can be automated on many files using controllers,
+see "Running on a set of CML files", below. But, a Workchain is presented that you can use to run single molecules as needed
+The code below shows this setup.
+
+::
+
+    from aiida-aimall.workchains import OptAimReorSPAimWorkChain
+    from aiida.engine import submit
+    from aiida import orm
+    from aiida.plugins.factories import DataFactory
+    AimqbParameters = DataFactory("aimall.aimqb")
+    builder = OptAimReorSPAimWorkChain.get_builder()
+    builder.g16_opt_params=Dict(dict={
+            'link0_parameters': {
+                '%chk':'aiida.chk',
+                "%mem": "3200MB", # Currently set to use 8000 MB in .sh files
+                "%nprocshared": 4,
+            },
+            'functional':'wb97xd',
+            'basis_set':'aug-cc-pvtz',
+            'charge': 0,
+            'multiplicity': 1,
+            'route_parameters': {'opt': None, 'Output':'WFX'},
+            "input_parameters": {"output.wfx": None},
+        })
+    builder.g16_sp_params = Dict(dict={
+            'link0_parameters': {
+                '%chk':'aiida.chk',
+                "%mem": "4000MB",
+                "%nprocshared": 4,
+            },
+            'functional':'wb97xd',
+            'basis_set':'aug-cc-pvtz',
+            'charge': 0,
+            'multiplicity': 1,
+            'route_parameters': {'nosymmetry':None, 'Output':'WFX'},
+            "input_parameters": {"output.wfx": None},
+        })
+    builder.aim_params = AimqbParameters(parameter_dict = {"naat": 2, "nproc": 2, "atlaprhocps": True})
+    builder.structure_str = Str("H 0.0 0.0 0.0\n H -1.0 0.0 0.0")
+    builder.g16_code = orm.load_code("gaussian@cedar")
+    builder.aim_code = orm.load_code("aimall@localhost")
+    submit(builder)
 
 Running on a set of CML files
 -----------------------------
 The original intent of the Workflows defined in this package is extracting groups from the Retrievium database (retrievium_) by parsing their CML files.
-    In this example, I show the whole workflow enabled through the use of controllers. So this code will identify groups present in the 100 cml files, as defined by the group_decomposition package, (groupdecomp_) attach each group to a hydrogen atom, optimize the group-H molecules, reorient them to the coordinate system defined in subproptoolsp packge (subproptools_), run a Gaussian single point on the reoriented geometry, then run AIM on the final reoriented geometry
+In this example, I show the whole workflow enabled through the use of controllers. So this code will identify groups present in the 100 cml files, as defined by the group_decomposition package, (groupdecomp_) attach each group to a hydrogen atom, optimize the group-H molecules, reorient them to the coordinate system defined in subproptoolsp packge (subproptools_), run a Gaussian single point on the reoriented geometry, then run AIM on the final reoriented geometry
 
 ::
 
