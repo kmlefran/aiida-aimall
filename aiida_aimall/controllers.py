@@ -46,7 +46,7 @@ class G16FragController(FromGroupSubmissionController):
                 group_label = 'gaussianopt', # Resulting nodes will be in the gaussianopt group
                 max_concurrent = 1,
                 wfxgroup = "opt_wfx"
-                g16_sp_params = Dict(dict={
+                g16_opt_params = Dict(dict={
                     'link0_parameters': {
                         '%chk':'aiida.chk',
                         "%mem": "4000MB",
@@ -119,7 +119,8 @@ class AimReorSubmissionController(FromGroupSubmissionController):
         group_label: the string of the group to put the GaussianCalculations in
         max_concurrent: maximum number of concurrent processes.
         code_label: label of code, e.g. gaussian@cedar
-
+        reor_group: group in which to place the reoriented structures.
+        aimparameters: dict of parameters for running AimQB, to be converted to AimqbParameters by the controller
 
     Returns:
         Controller object, periodically use run_in_batches to submit new results
@@ -141,6 +142,8 @@ class AimReorSubmissionController(FromGroupSubmissionController):
                 parent_group_label = 'wfx', # Add wfx files to run to group wfx
                 group_label = 'aim',
                 max_concurrent = 1,
+                reor_group = "reor_str"
+                aimparameters = {"naat": 2, "nproc": 2, "atlaprhocps": True}
             )
 
             while True:
@@ -156,6 +159,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
     max_concurrent: int
     code_label: str
     reor_group: str
+    aimparameters: dict
 
     WORKFLOW_ENTRY_POINT = "aimall.aimreor"
 
@@ -163,6 +167,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
         self,
         code_label: str,
         reor_group: str,
+        aimparameters,
         *args,
         **kwargs,
     ):
@@ -170,6 +175,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
         super().__init__(*args, **kwargs)
         self.code_label = code_label
         self.reor_group = reor_group
+        self.aimparameters = aimparameters
 
     # @validator("code_label")
     # # def _check_code_plugin(self, value):
@@ -191,12 +197,10 @@ class AimReorSubmissionController(FromGroupSubmissionController):
         """Constructs input for a AimReor Workchain from extra_values"""
         code = orm.load_code(self.code_label)
         # AimqbParameters = DataFactory("aimall")
-        aimparameters = AimqbParameters(
-            parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True}
-        )
+
         inputs = {
             "aim_code": code,
-            "aim_params": aimparameters,
+            "aim_params": AimqbParameters(parameter_dict=self.aimparameters),
             "file": self.get_parent_node_from_extras(extras_values),
             "frag_label": Str(extras_values[0]),
             "reor_group": Str(self.reor_group),
@@ -213,6 +217,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
         max_concurrent: maximum number of concurrent processes. Expected behaviour is to set to a large number
           since we will be submitting to Cedar which will manage
         code_label: label of code, e.g. gaussian@cedar
+        aimparameters: dict of parameters for running AimQB, to be converted to AimqbParameters by the controller
 
     Returns:
         Controller object, periodically use run_in_batches to submit new results
@@ -235,6 +240,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
                 group_label = 'aim_reor',
                 max_concurrent = 1,
                 aim_parser = 'aimqb.group'
+                aimparameters = {"naat": 2, "nproc": 2, "atlaprhocps": True}
             )
 
             while True:
@@ -250,6 +256,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
     max_concurrent: int
     code_label: str
     aim_parser: str
+    aimparameters: dict
 
     CALCULATION_ENTRY_POINT = "aimall.aimqb"
 
@@ -257,6 +264,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
         self,
         code_label: str,
         aim_parser: str,
+        aimparameters: dict,
         *args,
         **kwargs,
     ):
@@ -264,6 +272,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
         super().__init__(*args, **kwargs)
         self.code_label = code_label
         self.aim_parser = aim_parser
+        self.aimparameters = aimparameters
 
     # @validator("code_label")
     # def _check_code_plugin(self, value):
@@ -285,13 +294,10 @@ class AimAllSubmissionController(FromGroupSubmissionController):
         """Constructs input for a AimQBCalculation from extra_values"""
         code = orm.load_code(self.code_label)
         # AimqbParameters = DataFactory("aimall")
-        aimparameters = AimqbParameters(
-            parameter_dict={"naat": 2, "nproc": 2, "atlaprhocps": True}
-        )
         inputs = {
             "code": code,
             # "frag_label": Str(extras_values[0]),
-            "parameters": aimparameters,
+            "parameters": AimqbParameters(parameter_dict=self.aimparameters),
             "file": self.get_parent_node_from_extras(extras_values),
             "metadata": {
                 "options": {
