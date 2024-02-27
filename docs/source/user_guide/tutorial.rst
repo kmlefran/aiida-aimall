@@ -53,7 +53,7 @@ The code below shows this setup.
 
 ::
 
-    from aiida-aimall.workchains import OptAimReorSPAimWorkChain
+    from aiida_aimall.workchains import OptAimReorSPAimWorkChain
     from aiida.engine import submit
     from aiida import orm
     from aiida.plugins.factories import DataFactory
@@ -86,8 +86,8 @@ The code below shows this setup.
             "input_parameters": {"output.wfx": None},
         })
     builder.aim_params = AimqbParameters(parameter_dict = {"naat": 2, "nproc": 2, "atlaprhocps": True})
-    builder.structure_str = Str("H 0.0 0.0 0.0\n H -1.0 0.0 0.0")
-    builder.g16_code = orm.load_code("gaussian@cedar")
+    builder.structure_str = orm.Str("H 0.0 0.0 0.0\n H -1.0 0.0 0.0") # simple H2 molecule
+    builder.g16_code = orm.load_code("gaussian@localhost")
     builder.aim_code = orm.load_code("aimall@localhost")
     submit(builder)
 
