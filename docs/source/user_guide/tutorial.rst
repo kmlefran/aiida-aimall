@@ -22,9 +22,10 @@ Having created the parameters for the program, we provide those parameters and a
     builder = AimqbCalculation.get_builder()
     builder.parameters = aim_params
     builder.file = SinglefileData('/absolute/path/to/file')
-    builder.code = orm.load_code('aimall@localhost')
     # Alternatively, if you have file stored as a string as some of the workchains do
     # builder.file = SinglefileData(io.BytesIO(wfx_file_string.encode()))
+    builder.code = orm.load_code('aimall@localhost')
+    builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
     submit(builder)
 
 Using the AimqbGroupParser
@@ -37,15 +38,17 @@ If you wish to extract group properties as defined by the authors, the steps are
     builder.parameters = aim_params
     builder.file = SinglefileData('/absolute/path/to/file')
     builder.code = orm.load_code('aimall@localhost')
+    builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
     # set the parser to use to aimall.group
     builder.metadata.options.parser_name = "aimall.group"
+    builder.group_atoms = List([x + 1 for x in range(0, num_atoms) if x != 1])
     submit(builder)
 
 Workflow Usage
 ++++++++++++++
 
-Calculation KLG's AIM properties for a single molecules
--------------------------------------------------------
+Calculating KLG's AIM properties for a single molecule
+------------------------------------------------------
 Author KLG defines some QTAIM group properties to be used in evaluating properties. This generally involves a multistep
 calculation optimize, aim, reorient, single point, aim. The process can be automated on many files using controllers,
 see "Running on a set of CML files", below. But, a Workchain is presented that you can use to run single molecules as needed

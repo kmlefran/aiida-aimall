@@ -13,7 +13,7 @@ The aiida-aimall plugin for `AiiDA`_
    apidoc/aiida_aimall
    AiiDA Documentation <https://aiida.readthedocs.io>
    subproptools Documentation <https://subproptools.readthedocs.io/en/latest/>
-   group_decomposition Documentation <https://group_decomposition.readthedocs.io/en/latest/>
+   group_decomposition Documentation <https://group-decomposition.readthedocs.io/en/latest/>
 
 If you use this plugin for your research, please cite the following work:
 
