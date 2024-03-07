@@ -181,7 +181,7 @@ class GaussianWFXCalculation(CalcJob):
     ::
 
         builder = GaussianCalculation.get_builder()
-        builder.structure_str = orm.Str("H 0.0 0.0 0.0 -1.0 0.0 0.0)
+        builder.structure_str = orm.Str("H 0.0 0.0 0.0 -1.0 0.0 0.0) # needs newline but docs doesn't like
         builder.parameters = orm.Dict(dict={
             'link0_parameters': {
                 '%chk':'aiida.chk',
