@@ -207,6 +207,7 @@ class GaussianWFXCalculation(CalcJob):
     INPUT_FILE = "aiida.inp"
     OUTPUT_FILE = "aiida.out"
     PARENT_FOLDER_NAME = "parent_calc"
+    # can override in metadata
     DEFAULT_PARSER = "aimall.gaussianwfx"
 
     @classmethod
