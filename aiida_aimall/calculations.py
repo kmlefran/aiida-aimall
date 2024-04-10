@@ -250,7 +250,7 @@ class GaussianWFXCalculation(CalcJob):
         # Turn mpi off by default
         spec.input("metadata.options.withmpi", valid_type=bool, default=False)
 
-        spec.input(
+        spec.input(  # update parser here
             "metadata.options.parser_name",
             valid_type=str,
             default=cls.DEFAULT_PARSER,
