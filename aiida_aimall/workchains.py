@@ -253,11 +253,13 @@ class MultiFragmentWorkChain(WorkChain):
         super().define(spec)
         spec.input("cml_file_dict", valid_type=Dict)
         spec.input("frag_params", valid_type=Dict)
-        spec.input("prev_smi", valid_type=List, default=List([]), required=False)
+        spec.input(
+            "prev_smi", valid_type=List, default=lambda: List([]), required=False
+        )
         spec.input("frag_group", valid_type=Str, required=False)
         spec.input("frame_group", valid_type=Str, required=False)
         # spec.input("g16_code", valid_type=Code)
-        spec.input("procs", valid_type=Int, default=Int(8))
+        spec.input("procs", valid_type=Int, default=lambda: Int(8))
         # spec.input('aim_code',valid_type=Code)
         # spec.input('aim_params',valid_type=AimqbParameters)
         # spec.input("g16_opt_params", valid_type=Dict)

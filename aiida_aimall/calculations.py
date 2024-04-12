@@ -86,13 +86,13 @@ class AimqbCalculation(CalcJob):
             "attached_atom_int",
             valid_type=Int,
             help="id # of attached atom for graph descriptor",
-            default=Int(1),
+            default=lambda: Int(1),
         )
         spec.input(
             "group_atoms",
             valid_type=List,
             help="Integer ids of atoms in groups to include",
-            default=List([]),
+            default=lambda: List([]),
         )
         spec.input(
             "parameters",
@@ -181,7 +181,7 @@ class GaussianWFXCalculation(CalcJob):
     ::
 
         builder = GaussianCalculation.get_builder()
-        builder.structure_str = orm.Str("H 0.0 0.0 0.0 -1.0 0.0 0.0) # needs newline but docs doesn't like
+        builder.structure_str = orm.Str("H 0.0 0.0 0.0 -1.0 0.0 0.0") # needs newline but docs doesn't like
         builder.parameters = orm.Dict(dict={
             'link0_parameters': {
                 '%chk':'aiida.chk',
