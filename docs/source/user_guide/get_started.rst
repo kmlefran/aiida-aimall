@@ -102,7 +102,7 @@ Note that first hdf5  headers need to be installed for the tables dependency of 
     verdi plugin list aiida.workflows # should show aimall.multifrag, aimall.aimreor, aimall.optaimreor, and aimall.g16opt
 
 Step 10: Computer Setup
-----------------------
+-----------------------
 You'll likely need to setup at least two computers: localhost(your desktop) and the remote cluster you are submitting to. To do this, it is easiest to use a .yml file.
 
 First though, you need to ensure that you have an ssh key setup for the remote cluster. That is if you ssh username@cluster.computecanada.ca, you don't need to enter your password. Follow sshSetup_
@@ -198,7 +198,7 @@ If you are having issues with using the yml files (in this step and Step 11), si
     verdi code setup
 
 Step 11: Setup Code plugins
---------------------------
+---------------------------
 Again, use .yml files like those shown here:
 
 e.g. for AIMAll:
