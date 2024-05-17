@@ -19,6 +19,10 @@ Run the following in terminal to install homebrew::
     brew update --force --quiet
     chmod -R go-w "$(brew --prefix)/share/zsh"
 
+Make sure your conda environments appear in your path before /opt/bin. That is, in your .bash_profile/.zshrc make sure that the line adding opt/bin to path is before adding conda to path
+
+This may not be necessary generally, but I came across a case where it did. Caused by playing around with different python installations
+
 Step 2: Install Docker
 ----------------------
 Using brew, install Docker::
@@ -37,7 +41,13 @@ Run the following to setup rabbitmq with an AiiDA compatible version::
 
 This should now start at launch.
 
-Step 4: Download and setup PostGresSQL
+Step 4: Install graphviz
+------------------------
+This is for generating provenance graphs, we need graphviz on the system::
+
+    brew install graphviz
+
+Step 5: Download and setup PostGresSQL
 --------------------------------------
 Download PostGresSQL_
 
@@ -49,14 +59,15 @@ In Terminal::
 
 Should now be set up and running in the background. Note the elephant in the top right. Note that on reboots you should make sure you start this back up for AiiDA
 
-Step 5: install AiiDA
+Step 6: install AiiDA
 ---------------------
 This assumes that conda is installed already. Conda_::
 
-    conda create -yn aiida-env -c conda-forge aiida-core
+    conda create -n aiida-env python
     conda activate aiida-env
+    pip install aiida-core
 
-Step 6: Setup profile
+Step 7: Setup profile
 ---------------------
 ::
 
@@ -67,7 +78,7 @@ You will be prompted in the quicksetup command, answer as suits you for profile 
 
 Note that in the second line, <PROFILE> should be whatever you set in the prompts for verdi quicksetup.
 
-Step 7: Launch Daemons and Verify
+Step 8: Launch Daemons and Verify
 ---------------------------------
 ::
 
@@ -76,7 +87,7 @@ Step 7: Launch Daemons and Verify
 
 Should result in all processes working
 
-Step 8: Install aiida-aimall
+Step 9: Install aiida-aimall
 ----------------------------
 
 Note that first hdf5  headers need to be installed for the tables dependency of aiida dataframe, which can be installed using conda
@@ -90,7 +101,7 @@ Note that first hdf5  headers need to be installed for the tables dependency of 
     verdi plugin list aiida.data # should show aimall.aimqb
     verdi plugin list aiida.workflows # should show aimall.multifrag, aimall.aimreor, aimall.optaimreor, and aimall.g16opt
 
-Step 8: Computer Setup
+Step 10: Computer Setup
 ----------------------
 You'll likely need to setup at least two computers: localhost(your desktop) and the remote cluster you are submitting to. To do this, it is easiest to use a .yml file.
 
@@ -181,7 +192,12 @@ You need to configure and test it again, similar to before but with less prompts
 
 Should return passes
 
-Step 9: Setup Code plugins
+If you are having issues with using the yml files (in this step and Step 11), simply use the below instead, entering the information that is in the .yml file. Remember to still configure the computer matching previous prompt::
+
+    verdi computer setup
+    verdi code setup
+
+Step 11: Setup Code plugins
 --------------------------
 Again, use .yml files like those shown here:
 
@@ -214,6 +230,8 @@ For both, run (changing yml file name)
 And N for double quotes again
 
 And with that, AiiDA should be all setup!
+
+
 
 Basic Usage
 +++++++++++
