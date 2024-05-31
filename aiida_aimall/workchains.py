@@ -382,7 +382,7 @@ def get_previous_smiles(group_label):
     if donesmi_lists:
         for lst in donesmi_lists:
             smile_list = smile_list + lst.get_list()
-    return List(set(smile_list))
+    return List(list(set(smile_list)))
 
 
 @calcfunction
