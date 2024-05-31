@@ -418,7 +418,9 @@ class SmilesToGaussianInputWorkchain(WorkChain):
         spec.input("done_smiles_group")
         spec.output("g_input")
         spec.output("done_smiles")
-        spec.outline(cls.get_previous_smiles_step, cls.get_substituent_inputs_step)
+        spec.outline(
+            cls.get_previous_smiles_step, cls.get_substituent_inputs_step, cls.results
+        )
 
     def get_previous_smiles_step(self):
         """Find instances of previously run SMILES in the database"""
@@ -461,9 +463,14 @@ class SmilesToGaussianInputWorkchain(WorkChain):
                     ds_group = Group(label="done_smiles")
                     ds_group.store()
                 ds_group.add_nodes(val)
-                self.outputs.done_smiles = val
+                self.ctx.done_smiles = val
                 del inp_dict[key]
-        self.outputs.g_inputs = inp_dict
+        self.ctx.g_inputs = inp_dict
+
+    def results(self):
+        """Parse results"""
+        self.out("g_input", self.ctx.g_inputs)
+        self.out("done_smiles", self.ctx.done_smiles)
 
 
 class MultiFragmentWorkChain(WorkChain):
