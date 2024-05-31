@@ -416,8 +416,8 @@ class SmilesToGaussianInputWorkchain(WorkChain):
         super().define(spec)
         spec.input("smiles_list")
         spec.input("done_smiles_group")
-        spec.output("g_input")
-        spec.output("done_smiles")
+        # spec.output("g_input")
+        # spec.output("done_smiles")
         spec.outline(
             cls.get_previous_smiles_step, cls.get_substituent_inputs_step, cls.results
         )
