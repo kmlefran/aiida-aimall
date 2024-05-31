@@ -366,22 +366,18 @@ def get_substituent_input(smiles: str) -> dict:
     return out_dict
 
 
-def find_donesmi_lists(group_label):
-    """given labe  for group which we store them in, find all the lists of our done SMILES"""
-    query = QueryBuilder()
-    # find the group aim_reor, assign it the tag group
-    query.append(Group, filters={"label": group_label}, tag="group")
-    # In that group, find AimqbCalculations
-    query.append(orm.List, tag="lists", with_group="group")
-    if query.all():
-        return query.all()[0]
-    return None
-
-
 @calcfunction
 def get_previous_smiles(group_label):
     """given labe  for group which we store them in, find all the lists of our done SMILES and combine them into one list"""
-    donesmi_lists = find_donesmi_lists(group_label)
+    query = QueryBuilder()
+    # find the group aim_reor, assign it the tag group
+    query.append(Group, filters={"label": group_label.value}, tag="group")
+    # In that group, find AimqbCalculations
+    query.append(orm.List, tag="lists", with_group="group")
+    if query.all():
+        donesmi_lists = query.all()[0]
+    else:
+        donesmi_lists = []
     smile_list = []
     if donesmi_lists:
         for lst in donesmi_lists:
@@ -419,13 +415,14 @@ class SmilesToGaussianInputWorkchain(WorkChain):
     def define(cls, spec):
         super().define(spec)
         spec.input("smiles_list")
+        spec.input("done_smiles_group")
         spec.output("g_input")
         spec.output("done_smiles")
         spec.outline(cls.get_previous_smiles_step, cls.get_substituent_inputs_step)
 
     def get_previous_smiles_step(self):
         """Find instances of previously run SMILES in the database"""
-        self.ctx.done_smi = get_previous_smiles("done_smiles")
+        self.ctx.done_smi = get_previous_smiles(self.inputs.done_smiles_group)
 
     def get_substituent_inputs_step(self):
         """Given list of substituents and previously done smiles, get input"""
