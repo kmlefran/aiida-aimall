@@ -375,7 +375,7 @@ def get_previous_smiles(group_label):
     # In that group, find AimqbCalculations
     query.append(orm.List, tag="lists", with_group="group")
     if query.all():
-        donesmi_lists = query.all()[0]
+        donesmi_lists = [lst[0] for lst in query.all()]
     else:
         donesmi_lists = []
     smile_list = []
@@ -454,6 +454,7 @@ class SmilesToGaussianInputWorkchain(WorkChain):
                 except NotExistent as _:
                     g_inp_group = Group(label="g_inp_group")
                     g_inp_group.store()
+                g_inp_group.add_nodes(val)
             else:
                 try:
                     ds_group = load_group("done_smiles")
