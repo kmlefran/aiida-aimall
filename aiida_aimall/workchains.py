@@ -8,14 +8,28 @@ MultiFragmentWorkchain, entry point: multifrag
 G16OptWorkChain, entry point: g16opt
 AimAllReor WorkChain, entry point: aimreor
 """
+# pylint: disable=c-extension-no-member
+# pylint:disable=no-member
 import re
 import sys
 from functools import partial
 
 import multiprocess as mp
 import pandas as pd
+from aiida import orm
+from aiida.common.exceptions import ConfigurationError, NotExistent
 from aiida.engine import ToContext, WorkChain, calcfunction
-from aiida.orm import Code, Dict, Int, List, SinglefileData, Str, load_group
+from aiida.orm import (
+    Code,
+    Dict,
+    Group,
+    Int,
+    List,
+    QueryBuilder,
+    SinglefileData,
+    Str,
+    load_group,
+)
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
 from group_decomposition.fragfunctions import (
@@ -25,6 +39,8 @@ from group_decomposition.fragfunctions import (
     output_ifc_dict,
 )
 from group_decomposition.utils import all_data_from_cml, list_to_str, xyz_list_to_str
+from rdkit import Chem
+from rdkit.Chem import AllChem, rdmolops, rdqueries
 from subproptools.sub_reor import rotate_substituent_aiida
 
 old_stdout = sys.stdout
@@ -243,6 +259,214 @@ def update_g16_params(g16dict, fragdict):
     param_dict.update({"charge": frag_dict["charge"]})
     param_dict.update({"multiplicity": 1})
     return Dict(dict=param_dict)
+
+
+def calc_multiplicity(mol):
+    """Calculate the multiplicity of a molecule as 2S +1"""
+    num_radicals = 0
+    for atom in mol.GetAtoms():
+        num_radicals += atom.GetNumRadicalElectrons()
+    multiplicity = num_radicals + 1
+    return multiplicity
+
+
+def find_attachment_atoms(mol):
+    """Given molecule object, find the atoms corresponding to a * and the atom to which that is bound
+
+    Args:
+        mol: rdkit molecule object
+
+    Returns:
+        molecule with added hydrogens, the * atom object, and the atom object to which that is attached
+
+    Note:
+        Assumes that only one * is present in the molecule
+    """
+    # * has atomic number 0
+    query = rdqueries.AtomNumEqualsQueryAtom(0)
+    # add hydrogens now
+    h_mol_rw = Chem.RWMol(mol)  # Change type of molecule object
+    h_mol_rw = Chem.AddHs(h_mol_rw)
+
+    zero_at = h_mol_rw.GetAtomsMatchingQuery(query)[0]
+    # this will be bonded to one atom - whichever atom in the bond is not *, is the one we are looking for
+    bond = zero_at.GetBonds()[0]
+    begin_atom = bond.GetBeginAtom()
+    if begin_atom.GetSymbol() != "*":
+        attached_atom = begin_atom
+    else:
+        attached_atom = bond.GetEndAtom()
+    return h_mol_rw, zero_at, attached_atom
+
+
+def reorder_molecule(h_mol_rw, zero_at, attached_atom):
+    """Reindexes the atoms in a molecule, setting attached_atom to index 0, and zero_at to index 2
+
+    Args:
+        h_mol_rw: RWMol rdkit object with explicit hydrogens
+        zero_at: the placeholder * atom
+        attached_atom: the atom bonded to *
+
+    Returns:
+        molecule with reordered indices
+    """
+    zero_at_idx = zero_at.GetIdx()
+    zero_at.SetAtomicNum(1)
+
+    attached_atom_idx = attached_atom.GetIdx()
+    # Initialize the new index so that our desired atoms are at the indices we want
+    first_two_atoms = [attached_atom_idx, zero_at_idx]
+    # Add the rest of the indices in original order
+    remaining_idx = [
+        atom.GetIdx()
+        for atom in h_mol_rw.GetAtoms()
+        if atom.GetIdx() not in first_two_atoms
+    ]
+    out_atom_order = first_two_atoms + remaining_idx
+    reorder_mol = rdmolops.RenumberAtoms(h_mol_rw, out_atom_order)
+    return reorder_mol
+
+
+def get_xyz(reorder_mol):
+    """MMFF optimize the molecule to generate xyz coordiantes"""
+    AllChem.EmbedMolecule(reorder_mol)
+    AllChem.MMFFOptimizeMolecule(reorder_mol)  # Optimize with MMFF94
+    xyz_block = AllChem.rdmolfiles.MolToXYZBlock(
+        reorder_mol
+    )  # pylint:disable=no-member  # Store xyz coordinates
+    split_xyz_block = xyz_block.split("\n")
+    # first two lines are: number of atoms and blank. Last line is blank
+    xyz_lines = split_xyz_block[2 : len(split_xyz_block) - 1]
+    xyz_string = "\n".join([str(item) for item in xyz_lines])
+    return xyz_string
+
+
+def get_substituent_input(smiles: str) -> dict:
+    """For a given smiles, determine xyz structure, charge, and multiplicity
+
+    Args:
+        smiles: SMILEs of substituent to run
+
+    Returns:
+        dictionary of {'xyz':str, 'charge':int,'multiplicity':int}
+
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    if not mol:
+        raise ValueError(
+            f"Molecule could not be constructed for substituent input SMILES {smiles}"
+        )
+    h_mol_rw, zero_at, attached_atom = find_attachment_atoms(mol)
+    reorder_mol = reorder_molecule(h_mol_rw, zero_at, attached_atom)
+    xyz_string = get_xyz(reorder_mol)
+    reorder_mol.UpdatePropertyCache()
+    charge = Chem.GetFormalCharge(h_mol_rw)
+    multiplicity = calc_multiplicity(h_mol_rw)
+    out_dict = Dict({"xyz": xyz_string, "charge": charge, "multiplicity": multiplicity})
+    return out_dict
+
+
+def find_donesmi_lists(group_label):
+    """given labe  for group which we store them in, find all the lists of our done SMILES"""
+    query = QueryBuilder()
+    # find the group aim_reor, assign it the tag group
+    query.append(Group, filters={"label": group_label}, tag="group")
+    # In that group, find AimqbCalculations
+    query.append(orm.List, tag="lists", with_group="group")
+    if query.all():
+        return query.all()[0]
+    return None
+
+
+@calcfunction
+def get_previous_smiles(group_label):
+    """given labe  for group which we store them in, find all the lists of our done SMILES and combine them into one list"""
+    donesmi_lists = find_donesmi_lists(group_label)
+    smile_list = []
+    if donesmi_lists:
+        for lst in donesmi_lists:
+            smile_list = smile_list + lst.get_list()
+    return List(set(smile_list))
+
+
+@calcfunction
+def get_substituent_inputs(smiles_list_List, done_smi_List):
+    """given smiles_list and previously dones SMILES, create inputs for all those not previously done"""
+    smiles_list = smiles_list_List.get_list()
+    done_smi = done_smi_List.get_list()
+    smiles_to_run = list(set(smiles_list) - set(done_smi))
+    res = {
+        smiles.replace("*", "Att")
+        .replace("#", "t")
+        .replace("(", "lb")
+        .replace(")", "rb")
+        .replace("-", "Neg")
+        .replace("+", "Pos")
+        .replace("[", "ls")
+        .replace("]", "rs")
+        .replace("=", "d"): get_substituent_input(smiles)
+        for smiles in smiles_to_run
+    }
+    if res:
+        res["done_smi"] = List[smiles_to_run]
+    return res
+
+
+class SmilesToGaussianInputWorkchain(WorkChain):
+    """Workchain to take a SMILES, generate xyz, charge, and multiplicity"""
+
+    @classmethod
+    def define(cls, spec):
+        super().define(spec)
+        spec.input("smiles_list")
+        spec.output("g_input")
+        spec.output("done_smiles")
+        spec.outline(cls.get_previous_smiles_step, cls.get_substituent_inputs_step)
+
+    def get_previous_smiles_step(self):
+        """Find instances of previously run SMILES in the database"""
+        self.ctx.done_smi = get_previous_smiles("done_smiles")
+
+    def get_substituent_inputs_step(self):
+        """Given list of substituents and previously done smiles, get input"""
+        inp_dict = get_substituent_inputs(self.inputs.smiles_list, self.ctx.done_smi)
+        for key, val in inp_dict.items():
+            val.store()
+            if key != "done_smi":
+                val.base.extras.set(
+                    "smiles",
+                    key.replace("Att", "*")
+                    .replace("t", "#")
+                    .replace("lb", "(")
+                    .replace("rb", ")")
+                    .replace("Neg", "-")
+                    .replace("Pos", "+")
+                    .replace("ls", "[")
+                    .replace("rs", "]")
+                    .replace("d", "="),
+                )
+
+                try:
+                    g_inp_group = load_group("g_inp_group")
+                except ConfigurationError as _:
+                    g_inp_group = Group(label="g_inp_group")
+                    g_inp_group.store()
+                except NotExistent as _:
+                    g_inp_group = Group(label="g_inp_group")
+                    g_inp_group.store()
+            else:
+                try:
+                    ds_group = load_group("done_smiles")
+                except ConfigurationError as _:
+                    ds_group = Group(label="done_smiles")
+                    ds_group.store()
+                except NotExistent as _:
+                    ds_group = Group(label="done_smiles")
+                    ds_group.store()
+                ds_group.add_nodes(val)
+                self.outputs.done_smiles = val
+                del inp_dict[key]
+        self.outputs.g_inputs = inp_dict
 
 
 class MultiFragmentWorkChain(WorkChain):

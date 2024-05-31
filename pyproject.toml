@@ -106,6 +106,7 @@ docs = [
 "aimall.g16opt" = "aiida_aimall.workchains:G16OptWorkchain"
 "aimall.aimreor" = "aiida_aimall.workchains:AIMAllReor"
 "aimall.optaimreor" = "aiida_aimall.workchains:OptAimReorSPAimWorkChain"
+"aimall.smitog16" = "aiida_aimall.workchains:SmilesToGaussianInputWorkchain"
 
 #[project.entry-points."aiida.cmdline.data"]
 #"aimall" = "aiida_aimall.cli:data_cli"
