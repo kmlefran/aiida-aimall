@@ -404,7 +404,7 @@ def get_substituent_inputs(smiles_list_List, done_smi_List):
         for smiles in smiles_to_run
     }
     if res:
-        res["done_smi"] = List[smiles_to_run]
+        res["done_smi"] = List(smiles_to_run)
     return res
 
 
