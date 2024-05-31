@@ -464,7 +464,8 @@ class SmilesToGaussianInputWorkchain(WorkChain):
                     ds_group.store()
                 ds_group.add_nodes(val)
                 self.ctx.done_smiles = val
-                del inp_dict[key]
+        if "done_smi" in inp_dict:
+            del inp_dict["done_smi"]
         self.ctx.g_inputs = inp_dict
 
     def results(self):
