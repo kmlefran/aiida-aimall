@@ -419,7 +419,8 @@ class SmilesToGaussianInputWorkchain(WorkChain):
         # spec.output("g_input")
         # spec.output("done_smiles")
         spec.outline(
-            cls.get_previous_smiles_step, cls.get_substituent_inputs_step, cls.results
+            cls.get_previous_smiles_step,
+            cls.get_substituent_inputs_step,  # , cls.results
         )
 
     def get_previous_smiles_step(self):
@@ -468,10 +469,10 @@ class SmilesToGaussianInputWorkchain(WorkChain):
             del inp_dict["done_smi"]
         self.ctx.g_inputs = inp_dict
 
-    def results(self):
-        """Parse results"""
-        self.out("g_input", self.ctx.g_inputs)
-        self.out("done_smiles", self.ctx.done_smiles)
+    # def results(self):
+    #     """Parse results"""
+    #     self.out("g_input", self.ctx.g_inputs)
+    #     self.out("done_smiles", self.ctx.done_smiles)
 
 
 class MultiFragmentWorkChain(WorkChain):
