@@ -431,8 +431,10 @@ class SmilesToGaussianWorkchain(WorkChain):
         spec.input("smiles")
         spec.input("gaussian_parameters")
         spec.input("gaussian_code")
-        spec.input("wfxgroup")
-        spec.input("metadata")
+        spec.input("wfxgroup", required=False)
+        spec.input("nprocs", default=4)
+        spec.input("mem_mb", default=6400)
+        spec.input("time_s", default=24 * 7 * 60 * 60)
         # spec.output("g_input")
         # spec.output("done_smiles")
         spec.outline(
@@ -458,7 +460,12 @@ class SmilesToGaussianWorkchain(WorkChain):
         builder.parameters = self.ctx.gaussian_cm_params
         builder.fragment_label = self.inputs.smiles
         builder.code = self.inputs.g16_code
-        builder.metadata = self.inputs.metadata
+        builder.metadata.options.resources = {
+            "num_machines": 1,
+            "tot_num_mpiprocs": self.inputs.nprocs,
+        }
+        builder.metadata.options.max_memory_kb = int(self.inputs.mem_mb * 1.25) * 1024
+        builder.metadata.options.max_wallclock_seconds = self.inputs.time_s
         if "wfxgroup" in self.inputs:
             builder.wfxgroup = self.inputs.wfxgroup
         node = self.submit(builder)
