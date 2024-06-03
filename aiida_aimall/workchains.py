@@ -16,20 +16,8 @@ from functools import partial
 
 import multiprocess as mp
 import pandas as pd
-from aiida import orm
-from aiida.common.exceptions import ConfigurationError, NotExistent
 from aiida.engine import ToContext, WorkChain, calcfunction
-from aiida.orm import (
-    Code,
-    Dict,
-    Group,
-    Int,
-    List,
-    QueryBuilder,
-    SinglefileData,
-    Str,
-    load_group,
-)
+from aiida.orm import Code, Dict, Int, List, SinglefileData, Str, load_group
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
 from group_decomposition.fragfunctions import (
@@ -41,6 +29,7 @@ from group_decomposition.fragfunctions import (
 from group_decomposition.utils import all_data_from_cml, list_to_str, xyz_list_to_str
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdmolops, rdqueries
+from rdkit.Chem.MolKey.MolKey import BadMoleculeException
 from subproptools.sub_reor import rotate_substituent_aiida
 
 old_stdout = sys.stdout
@@ -330,7 +319,17 @@ def reorder_molecule(h_mol_rw, zero_at, attached_atom):
 def get_xyz(reorder_mol):
     """MMFF optimize the molecule to generate xyz coordiantes"""
     AllChem.EmbedMolecule(reorder_mol)
-    AllChem.MMFFOptimizeMolecule(reorder_mol)  # Optimize with MMFF94
+    # not_optimized will be 0 if done, 1 if more steps needed
+    max_iters = 200
+    for i in range(0, 6):
+        not_optimized = AllChem.MMFFOptimizeMolecule(
+            reorder_mol, maxIters=max_iters
+        )  # Optimize with MMFF94
+        if not not_optimized:
+            break
+        if i == 5:
+            return "Could not determine xyz coordinates"
+        max_iters = max_iters + 200
     xyz_block = AllChem.rdmolfiles.MolToXYZBlock(
         reorder_mol
     )  # pylint:disable=no-member  # Store xyz coordinates
@@ -341,6 +340,7 @@ def get_xyz(reorder_mol):
     return xyz_string
 
 
+@calcfunction
 def get_substituent_input(smiles: str) -> dict:
     """For a given smiles, determine xyz structure, charge, and multiplicity
 
@@ -348,7 +348,7 @@ def get_substituent_input(smiles: str) -> dict:
         smiles: SMILEs of substituent to run
 
     Returns:
-        dictionary of {'xyz':str, 'charge':int,'multiplicity':int}
+        AiiDA Dictionary of {'xyz':str, 'charge':int,'multiplicity':int}
 
     """
     mol = Chem.MolFromSmiles(smiles)
@@ -359,6 +359,10 @@ def get_substituent_input(smiles: str) -> dict:
     h_mol_rw, zero_at, attached_atom = find_attachment_atoms(mol)
     reorder_mol = reorder_molecule(h_mol_rw, zero_at, attached_atom)
     xyz_string = get_xyz(reorder_mol)
+    if xyz_string == "Could not determine xyz coordinates":
+        raise BadMoleculeException(
+            "Maximum iterations exceeded, could not determine xyz coordinates for f{smiles}"
+        )
     reorder_mol.UpdatePropertyCache()
     charge = Chem.GetFormalCharge(h_mol_rw)
     multiplicity = calc_multiplicity(h_mol_rw)
@@ -366,114 +370,100 @@ def get_substituent_input(smiles: str) -> dict:
     return out_dict
 
 
-@calcfunction
-def get_previous_smiles(group_label):
-    """given labe  for group which we store them in, find all the lists of our done SMILES and combine them into one list"""
-    query = QueryBuilder()
-    # find the group aim_reor, assign it the tag group
-    query.append(Group, filters={"label": group_label.value}, tag="group")
-    # In that group, find AimqbCalculations
-    query.append(orm.List, tag="lists", with_group="group")
-    if query.all():
-        donesmi_lists = [lst[0] for lst in query.all()]
-    else:
-        donesmi_lists = []
-    smile_list = []
-    if donesmi_lists:
-        for lst in donesmi_lists:
-            smile_list = smile_list + lst.get_list()
-    return List(list(set(smile_list)))
+# @calcfunction
+# def get_previous_smiles(group_label):
+#     """given lab  for group which we store them in, find all the lists of our done SMILES and combine them into one list"""
+#     query = QueryBuilder()
+#     # find the group aim_reor, assign it the tag group
+#     query.append(Group, filters={"label": group_label.value}, tag="group")
+#     # In that group, find AimqbCalculations
+#     query.append(orm.List, tag="lists", with_group="group")
+#     if query.all():
+#         donesmi_lists = [lst[0] for lst in query.all()]
+#     else:
+#         donesmi_lists = []
+#     smile_list = []
+#     if donesmi_lists:
+#         for lst in donesmi_lists:
+#             smile_list = smile_list + lst.get_list()
+#     return List(list(set(smile_list)))
+
+
+# @calcfunction
+# def get_substituent_inputs(smiles_list_List, done_smi_List):
+#     """given smiles_list and previously dones SMILES, create inputs for all those not previously done"""
+#     smiles_list = smiles_list_List.get_list()
+#     done_smi = done_smi_List.get_list()
+#     smiles_to_run = list(set(smiles_list) - set(done_smi))
+#     res = {
+#         smiles.replace("*", "Att")
+#         .replace("#", "t")
+#         .replace("(", "lb")
+#         .replace(")", "rb")
+#         .replace("-", "Neg")
+#         .replace("+", "Pos")
+#         .replace("[", "ls")
+#         .replace("]", "rs")
+#         .replace("=", "d"): get_substituent_input(smiles)
+#         for smiles in smiles_to_run
+#     }
+#     if res:
+#         res["done_smi"] = List(smiles_to_run)
+#     return res
 
 
 @calcfunction
-def get_substituent_inputs(smiles_list_List, done_smi_List):
-    """given smiles_list and previously dones SMILES, create inputs for all those not previously done"""
-    smiles_list = smiles_list_List.get_list()
-    done_smi = done_smi_List.get_list()
-    smiles_to_run = list(set(smiles_list) - set(done_smi))
-    res = {
-        smiles.replace("*", "Att")
-        .replace("#", "t")
-        .replace("(", "lb")
-        .replace(")", "rb")
-        .replace("-", "Neg")
-        .replace("+", "Pos")
-        .replace("[", "ls")
-        .replace("]", "rs")
-        .replace("=", "d"): get_substituent_input(smiles)
-        for smiles in smiles_to_run
-    }
-    if res:
-        res["done_smi"] = List(smiles_to_run)
-    return res
+def parameters_with_cm(parameters, smiles_dict):
+    """Add charge and multiplicity keys to Gaussian Input"""
+    parameters_dict = parameters.get_dict()
+    smiles_dict_dict = smiles_dict.get_dict()
+    parameters_dict["charge"] = smiles_dict_dict["charge"]
+    parameters_dict["multiplicity"] = smiles_dict_dict["multiplicity"]
+    return Dict(parameters_dict)
 
 
-class SmilesToGaussianInputWorkchain(WorkChain):
+class SmilesToGaussianWorkchain(WorkChain):
     """Workchain to take a SMILES, generate xyz, charge, and multiplicity"""
 
     @classmethod
     def define(cls, spec):
         super().define(spec)
-        spec.input("smiles_list")
-        spec.input("done_smiles_group")
+        spec.input("smiles")
+        spec.input("gaussian_parameters")
+        spec.input("gaussian_code")
+        spec.input("wfxgroup")
+        spec.input("metadata")
         # spec.output("g_input")
         # spec.output("done_smiles")
         spec.outline(
-            cls.get_previous_smiles_step,
             cls.get_substituent_inputs_step,  # , cls.results
+            cls.update_paramaters_with_cm,
+            cls.submit_gaussian,
         )
-
-    def get_previous_smiles_step(self):
-        """Find instances of previously run SMILES in the database"""
-        self.ctx.done_smi = get_previous_smiles(self.inputs.done_smiles_group)
 
     def get_substituent_inputs_step(self):
         """Given list of substituents and previously done smiles, get input"""
-        inp_dict = get_substituent_inputs(self.inputs.smiles_list, self.ctx.done_smi)
-        for key, val in inp_dict.items():
-            val.store()
-            if key != "done_smi":
-                val.base.extras.set(
-                    "smiles",
-                    key.replace("Att", "*")
-                    .replace("t", "#")
-                    .replace("lb", "(")
-                    .replace("rb", ")")
-                    .replace("Neg", "-")
-                    .replace("Pos", "+")
-                    .replace("ls", "[")
-                    .replace("rs", "]")
-                    .replace("d", "="),
-                )
+        self.ctx.smiles_geom = get_substituent_input(self.inputs.smiles)
 
-                try:
-                    g_inp_group = load_group("g_inp_group")
-                except ConfigurationError as _:
-                    g_inp_group = Group(label="g_inp_group")
-                    g_inp_group.store()
-                except NotExistent as _:
-                    g_inp_group = Group(label="g_inp_group")
-                    g_inp_group.store()
-                g_inp_group.add_nodes(val)
-            else:
-                try:
-                    ds_group = load_group("done_smiles")
-                except ConfigurationError as _:
-                    ds_group = Group(label="done_smiles")
-                    ds_group.store()
-                except NotExistent as _:
-                    ds_group = Group(label="done_smiles")
-                    ds_group.store()
-                ds_group.add_nodes(val)
-                self.ctx.done_smiles = val
-        if "done_smi" in inp_dict:
-            del inp_dict["done_smi"]
-        self.ctx.g_inputs = inp_dict
+    def update_parameters_with_cm(self):
+        """Update provided Gaussian parameters with charge and multiplicity of substituent"""
+        self.ctx.gaussian_cm_params = parameters_with_cm(
+            self.inputs.gaussian_parameters, self.ctx.smiles_geom
+        )
 
-    # def results(self):
-    #     """Parse results"""
-    #     self.out("g_input", self.ctx.g_inputs)
-    #     self.out("done_smiles", self.ctx.done_smiles)
+    def submit_gaussian(self):
+        """Submits the gaussian calculation"""
+        builder = GaussianCalculation.get_builder()
+        builder.structure_str = self.ctx.smiles_geom["xyz"]
+        builder.parameters = self.ctx.gaussian_cm_params
+        builder.fragment_label = self.inputs.smiles
+        builder.code = self.inputs.g16_code
+        builder.metadata = self.inputs.metadata
+        if "wfxgroup" in self.inputs:
+            builder.wfxgroup = self.inputs.wfxgroup
+        node = self.submit(builder)
+        out_dict = {"opt": node}
+        return ToContext(out_dict)
 
 
 class MultiFragmentWorkChain(WorkChain):
