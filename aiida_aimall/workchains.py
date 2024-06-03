@@ -432,9 +432,9 @@ class SmilesToGaussianWorkchain(WorkChain):
         spec.input("gaussian_parameters")
         spec.input("gaussian_code")
         spec.input("wfxgroup", required=False)
-        spec.input("nprocs", default=4, valid_type=int)
-        spec.input("mem_mb", default=6400, valid_type=int)
-        spec.input("time_s", default=24 * 7 * 60 * 60, valid_type=int)
+        spec.input("nprocs", default=lambda: Int(4), valid_type=int)
+        spec.input("mem_mb", default=lambda: Int(6400), valid_type=int)
+        spec.input("time_s", default=lambda: Int(24 * 7 * 60 * 60), valid_type=int)
         # spec.output("g_input")
         # spec.output("done_smiles")
         spec.outline(
@@ -462,10 +462,12 @@ class SmilesToGaussianWorkchain(WorkChain):
         builder.code = self.inputs.g16_code
         builder.metadata.options.resources = {
             "num_machines": 1,
-            "tot_num_mpiprocs": self.inputs.nprocs,
+            "tot_num_mpiprocs": self.inputs.nprocs.value,
         }
-        builder.metadata.options.max_memory_kb = int(self.inputs.mem_mb * 1.25) * 1024
-        builder.metadata.options.max_wallclock_seconds = self.inputs.time_s
+        builder.metadata.options.max_memory_kb = (
+            int(self.inputs.mem_mb.value * 1.25) * 1024
+        )
+        builder.metadata.options.max_wallclock_seconds = self.inputs.time_s.value
         if "wfxgroup" in self.inputs:
             builder.wfxgroup = self.inputs.wfxgroup
         node = self.submit(builder)
