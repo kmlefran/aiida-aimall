@@ -432,9 +432,9 @@ class SmilesToGaussianWorkchain(WorkChain):
         spec.input("gaussian_parameters")
         spec.input("gaussian_code")
         spec.input("wfxgroup", required=False)
-        spec.input("nprocs", default=lambda: Int(4), valid_type=int)
-        spec.input("mem_mb", default=lambda: Int(6400), valid_type=int)
-        spec.input("time_s", default=lambda: Int(24 * 7 * 60 * 60), valid_type=int)
+        spec.input("nprocs", default=lambda: Int(4))
+        spec.input("mem_mb", default=lambda: Int(6400))
+        spec.input("time_s", default=lambda: Int(24 * 7 * 60 * 60))
         # spec.output("g_input")
         # spec.output("done_smiles")
         spec.outline(
