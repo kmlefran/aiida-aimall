@@ -4,4 +4,4 @@ aiida_aimall
 A plugin to interface AIMAll with AiiDA
 """
 
-__version__ = "0.6.26"
+__version__ = "0.6.27"
