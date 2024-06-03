@@ -183,7 +183,7 @@ You need to configure and test it again, similar to before but with less prompts
 
 ::
 
-    verdi -p your_aiida_profile computer configure core.local localhosttest
+    verdi -p your_aiida_profile computer configure core.local localhost
 
     Use login shell when executing command [Y/n]: n
     Connection cooldown time (s) [0.0]:

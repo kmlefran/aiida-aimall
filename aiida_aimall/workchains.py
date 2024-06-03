@@ -351,17 +351,17 @@ def get_substituent_input(smiles: str) -> dict:
         AiiDA Dictionary of {'xyz':str, 'charge':int,'multiplicity':int}
 
     """
-    mol = Chem.MolFromSmiles(smiles)
+    mol = Chem.MolFromSmiles(smiles.value)
     if not mol:
         raise ValueError(
-            f"Molecule could not be constructed for substituent input SMILES {smiles}"
+            f"Molecule could not be constructed for substituent input SMILES {smiles.value}"
         )
     h_mol_rw, zero_at, attached_atom = find_attachment_atoms(mol)
     reorder_mol = reorder_molecule(h_mol_rw, zero_at, attached_atom)
     xyz_string = get_xyz(reorder_mol)
     if xyz_string == "Could not determine xyz coordinates":
         raise BadMoleculeException(
-            "Maximum iterations exceeded, could not determine xyz coordinates for f{smiles}"
+            "Maximum iterations exceeded, could not determine xyz coordinates for f{smiles.value}"
         )
     reorder_mol.UpdatePropertyCache()
     charge = Chem.GetFormalCharge(h_mol_rw)
