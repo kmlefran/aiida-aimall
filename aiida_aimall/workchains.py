@@ -437,7 +437,7 @@ class SmilesToGaussianWorkchain(WorkChain):
         # spec.output("done_smiles")
         spec.outline(
             cls.get_substituent_inputs_step,  # , cls.results
-            cls.update_paramaters_with_cm,
+            cls.update_parameters_with_cm,
             cls.submit_gaussian,
         )
 
