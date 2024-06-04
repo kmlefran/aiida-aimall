@@ -325,7 +325,10 @@ def get_xyz(reorder_mol):
         not_optimized = AllChem.MMFFOptimizeMolecule(
             reorder_mol, maxIters=max_iters
         )  # Optimize with MMFF94
-        if not not_optimized:
+        # -1 is returned for molecules where there are no heavy atom-heavy atom bonds
+        # for these, hopefully the embed geometry is good enough
+        # 0 is returned on successful opt
+        if not_optimized in [0, -1]:
             break
         if i == 5:
             return "Could not determine xyz coordinates"
