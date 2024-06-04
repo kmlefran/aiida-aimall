@@ -6,7 +6,7 @@ Provides controllers for the AimReor WorkChain, AimQBCalculations, and GaussianW
 """
 
 from aiida import orm
-from aiida.orm import Dict, Str
+from aiida.orm import Dict, Int, Str
 from aiida.plugins import CalculationFactory, DataFactory, WorkflowFactory
 from aiida_submission_controller import FromGroupSubmissionController
 
@@ -15,23 +15,22 @@ GaussianCalculation = CalculationFactory("aimall.gaussianwfx")
 AimqbCalculation = CalculationFactory("aimall.aimqb")
 
 
-class G16FragController(FromGroupSubmissionController):
-    """A controller for submitting G16OptWorkChain
+class SmilesToGaussianController(FromGroupSubmissionController):
+    """A controller for submitting SmilesToGaussianWorkchain
 
     Args:
-        parent_group_label: the string of a group label which contains various structures as orm.Str nodes
+        parent_group_label: the string of a group label which contains various SMILES as orm.Str nodes
         group_label: the string of the group to put the GaussianCalculations in
         max_concurrent: maximum number of concurrent processes.
         code_label: label of code, e.g. gaussian@cedar
         g16_opt_params: Dict of Gaussian parameters to use
         wfxgroup: group in which to store the resulting wfx files
+        nprocs: number of processors for gaussian calculation
+        mem_mb: amount of memory in MB for Gaussian calculation
+        time_s: wallclock time in seconds for Gaussian calculation
 
     Returns:
         Controller object, periodically use run_in_batches to submit new results
-
-    Note:
-        In the typical use case, this is run on the outputs of the MultiFragmentWorkchain, which are by default added
-            to the group inp_frag, so make sure `parent_group_label` matches that
 
     Example:
         In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
@@ -40,9 +39,9 @@ class G16FragController(FromGroupSubmissionController):
 
         ::
 
-            controller = G16FragController(
+            controller = SmilesToGaussianController(
                 code_label='gaussian@localhost',
-                parent_group_label = 'struct', # Add structures to run to struct group
+                parent_group_label = 'input_smiles', # Add structures to run to input_smiles group
                 group_label = 'gaussianopt', # Resulting nodes will be in the gaussianopt group
                 max_concurrent = 1,
                 wfxgroup = "opt_wfx"
@@ -54,10 +53,7 @@ class G16FragController(FromGroupSubmissionController):
                     },
                     'functional':'wb97xd',
                     'basis_set':'aug-cc-pvtz',
-                    'charge': 0,
-                    'multiplicity': 1,
-                    'route_parameters': {'nosymmetry':None, 'Output':'WFX', 'opt':None, 'freq':None},
-                    "input_parameters": {"output.wfx": None},
+                    'route_parameters': { 'opt':None, 'freq':None},
                     })
             )
 
@@ -68,20 +64,27 @@ class G16FragController(FromGroupSubmissionController):
 
     """
 
+    # pylint:disable=too-many-arguments
     parent_group_label: str
     group_label: str
     code_label: str
     max_concurrent: int
     g16_opt_params: dict
     wfxgroup: str
+    nprocs: int
+    mem_mb: int
+    time_s: int
 
-    WORKFLOW_ENTRY_POINT = "aimall.g16opt"
+    WORKFLOW_ENTRY_POINT = "aimall.smitog16"
 
     def __init__(
         self,
         code_label: str,
         g16_opt_params: dict,
         wfxgroup: str,
+        nprocs: int,
+        mem_mb: int,
+        time_s: int,
         *args,
         **kwargs,
     ):
@@ -89,26 +92,124 @@ class G16FragController(FromGroupSubmissionController):
         self.code_label = code_label
         self.g16_opt_params = g16_opt_params
         self.wfxgroup = wfxgroup
+        self.nprocs = nprocs
+        self.mem_mb = mem_mb
+        self.time_s = time_s
 
     def get_extra_unique_keys(self):
         """Returns a tuple of extras keys in the order needed"""
         return ("smiles",)
 
     def get_inputs_and_processclass_from_extras(self, extras_values):
-        """Constructs input for a GaussianWFXCalculation from extra_values
-
-        Note: adjust the metadata options later for 6400MB and 7days runtime
-        """
+        """Constructs input for a GaussianWFXCalculation from extra_values"""
         code = orm.load_code(self.code_label)
-        structure = self.get_parent_node_from_extras(extras_values)
+        smiles = self.get_parent_node_from_extras(extras_values)
         inputs = {
-            "frag_label": Str(extras_values[0]),
-            "fragment_dict": structure,
-            "g16_code": code,
-            "g16_opt_params": Dict(self.g16_opt_params),
+            "smiles": smiles,
+            "gaussian_code": code,
+            "gaussian_parameters": Dict(self.g16_opt_params),
             "wfxgroup": Str(self.wfxgroup),
+            "nprocs": Int(self.nprocs),
+            "mem_mb": Int(self.mem_mb),
+            "time_s": Int(self.time_s),
         }
         return inputs, WorkflowFactory(self.WORKFLOW_ENTRY_POINT)
+
+
+# class G16FragController(FromGroupSubmissionController):
+#     """A controller for submitting G16OptWorkChain
+
+#     Args:
+#         parent_group_label: the string of a group label which contains various structures as orm.Str nodes
+#         group_label: the string of the group to put the GaussianCalculations in
+#         max_concurrent: maximum number of concurrent processes.
+#         code_label: label of code, e.g. gaussian@cedar
+#         g16_opt_params: Dict of Gaussian parameters to use
+#         wfxgroup: group in which to store the resulting wfx files
+
+#     Returns:
+#         Controller object, periodically use run_in_batches to submit new results
+
+#     Note:
+#         In the typical use case, this is run on the outputs of the MultiFragmentWorkchain, which are by default added
+#             to the group inp_frag, so make sure `parent_group_label` matches that
+
+#     Example:
+#         In a typical use case of controllers, it is beneficial to check for new jobs periodically to submit.
+#             Either there may be new members of the parent_group to run, or some of the currently running jobs have run.
+#             So once a controller is defined, we can run it in a loop.
+
+#         ::
+
+#             controller = G16FragController(
+#                 code_label='gaussian@localhost',
+#                 parent_group_label = 'struct', # Add structures to run to struct group
+#                 group_label = 'gaussianopt', # Resulting nodes will be in the gaussianopt group
+#                 max_concurrent = 1,
+#                 wfxgroup = "opt_wfx"
+#                 g16_opt_params = Dict(dict={
+#                     'link0_parameters': {
+#                         '%chk':'aiida.chk',
+#                         "%mem": "4000MB",
+#                         "%nprocshared": 4,
+#                     },
+#                     'functional':'wb97xd',
+#                     'basis_set':'aug-cc-pvtz',
+#                     'charge': 0,
+#                     'multiplicity': 1,
+#                     'route_parameters': {'nosymmetry':None, 'Output':'WFX', 'opt':None, 'freq':None},
+#                     "input_parameters": {"output.wfx": None},
+#                     })
+#             )
+
+#             while True:
+#                 #submit Gaussian batches every hour
+#                 controller.submit_new_batch()
+#                 time.sleep(3600)
+
+#     """
+
+#     parent_group_label: str
+#     group_label: str
+#     code_label: str
+#     max_concurrent: int
+#     g16_opt_params: dict
+#     wfxgroup: str
+
+#     WORKFLOW_ENTRY_POINT = "aimall.g16opt"
+
+#     def __init__(
+#         self,
+#         code_label: str,
+#         g16_opt_params: dict,
+#         wfxgroup: str,
+#         *args,
+#         **kwargs,
+#     ):
+#         super().__init__(*args, **kwargs)
+#         self.code_label = code_label
+#         self.g16_opt_params = g16_opt_params
+#         self.wfxgroup = wfxgroup
+
+#     def get_extra_unique_keys(self):
+#         """Returns a tuple of extras keys in the order needed"""
+#         return ("smiles",)
+
+#     def get_inputs_and_processclass_from_extras(self, extras_values):
+#         """Constructs input for a GaussianWFXCalculation from extra_values
+
+#         Note: adjust the metadata options later for 6400MB and 7days runtime
+#         """
+#         code = orm.load_code(self.code_label)
+#         structure = self.get_parent_node_from_extras(extras_values)
+#         inputs = {
+#             "frag_label": Str(extras_values[0]),
+#             "fragment_dict": structure,
+#             "g16_code": code,
+#             "g16_opt_params": Dict(self.g16_opt_params),
+#             "wfxgroup": Str(self.wfxgroup),
+#         }
+#         return inputs, WorkflowFactory(self.WORKFLOW_ENTRY_POINT)
 
 
 class AimReorSubmissionController(FromGroupSubmissionController):

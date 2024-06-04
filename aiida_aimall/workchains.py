@@ -435,12 +435,15 @@ class SmilesToGaussianWorkchain(WorkChain):
         spec.input("nprocs", default=lambda: Int(4))
         spec.input("mem_mb", default=lambda: Int(6400))
         spec.input("time_s", default=lambda: Int(24 * 7 * 60 * 60))
+        spec.output("wfx", valid_type=SinglefileData)
+        spec.output("output_parameters", valid_type=Dict)
         # spec.output("g_input")
         # spec.output("done_smiles")
         spec.outline(
             cls.get_substituent_inputs_step,  # , cls.results
             cls.update_parameters_with_cm,
             cls.submit_gaussian,
+            cls.results,
         )
 
     def get_substituent_inputs_step(self):
@@ -456,10 +459,10 @@ class SmilesToGaussianWorkchain(WorkChain):
     def submit_gaussian(self):
         """Submits the gaussian calculation"""
         builder = GaussianCalculation.get_builder()
-        builder.structure_str = self.ctx.smiles_geom["xyz"]
+        builder.structure_str = Str(self.ctx.smiles_geom["xyz"])
         builder.parameters = self.ctx.gaussian_cm_params
         builder.fragment_label = self.inputs.smiles
-        builder.code = self.inputs.g16_code
+        builder.code = self.inputs.gaussian_code
         builder.metadata.options.resources = {
             "num_machines": 1,
             "tot_num_mpiprocs": self.inputs.nprocs.value,
@@ -474,124 +477,132 @@ class SmilesToGaussianWorkchain(WorkChain):
         out_dict = {"opt": node}
         return ToContext(out_dict)
 
-
-class MultiFragmentWorkChain(WorkChain):
-    """Workchain to fragment a cml file and generate gaussian calculations on each fragment"""
-
-    @classmethod
-    def define(cls, spec):
-        super().define(spec)
-        spec.input("cml_file_dict", valid_type=Dict)
-        spec.input("frag_params", valid_type=Dict)
-        spec.input(
-            "prev_smi", valid_type=List, default=lambda: List([]), required=False
-        )
-        spec.input("frag_group", valid_type=Str, required=False)
-        spec.input("frame_group", valid_type=Str, required=False)
-        # spec.input("g16_code", valid_type=Code)
-        spec.input("procs", valid_type=Int, default=lambda: Int(8))
-        # spec.input('aim_code',valid_type=Code)
-        # spec.input('aim_params',valid_type=AimqbParameters)
-        # spec.input("g16_opt_params", valid_type=Dict)
-        # spec.input('g16_sp_params',valid_type=Dict)
-        spec.outline(cls.generate_fragments)
-
-    def generate_fragments(self):
-        """perform the fragmenting"""
-        fdict = generate_cml_fragments(
-            self.inputs.frag_params,
-            self.inputs.cml_file_dict,
-            self.inputs.procs,
-            self.inputs.prev_smi,
-        )
-        if "frag_group" in self.inputs:
-            g16_opt_group = load_group(self.inputs.frag_group)
-        for key, val in fdict.items():
-            if key not in ["done_smi", "cgis_frame"]:
-                val.store()
-                struct_extras = EntityExtras(val)
-                struct_extras.set("smiles", key)
-                if "frag_group" in self.inputs:
-                    g16_opt_group.add_nodes(val)
-            elif key == "cgis_frame" and "frame_group" in self.inputs:
-                g = load_group(self.inputs.frame_group)
-                g.add_nodes(val)
-        self.ctx.fragments = fdict
-
-    # def submit_fragmenting(self):
-    #     """submit all the fragmenting jobs as gaussian calculations"""
-    #     for key, molecule in self.ctx.fragments.items():
-    #         # print(molecule)
-    #         if isinstance(molecule, Dict):
-    #             self.submit(
-    #                 G16OptWorkchain,
-    #                 g16_opt_params=self.inputs.g16_opt_params,
-    #                 fragment_dict=molecule,
-    #                 frag_label=Str(key),
-    #                 g16_code=self.inputs.g16_code,
-    #             )
-    #         sleep(10)
-
-    # aim_code=self.inputs.aim_code,
-    # aim_params=self.inputs.aim_params,
-    # g16_sp_params = self.inputs.g16_sp_params)
-
-
-class G16OptWorkchain(WorkChain):
-    """Run G16 Calculation on a fragment produced by MultiFragmentWorkChain
-
-    Process continues through the use of AimReorSubmissionController
-    """
-
-    @classmethod
-    def define(cls, spec):
-        super().define(spec)
-        spec.input("g16_opt_params", valid_type=Dict)
-        spec.input("fragment_dict", valid_type=Dict)
-        spec.input("frag_label", valid_type=Str)
-        spec.input("g16_code", valid_type=Code)
-        spec.input("wfxgroup", valid_type=Str, required=False)
-        spec.output("output", valid_type=Dict)
-        spec.outline(
-            cls.dict_to_struct,
-            cls.update_g16_param,
-            cls.g16_opt,
-            cls.result,
-        )  # ,cls.aimall)#, cls.aimall,cls.reorient,cls.aimall)
-
-    def dict_to_struct(self):
-        """Generate the structure input in Gaussian Format"""
-        self.ctx.structure = dict_to_structure(self.inputs.fragment_dict)
-
-    def update_g16_param(self):
-        """Update parameters with correct charge and multiplicity"""
-        self.ctx.params_with_cm = update_g16_params(
-            self.inputs.g16_opt_params, self.inputs.fragment_dict
+    def results(self):
+        """Store our relevant information as output"""
+        self.out("wfx", self.ctx["opt"].get_outgoing().get_node_by_label("wfx"))
+        self.out(
+            "output_parameters",
+            self.ctx["opt"].get_outgoing().get_node_by_label("output_parameters"),
         )
 
-    def g16_opt(self):
-        """Submit the Gaussian optimization"""
-        builder = GaussianCalculation.get_builder()
-        builder.structure_str = self.ctx.structure
-        builder.parameters = self.ctx.params_with_cm
-        builder.fragment_label = self.inputs.frag_label
-        builder.code = self.inputs.g16_code
-        if "wfxgroup" in self.inputs:
-            builder.wfxgroup = self.inputs.wfxgroup
-            g16_opt_group = load_group(self.inputs.wfxgroup)
-        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
-        builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
-        builder.metadata.options.max_wallclock_seconds = 604800
-        process_node = self.submit(builder)
-        if "wfxgroup" in self.inputs:
-            g16_opt_group.add_nodes(process_node)
-        out_dict = {"opt": process_node}
-        # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
-        return ToContext(out_dict)
 
-    def result(self):
-        """Parse the results"""
-        self.out("output", self.ctx.opt.outputs.output_parameters)
+# class MultiFragmentWorkChain(WorkChain):
+#     """Workchain to fragment a cml file and generate gaussian calculations on each fragment"""
+
+#     @classmethod
+#     def define(cls, spec):
+#         super().define(spec)
+#         spec.input("cml_file_dict", valid_type=Dict)
+#         spec.input("frag_params", valid_type=Dict)
+#         spec.input(
+#             "prev_smi", valid_type=List, default=lambda: List([]), required=False
+#         )
+#         spec.input("frag_group", valid_type=Str, required=False)
+#         spec.input("frame_group", valid_type=Str, required=False)
+#         # spec.input("g16_code", valid_type=Code)
+#         spec.input("procs", valid_type=Int, default=lambda: Int(8))
+#         # spec.input('aim_code',valid_type=Code)
+#         # spec.input('aim_params',valid_type=AimqbParameters)
+#         # spec.input("g16_opt_params", valid_type=Dict)
+#         # spec.input('g16_sp_params',valid_type=Dict)
+#         spec.outline(cls.generate_fragments)
+
+#     def generate_fragments(self):
+#         """perform the fragmenting"""
+#         fdict = generate_cml_fragments(
+#             self.inputs.frag_params,
+#             self.inputs.cml_file_dict,
+#             self.inputs.procs,
+#             self.inputs.prev_smi,
+#         )
+#         if "frag_group" in self.inputs:
+#             g16_opt_group = load_group(self.inputs.frag_group)
+#         for key, val in fdict.items():
+#             if key not in ["done_smi", "cgis_frame"]:
+#                 val.store()
+#                 struct_extras = EntityExtras(val)
+#                 struct_extras.set("smiles", key)
+#                 if "frag_group" in self.inputs:
+#                     g16_opt_group.add_nodes(val)
+#             elif key == "cgis_frame" and "frame_group" in self.inputs:
+#                 g = load_group(self.inputs.frame_group)
+#                 g.add_nodes(val)
+#         self.ctx.fragments = fdict
+
+# def submit_fragmenting(self):
+#     """submit all the fragmenting jobs as gaussian calculations"""
+#     for key, molecule in self.ctx.fragments.items():
+#         # print(molecule)
+#         if isinstance(molecule, Dict):
+#             self.submit(
+#                 G16OptWorkchain,
+#                 g16_opt_params=self.inputs.g16_opt_params,
+#                 fragment_dict=molecule,
+#                 frag_label=Str(key),
+#                 g16_code=self.inputs.g16_code,
+#             )
+#         sleep(10)
+
+# aim_code=self.inputs.aim_code,
+# aim_params=self.inputs.aim_params,
+# g16_sp_params = self.inputs.g16_sp_params)
+
+
+# class G16OptWorkchain(WorkChain):
+#     """Run G16 Calculation on a fragment produced by MultiFragmentWorkChain
+
+#     Process continues through the use of AimReorSubmissionController
+#     """
+
+#     @classmethod
+#     def define(cls, spec):
+#         super().define(spec)
+#         spec.input("g16_opt_params", valid_type=Dict)
+#         spec.input("fragment_dict", valid_type=Dict)
+#         spec.input("frag_label", valid_type=Str)
+#         spec.input("g16_code", valid_type=Code)
+#         spec.input("wfxgroup", valid_type=Str, required=False)
+#         spec.output("output", valid_type=Dict)
+#         spec.outline(
+#             cls.dict_to_struct,
+#             cls.update_g16_param,
+#             cls.g16_opt,
+#             cls.result,
+#         )  # ,cls.aimall)#, cls.aimall,cls.reorient,cls.aimall)
+
+#     def dict_to_struct(self):
+#         """Generate the structure input in Gaussian Format"""
+#         self.ctx.structure = dict_to_structure(self.inputs.fragment_dict)
+
+#     def update_g16_param(self):
+#         """Update parameters with correct charge and multiplicity"""
+#         self.ctx.params_with_cm = update_g16_params(
+#             self.inputs.g16_opt_params, self.inputs.fragment_dict
+#         )
+
+#     def g16_opt(self):
+#         """Submit the Gaussian optimization"""
+#         builder = GaussianCalculation.get_builder()
+#         builder.structure_str = self.ctx.structure
+#         builder.parameters = self.ctx.params_with_cm
+#         builder.fragment_label = self.inputs.frag_label
+#         builder.code = self.inputs.g16_code
+#         if "wfxgroup" in self.inputs:
+#             builder.wfxgroup = self.inputs.wfxgroup
+#             g16_opt_group = load_group(self.inputs.wfxgroup)
+#         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
+#         builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
+#         builder.metadata.options.max_wallclock_seconds = 604800
+#         process_node = self.submit(builder)
+#         if "wfxgroup" in self.inputs:
+#             g16_opt_group.add_nodes(process_node)
+#         out_dict = {"opt": process_node}
+#         # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
+#         return ToContext(out_dict)
+
+#     def result(self):
+#         """Parse the results"""
+#         self.out("output", self.ctx.opt.outputs.output_parameters)
 
 
 class AIMAllReor(WorkChain):
@@ -664,7 +675,7 @@ class AIMAllReor(WorkChain):
         self.out("rotated_structure", self.ctx.rot_structure)
 
 
-class OptAimReorSPAimWorkChain(WorkChain):
+class SubstituentParameterWorkChain(WorkChain):
     """A workchain to perform the full suite of KLG's substituent parameter determining"""
 
     @classmethod

@@ -102,11 +102,9 @@ docs = [
 "aimall.gaussianwfx" = "aiida_aimall.parsers:GaussianWFXParser"
 
 [project.entry-points."aiida.workflows"]
-"aimall.multifrag" = "aiida_aimall.workchains:MultiFragmentWorkChain"
-"aimall.g16opt" = "aiida_aimall.workchains:G16OptWorkchain"
 "aimall.aimreor" = "aiida_aimall.workchains:AIMAllReor"
-"aimall.optaimreor" = "aiida_aimall.workchains:OptAimReorSPAimWorkChain"
-"aimall.smitog16" = "aiida_aimall.workchains:SmilesToGaussianInputWorkchain"
+"aimall.subparam" = "aiida_aimall.workchains:SubstituentParameterWorkChain"
+"aimall.smitog16" = "aiida_aimall.workchains:SmilesToGaussianWorkchain"
 
 #[project.entry-points."aiida.cmdline.data"]
 #"aimall" = "aiida_aimall.cli:data_cli"
