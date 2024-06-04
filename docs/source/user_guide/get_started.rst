@@ -129,7 +129,7 @@ In the directory that this cedar.yml is in, run::
 
 You will be prompted asking if you want to escape commands in double quotes. Type "N". This should bring you back to the command line. You then need to configure the computer. Now run::
 
-    verdi -p your_aiida_profile computer configure core.ssh cedar4
+    verdi -p your_aiida_profile computer configure core.ssh cedar
 
 
 
