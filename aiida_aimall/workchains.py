@@ -666,7 +666,7 @@ class AIMAllReor(WorkChain):
         struct_str = dict_to_structure(self.ctx.rot_struct_dict)
         struct_str.store()
         if "reor_group" in self.inputs:
-            reor_struct_group = load_group(self.inputs.reor_group)
+            reor_struct_group = load_group(self.inputs.reor_group.value)
             reor_struct_group.add_nodes(struct_str)
         if "frag_label" in self.inputs:
             struct_extras = EntityExtras(struct_str)
