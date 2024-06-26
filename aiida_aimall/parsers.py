@@ -199,7 +199,7 @@ class GaussianWFXParser(Parser):
 
         self._set_output_structure(inputs, property_dict)
 
-        exit_code = self._final_checks_on_log(log_file_string, property_dict)
+        exit_code = self._final_checks_on_log(log_file_string, property_dict, inputs)
         if exit_code is not None:
             return exit_code
 
@@ -278,9 +278,12 @@ class GaussianWFXParser(Parser):
                 structure = StructureData(ase=ase_opt)
                 self.out("output_structure", structure)
 
-    def _final_checks_on_log(self, log_file_string, property_dict):
-
+    def _final_checks_on_log(self, log_file_string, property_dict, inputs):
+        # pylint:disable=too-many-return-statements
+        # if opt and freq in route parameters
+        # make an extra check that in log file string there should be normal termination
         # Error related to the symmetry identification (?).
+
         if "Logic error in ASyTop." in log_file_string:
             return self.exit_codes.ERROR_ASYTOP
 
@@ -292,6 +295,13 @@ class GaussianWFXParser(Parser):
 
         if "Error termination" in log_file_string:
             return self.exit_codes.ERROR_TERMINATION
+
+        if (
+            "opt" in inputs.parameters["route_parameters"]
+            and "freq" in inputs.parameters["route_parameters"]
+        ):
+            if log_file_string.count("Normal termination") != 2:
+                return self.exit_codes.ERROR_NO_NORMAL_TERMINATION
 
         if (
             "success" not in property_dict["metadata"]

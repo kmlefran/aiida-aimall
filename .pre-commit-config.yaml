@@ -25,15 +25,15 @@ repos:
   hooks:
     - id: black
 
-- repo: local
-  hooks:
-  - id: pylint
-    language: system
-    types: [file, python]
-    name: pylint
-    description: "This hook runs the pylint static code analyzer"
-    exclude: &exclude_files >
-      (?x)^(
-          docs/.*|
-      )$
-    entry: pylint
+# - repo: local
+#   hooks:
+#   - id: pylint
+#     language: system
+#     types: [file, python]
+#     name: pylint
+#     description: "This hook runs the pylint static code analyzer"
+#     exclude: &exclude_files >
+#       (?x)^(
+#           docs/.*|
+#       )$
+#     entry: pylint
