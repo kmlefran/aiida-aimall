@@ -20,6 +20,7 @@ from aiida.engine import ToContext, WorkChain, calcfunction
 from aiida.orm import Code, Dict, Int, List, SinglefileData, Str, load_group
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
+from aiida_shell import launch_shell_job
 from group_decomposition.fragfunctions import (
     count_uniques,
     identify_connected_fragments,
@@ -423,6 +424,87 @@ def parameters_with_cm(parameters, smiles_dict):
     parameters_dict["charge"] = smiles_dict_dict["charge"]
     parameters_dict["multiplicity"] = smiles_dict_dict["multiplicity"]
     return Dict(parameters_dict)
+
+
+def validate_shell_code(node, _):
+    """Validate the shell code, ensuring that it is ShellCode or Str"""
+    if node.node_type not in [
+        "data.core.code.installed.shell.ShellCode.",
+        "data.core.str.Str.",
+    ]:
+        return "the `shell_code` input must be either ShellCode or Str of the command."
+    return None
+
+
+class QMToAIMWorkchain(WorkChain):
+    """Workchain to link quantum chemistry jobs without plugins to AIMAll"""
+
+    @classmethod
+    def define(cls, spec):
+        super().define(spec)
+        spec.input(
+            "shell_code",
+            validator=validate_shell_code,  # pylint:disable=expression-not-assigned
+        )
+        spec.input("shell_metadata", valid_type=Dict)
+        spec.input("shell_retrieved", valid_type=List)
+        spec.input("shell_input_file", valid_type=SinglefileData, required=False)
+        spec.input("shell_cmdline", valid_type=Str, required=True)
+        spec.input("wfx_filename", valid_type=Str, required=False)
+        spec.input("aim_code", valid_type=Code, required=True)
+        spec.input("aim_params", valid_type=AimqbParameters, required=True)
+        spec.input(
+            "aim_parser",
+            valid_type=Str,
+            required=False,
+            default=lambda: Str("aimall.base"),
+        )
+        spec.output("parameter_dict", valid_type=Dict)
+        spec.outline(cls.shell_job, cls.aim, cls.result)
+
+    def shell_job(self):
+        """Launch a shell job"""
+        _, node = launch_shell_job(
+            self.inputs.shell_code,
+            arguments=self.inputs.shell_cmdline.value,
+            nodes={"file": self.inputs.shell_input_file},
+            outputs=self.inputs.shell_retrieved.get_list(),
+            submit=True,
+            metadata=self.inputs.shell_metadata.get_dict(),
+        )
+        out_dict = {"qm": node}
+        return ToContext(out_dict)
+
+    def aim(self):
+        """Launch an AIMQB calculation"""
+        builder = AimqbCalculation.get_builder()
+        builder.parameters = self.inputs.aim_params
+        builder.file = self.ctx.qm.base.links.get_outgoing().get_node_by_label("wfx")
+        builder.code = self.inputs.aim_code
+        # if "frag_label" in self.inputs:
+        #     builder.frag_label = self.inputs.frag_label
+        builder.metadata.options.parser_name = self.inputs.aim_parser.value
+        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
+        # future work, enable group
+        # num_atoms = len(
+        #     self.ctx.prereor_aim.get_outgoing()
+        #     .get_node_by_label("rotated_structure")
+        #     .value.split("\n")
+        # )
+        # #  generalize for substrates other than H
+        # builder.group_atoms = List([x + 1 for x in range(0, num_atoms) if x != 1])
+        process_node = self.submit(builder)
+        out_dict = {"aim": process_node}
+        return ToContext(out_dict)
+
+    def result(self):
+        """Put results in output node"""
+        self.out(
+            "parameter_dict",
+            self.ctx.aim.base.links.get_outgoing().get_node_by_label(
+                "output_parameters"
+            ),
+        )
 
 
 class SmilesToGaussianWorkchain(WorkChain):
