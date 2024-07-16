@@ -16,7 +16,7 @@ from aiida_aimall.data import AimqbParameters
 # from collections.abc import Mapping
 
 
-pytest_plugins = ["aiida.manage.tests.pytest_fixtures"]  # pylint: disable=invalid-name
+pytest_plugins = ["aiida.tools.pytest_fixtures"]  # pylint: disable=invalid-name
 
 
 @pytest.fixture(scope="session")
@@ -190,7 +190,8 @@ def generate_calc_job_node(fixture_localhost):
             filename = os.path.join(entry_point_name, test_name)
             filepath_folder = os.path.join(basepath, "parsers", "fixtures", filename)
             filepath_input = os.path.join(filepath_folder, "aiida.in")
-
+        else:
+            filepath_input = "notestname"
         entry_point = format_entry_point_string("aiida.calculations", entry_point_name)
 
         node = orm.CalcJobNode(computer=computer, process_type=entry_point)

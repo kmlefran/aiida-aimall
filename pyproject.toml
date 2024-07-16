@@ -36,7 +36,8 @@ dependencies = [
     "multiprocess",
     "subproptools",
     "group_decomposition",
-    "pymatgen"
+    "pymatgen",
+    "aiida-shell"
 ]
 
 [project.urls]
