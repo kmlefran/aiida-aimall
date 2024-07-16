@@ -436,6 +436,13 @@ def validate_shell_code(node, _):
     return None
 
 
+def validate_file_ext(node, _):
+    """Validates that the file extension provided for AIM is wfx, wfn or fchk"""
+    if node.value not in ["wfx", "wfn", "fchk"]:
+        return "the `aim_file_ext` input must be a valid file format for AIMQB: wfx, wfn, or fchk"
+    return None
+
+
 class QMToAIMWorkchain(WorkChain):
     """Workchain to link quantum chemistry jobs without plugins to AIMAll"""
 
@@ -452,6 +459,13 @@ class QMToAIMWorkchain(WorkChain):
         spec.input("shell_cmdline", valid_type=Str, required=True)
         spec.input("wfx_filename", valid_type=Str, required=False)
         spec.input("aim_code", valid_type=Code, required=True)
+        spec.input(
+            "aim_file_ext",
+            valid_type=Str,
+            validator=validate_file_ext,  # pylint:disable=expression-not-assigned
+            required=False,
+            default=lambda: Str("wfx"),
+        )
         spec.input("aim_params", valid_type=AimqbParameters, required=True)
         spec.input(
             "aim_parser",
@@ -479,7 +493,15 @@ class QMToAIMWorkchain(WorkChain):
         """Launch an AIMQB calculation"""
         builder = AimqbCalculation.get_builder()
         builder.parameters = self.inputs.aim_params
-        builder.file = self.ctx.qm.base.links.get_outgoing().get_node_by_label("wfx")
+
+        if "wfx_filename" not in self.inputs:
+            wfx_file = (
+                self.inputs.shell_input_file.filename.split(".")[0]
+                + f"_{self.inputs.aim_file_ext.value}"
+            )
+        else:
+            wfx_file = self.inputs.wfx_filename.value.replace(".", "_")
+        builder.file = self.ctx.qm.base.links.get_outgoing().get_node_by_label(wfx_file)
         builder.code = self.inputs.aim_code
         # if "frag_label" in self.inputs:
         #     builder.frag_label = self.inputs.frag_label
