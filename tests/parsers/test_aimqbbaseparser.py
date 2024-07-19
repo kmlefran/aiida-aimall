@@ -1,43 +1,11 @@
 # pylint: disable=redefined-outer-name
 """Tests for the `AimqbParser"""
 
-import os
 
 import pytest
 
 # from aiida import orm
-from aiida.common import AttributeDict, exceptions
-from aiida.orm import SinglefileData
-
-from aiida_aimall.data import AimqbParameters
-
-
-@pytest.fixture
-def generate_aimqb_inputs():
-    """Generates inputs of a default aimqb calculation"""
-
-    def _generate_aimqb_inputs(fixture_code, filepath_tests):
-        """Return only those inputs the parser will expect to be there"""
-        parameters = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
-        inputs = {
-            "code": fixture_code("aimall"),
-            "parameters": parameters,
-            "file": SinglefileData(
-                os.path.join(
-                    filepath_tests,
-                    "parsers/inputs",
-                    "water_wb97xd_augccpvtz_qtaim.wfx",
-                )
-            ),
-            "metadata": {
-                "options": {
-                    "resources": {"num_machines": 1, "num_mpiprocs_per_machine": 2},
-                }
-            },
-        }
-        return AttributeDict(inputs)
-
-    return _generate_aimqb_inputs
+from aiida.common import exceptions
 
 
 def test_aimqb_parser_default(  # pylint:disable=too-many-arguments

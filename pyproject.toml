@@ -36,7 +36,8 @@ dependencies = [
     "multiprocess",
     "subproptools",
     "group_decomposition",
-    "pymatgen"
+    "pymatgen",
+    "aiida-shell"
 ]
 
 [project.urls]
@@ -105,9 +106,7 @@ docs = [
 "aimall.aimreor" = "aiida_aimall.workchains:AIMAllReor"
 "aimall.subparam" = "aiida_aimall.workchains:SubstituentParameterWorkChain"
 "aimall.smitog16" = "aiida_aimall.workchains:SmilesToGaussianWorkchain"
-
-#[project.entry-points."aiida.cmdline.data"]
-#"aimall" = "aiida_aimall.cli:data_cli"
+"aimall.qmtoaim" = "aiida_aimall.workchains:QMToAIMWorkchain"
 
 [tool.flit.module]
 name = "aiida_aimall"
