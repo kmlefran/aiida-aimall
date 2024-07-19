@@ -206,6 +206,7 @@ nitpick_ignore = [
     ("py:class", "SinglefileData"),
     ("py:class", "Int"),
     ("py:class", "Code"),
+    ("py:class", "QbFields"),
 ]
 
 

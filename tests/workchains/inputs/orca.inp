@@ -1,0 +1,7 @@
+! B3LYP def2-SVP Opt AIM PAL4
+# B3LYP is here the method (DFT functional), def2-SVP the basis set and Opt is the jobtype (geometry optimization).
+# Order of the keywords is not important.
+*xyz 0 1
+H 0.0 0.0 0.0
+H 0.0 0.0 1.0
+*
