@@ -264,7 +264,6 @@ nitpick_ignore = [
 
 # from https://stackoverflow.com/questions/62398231/building-docs-fails-due-to-missing-pandoc
 # Get path to directory containing this file, conf.py.
-DOCS_DIRECTORY = os.path.dirname(os.path.abspath(getsourcefile(lambda: 0)))
 
 
 # see the documentation how to customize the installation path
