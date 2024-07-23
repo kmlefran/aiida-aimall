@@ -67,8 +67,7 @@ docs = [
     "sphinx-book-theme~=1.0.1",
     'sphinxcontrib-details-directive~=0.1.0',
     "nbsphinx",
-    "sphinx-gallery",
-    "pypandoc_binary"
+    "sphinx-gallery"
 ]
 
 [project.entry-points."aiida.data"]
