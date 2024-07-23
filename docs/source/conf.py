@@ -15,6 +15,7 @@ import os
 import pathlib
 import sys
 import time
+from inspect import getsourcefile
 
 from aiida.manage.configuration import Profile, load_profile
 
@@ -259,3 +260,29 @@ nitpick_ignore = [
     ("py:class", "QbFields"),
     ("py:obj", "aiida_submission_controller.FromGroupSubmissionController"),
 ]
+
+
+# from https://stackoverflow.com/questions/62398231/building-docs-fails-due-to-missing-pandoc
+# Get path to directory containing this file, conf.py.
+DOCS_DIRECTORY = os.path.dirname(os.path.abspath(getsourcefile(lambda: 0)))
+
+
+def ensure_pandoc_installed(_):
+    import pypandoc
+
+    # Download pandoc if necessary. If pandoc is already installed and on
+    # the PATH, the installed version will be used. Otherwise, we will
+    # download a copy of pandoc into docs/bin/ and add that to our PATH.
+    pandoc_dir = os.path.join(DOCS_DIRECTORY, "bin")
+    # Add dir containing pandoc binary to the PATH environment variable
+    if pandoc_dir not in os.environ["PATH"].split(os.pathsep):
+        os.environ["PATH"] += os.pathsep + pandoc_dir
+    pypandoc.ensure_pandoc_installed(
+        quiet=True,
+        targetfolder=pandoc_dir,
+        delete_installer=True,
+    )
+
+
+def setup(app):
+    app.connect("builder-inited", ensure_pandoc_installed)
