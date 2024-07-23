@@ -31,11 +31,9 @@ dependencies = [
     "aiida-submission-controller",
     "pydantic",
     "ase",
-    "cclib",
-    "aiida-dataframe",
+    "cclib @ git+https://github.com/cclib/cclib",
     "multiprocess",
     "subproptools",
-    "group_decomposition",
     "pymatgen",
     "aiida-shell"
 ]
@@ -48,22 +46,9 @@ Home = "https://aiida-aimall.readthedocs.io"
 [project.optional-dependencies]
 testing = [
     "pgtest~=1.3.1",
-    "pandas<2.2",
-    "wheel~=0.31",
-    "coverage",
     'pytest~=6.0',
     "pytest-cov",
     'pytest-regressions~=2.3',
-    "numpy",
-    "aiida-submission-controller",
-    "pydantic",
-    "ase",
-    "sphinx-rtd-theme",
-    "cclib",
-    "aiida-dataframe",
-    "multiprocess",
-    "subproptools",
-    "pymatgen",
     "coveralls"
 ]
 pre-commit = [
@@ -71,23 +56,16 @@ pre-commit = [
     "pylint"
 ]
 docs = [
-    "aiida-core",
-    "pandas<2.2",
     "sphinx",
     "sphinxcontrib-contentui",
     "sphinxcontrib-details-directive",
-    "furo",
-    "markupsafe<2.1",
-    "numpy",
-    "aiida-submission-controller",
-    "pydantic",
-    "ase",
-    "sphinx-rtd-theme",
-    "cclib",
-    "aiida-dataframe",
-    "multiprocess",
-    "subproptools",
-    "group_decomposition"
+    "sphinx-copybutton~=0.5.2",
+    "sphinx-autoapi~=3.0.0",
+    "sphinx-design~=0.4.1",
+    "sphinx-click~=4.4.0",
+    "myst-parser~=1.0.0",
+    "sphinx-book-theme~=1.0.1",
+    'sphinxcontrib-details-directive~=0.1.0',
 ]
 
 [project.entry-points."aiida.data"]
@@ -110,6 +88,12 @@ docs = [
 
 [tool.flit.module]
 name = "aiida_aimall"
+
+[tool.flit.sdist]
+exclude = [
+    'docs/',
+    'tests/',
+]
 
 [tool.pylint.format]
 max-line-length = 125

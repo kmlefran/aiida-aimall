@@ -59,9 +59,8 @@ Building the documentation
 
         docs/source/index.rst
         docs/source/developer_guide/index.rst
-        docs/source/user_guide/index.rst
-        docs/source/user_guide/get_started.rst
-        docs/source/user_guide/tutorial.rst
+        docs/source/installation/index.md
+        docs/source/tutorials/index.md
 
  #. Use `Sphinx`_ to generate the html documentation::
 
