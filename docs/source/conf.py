@@ -154,8 +154,8 @@ html_theme = "sphinx_book_theme"
 html_theme_options = {
     "repository_url": "https://github.com/kmlefran/aiida-aimall",
     "github_url": "https://github.com/kmlefran/aiida-aimall",
-    "use_edit_page_button": True,
     "navigation_with_keys": False,
+    "show_navbar_depth": 2,
 }
 html_context = {
     "github_user": "kmlefran",
