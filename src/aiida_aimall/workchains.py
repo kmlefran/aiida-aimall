@@ -28,8 +28,6 @@ old_stdout = sys.stdout
 GaussianCalculation = CalculationFactory("aimall.gaussianwfx")
 AimqbParameters = DataFactory("aimall.aimqb")
 AimqbCalculation = CalculationFactory("aimall.aimqb")
-DictData = DataFactory("core.dict")
-PDData = DataFactory("dataframe.frame")
 
 
 @calcfunction
