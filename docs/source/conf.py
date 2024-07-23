@@ -17,7 +17,6 @@ import sys
 import time
 
 from aiida.manage.configuration import Profile, load_profile
-from pypandoc.pandoc_download import download_pandoc
 
 import aiida_aimall
 
@@ -260,13 +259,3 @@ nitpick_ignore = [
     ("py:class", "QbFields"),
     ("py:obj", "aiida_submission_controller.FromGroupSubmissionController"),
 ]
-
-
-# from https://stackoverflow.com/questions/62398231/building-docs-fails-due-to-missing-pandoc
-# Get path to directory containing this file, conf.py.
-
-
-# see the documentation how to customize the installation path
-# but be aware that you then need to include it in the `PATH`
-download_pandoc()
-os.environ.setdefault("PYPANDOC_PANDOC", "~/bin/pandoc")

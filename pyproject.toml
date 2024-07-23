@@ -68,7 +68,7 @@ docs = [
     'sphinxcontrib-details-directive~=0.1.0',
     "nbsphinx",
     "sphinx-gallery",
-    "pypandoc"
+    "pypandoc_binary"
 ]
 
 [project.entry-points."aiida.data"]
