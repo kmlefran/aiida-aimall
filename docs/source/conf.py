@@ -269,3 +269,4 @@ nitpick_ignore = [
 # see the documentation how to customize the installation path
 # but be aware that you then need to include it in the `PATH`
 download_pandoc()
+os.environ.setdefault("PYPANDOC_PANDOC", "~/bin/pandoc")
