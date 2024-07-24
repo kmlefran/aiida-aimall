@@ -8,12 +8,26 @@ MultiFragmentWorkchain, entry point: multifrag
 G16OptWorkChain, entry point: g16opt
 AimAllReor WorkChain, entry point: aimreor
 """
+import io
+
 # pylint: disable=c-extension-no-member
 # pylint:disable=no-member
 import sys
+from string import digits
 
+import ase.io
 from aiida.engine import ToContext, WorkChain, calcfunction
-from aiida.orm import Bool, Code, Dict, Int, List, SinglefileData, Str, load_group
+from aiida.orm import (
+    Bool,
+    Code,
+    Dict,
+    Int,
+    List,
+    SinglefileData,
+    Str,
+    StructureData,
+    load_group,
+)
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
 from aiida_shell import launch_shell_job
@@ -25,7 +39,7 @@ from subproptools.sub_reor import rotate_substituent_aiida
 old_stdout = sys.stdout
 
 # load the needed calculations and data types
-GaussianCalculation = CalculationFactory("aimall.gaussianwfx")
+GaussianCalculation = CalculationFactory("gaussian")
 AimqbParameters = DataFactory("aimall.aimqb")
 AimqbCalculation = CalculationFactory("aimall.aimqb")
 
@@ -42,6 +56,13 @@ def generate_rotated_structure_aiida(FolderData, atom_dict, cc_dict):
     return Dict(rotate_substituent_aiida(FolderData, atom_dict, cc_dict))
 
 
+def remove(in_list):
+    """Remove digits from a list of strings. e.g. ['O1','H2','H3'] -> ['O','H','H']"""
+    remove_digits = str.maketrans("", "", digits)
+    out_list = [i.translate(remove_digits) for i in in_list]
+    return out_list
+
+
 @calcfunction
 def dict_to_structure(fragment_dict):
     """Generate a string of xyz coordinates for Gaussian input file
@@ -51,8 +72,10 @@ def dict_to_structure(fragment_dict):
     """
     inp_dict = fragment_dict.get_dict()
     symbols = inp_dict["atom_symbols"]
+    symbols = remove(symbols)
     coords = inp_dict["geom"]
     outstr = ""
+    outstr += f"{len(symbols)}\n\n"
     for i, symbol in enumerate(symbols):
         if i != len(symbols) - 1:
             outstr = (
@@ -77,7 +100,10 @@ def dict_to_structure(fragment_dict):
                 + "   "
                 + str(coords[i][2])
             )
-    return Str(outstr)
+    f = io.StringIO(outstr)
+    struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+    f.close()
+    return struct_data
 
 
 def calc_multiplicity(mol):
@@ -205,6 +231,18 @@ def get_substituent_input(smiles: str) -> dict:
     multiplicity = calc_multiplicity(h_mol_rw)
     out_dict = Dict({"xyz": xyz_string, "charge": charge, "multiplicity": multiplicity})
     return out_dict
+
+
+@calcfunction
+def generate_structure_data(structure_Str):
+    """Take an input xyz string and convert it to StructureData"""
+    structure_str = structure_Str.value
+    num_atoms = len(structure_str.split("\n"))
+    xyz_string = f"{num_atoms}\n\n" + structure_str
+    f = io.StringIO(xyz_string)
+    struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+    f.close()
+    return struct_data
 
 
 @calcfunction
@@ -360,12 +398,16 @@ class SmilesToGaussianWorkchain(WorkChain):
             self.inputs.gaussian_parameters, self.ctx.smiles_geom
         )
 
+    def string_to_StructureData(self):
+        """Convert an xyz string of molecule geometry to StructureData"""
+        self.ctx.structure = generate_structure_data(self.ctx.smiles_geom["xyz"])
+
     def submit_gaussian(self):
         """Submits the gaussian calculation"""
         builder = GaussianCalculation.get_builder()
-        builder.structure_str = Str(self.ctx.smiles_geom["xyz"])
+
+        builder.structure = self.ctx.structure
         builder.parameters = self.ctx.gaussian_cm_params
-        builder.fragment_label = self.inputs.smiles
         builder.code = self.inputs.gaussian_code
         builder.metadata.options.resources = {
             "num_machines": 1,
@@ -375,8 +417,7 @@ class SmilesToGaussianWorkchain(WorkChain):
             int(self.inputs.mem_mb.value * 1.25) * 1024
         )
         builder.metadata.options.max_wallclock_seconds = self.inputs.time_s.value
-        if "wfxgroup" in self.inputs:
-            builder.wfxgroup = self.inputs.wfxgroup
+
         if self.inputs.dry_run.value:
             return self.inputs
         node = self.submit(builder)
@@ -385,6 +426,11 @@ class SmilesToGaussianWorkchain(WorkChain):
 
     def results(self):
         """Store our relevant information as output"""
+        if "wfxgroup" in self.inputs:
+            wfx_group = load_group(self.inputs.wfxgroup.value)
+            wfx_group.add_nodes(
+                self.ctx["opt"].base.links.get_outgoing().get_node_by_label("wfx")
+            )
         self.out(
             "wfx", self.ctx["opt"].base.links.get_outgoing().get_node_by_label("wfx")
         )
@@ -412,7 +458,7 @@ class AIMAllReor(WorkChain):
         spec.input("aim_group", valid_type=Str, required=False)
         spec.input("reor_group", valid_type=Str, required=False)
         spec.input("dry_run", valid_type=Bool, default=lambda: Bool(False))
-        spec.output("rotated_structure", valid_type=Str)
+        spec.output("rotated_structure", valid_type=StructureData)
         spec.outline(
             cls.aimall, cls.rotate, cls.dict_to_struct_reor, cls.result
         )  # ,cls.aimall)#, cls.aimall,cls.reorient,cls.aimall)
@@ -456,15 +502,15 @@ class AIMAllReor(WorkChain):
 
     def dict_to_struct_reor(self):
         """generate the gaussian input from rotated structure"""
-        struct_str = dict_to_structure(self.ctx.rot_struct_dict)
-        struct_str.store()
+        structure = dict_to_structure(self.ctx.rot_struct_dict)
+        structure.store()
         if "reor_group" in self.inputs:
             reor_struct_group = load_group(self.inputs.reor_group.value)
-            reor_struct_group.add_nodes(struct_str)
+            reor_struct_group.add_nodes(structure)
         if "frag_label" in self.inputs:
-            struct_extras = EntityExtras(struct_str)
+            struct_extras = EntityExtras(structure)
             struct_extras.set("smiles", self.inputs.frag_label.value)
-        self.ctx.rot_structure = struct_str
+        self.ctx.rot_structure = structure
 
     def result(self):
         """Parse results"""
@@ -481,7 +527,7 @@ class SubstituentParameterWorkChain(WorkChain):
         spec.input("g16_opt_params", valid_type=Dict, required=True)
         spec.input("g16_sp_params", valid_type=Dict, required=True)
         spec.input("aim_params", valid_type=AimqbParameters, required=True)
-        spec.input("structure_str", valid_type=Str, required=True)
+        spec.input("structure", valid_type=StructureData, required=True)
         spec.input("g16_code", valid_type=Code)
         spec.input(
             "frag_label",
@@ -500,21 +546,26 @@ class SubstituentParameterWorkChain(WorkChain):
         # spec.input("frag_label", valid_type=Str)
         # spec.output("rotated_structure", valid_type=Str)
         spec.output("parameter_dict", valid_type=Dict)
-        spec.outline(cls.g16_opt, cls.aim_reor, cls.g16_sp, cls.aim, cls.result)
+        spec.outline(
+            cls.g16_opt,
+            cls.classify_opt_wfx,
+            cls.aim_reor,
+            cls.g16_sp,
+            cls.classify_sp_wfx,
+            cls.aim,
+            cls.result,
+        )
 
     def g16_opt(self):
         """Submit the Gaussian optimization"""
         builder = GaussianCalculation.get_builder()
-        builder.structure_str = self.inputs.structure_str
+        builder.structure = self.inputs.structure
         builder.parameters = self.inputs.g16_opt_params
-        if "frag_label" in self.inputs:
-            builder.fragment_label = self.inputs.frag_label
         builder.code = self.inputs.g16_code
-        if "opt_wfx_group" in self.inputs:
-            builder.wfxgroup = self.inputs.opt_wfx_group
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
         builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
         builder.metadata.options.max_wallclock_seconds = 604800
+        builder.metadata.options.additional_retrieve_list = ["aiida.wfx"]
         if self.inputs.dry_run.value:
             return self.inputs
         process_node = self.submit(builder)
@@ -525,11 +576,30 @@ class SubstituentParameterWorkChain(WorkChain):
         # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
         return ToContext(out_dict)
 
+    def classify_opt_wfx(self):
+        """Add the wavefunction file from the previous step to the correct group and set the extras"""
+        folder_data = self.ctx.opt.base.links.get_outgoing().get_node_by_label(
+            "retrieved"
+        )
+        # later scan input parameters for filename
+        wfx_file = SinglefileData(
+            io.BytesIO(folder_data.get_object_content("output.wfx").encode())
+        )
+        wfx_file.store()
+        self.ctx.opt_wfx = wfx_file
+
+        if "opt_wfx_group" in self.inputs:
+            opt_wf_group = load_group(self.inputs.opt_wfx_group)
+            opt_wf_group.add_nodes(wfx_file)
+        if "frag_label" in self.inputs:
+            struct_extras = EntityExtras(wfx_file)
+            struct_extras.set("smiles", self.inputs.frag_label.value)
+
     def aim_reor(self):
         """Submit the Aimqb calculation and reorientation"""
         builder = AIMAllReor.get_builder()
         builder.aim_params = self.inputs.aim_params
-        builder.file = self.ctx.opt.base.links.get_outgoing().get_node_by_label("wfx")
+        builder.file = self.ctx.opt_wfx
         builder.aim_code = self.inputs.aim_code
         builder.dry_run = self.inputs.dry_run
         if "frag_label" in self.inputs:
@@ -543,20 +613,17 @@ class SubstituentParameterWorkChain(WorkChain):
     def g16_sp(self):
         """Run Gaussian Single Point calculation"""
         builder = GaussianCalculation.get_builder()
-        builder.structure_str = (
+        builder.structure = (
             self.ctx.prereor_aim.base.links.get_outgoing().get_node_by_label(
                 "rotated_structure"
             )
         )
         builder.parameters = self.inputs.g16_sp_params
-        if "frag_label" in self.inputs:
-            builder.fragment_label = self.inputs.frag_label
         builder.code = self.inputs.g16_code
-        if "sp_wfx_group" in self.inputs:
-            builder.wfxgroup = self.inputs.sp_wfx_group
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
         builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
         builder.metadata.options.max_wallclock_seconds = 604800
+        builder.metadata.options.additional_retrieve_list = ["output.wfx"]
         if self.inputs.dry_run.value:
             return self.inputs
         process_node = self.submit(builder)
@@ -567,11 +634,30 @@ class SubstituentParameterWorkChain(WorkChain):
         # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
         return ToContext(out_dict)
 
+    def classify_sp_wfx(self):
+        """Add the wavefunction file from the previous step to the correct group and set the extras"""
+        folder_data = self.ctx.sp.base.links.get_outgoing().get_node_by_label(
+            "retrieved"
+        )
+        # later scan input parameters for filename
+        wfx_file = SinglefileData(
+            io.BytesIO(folder_data.get_object_content("output.wfx").encode())
+        )
+        wfx_file.store()
+        self.ctx.sp_wfx = wfx_file
+
+        if "sp_wfx_group" in self.inputs:
+            sp_wf_group = load_group(self.inputs.sp_wfx_group)
+            sp_wf_group.add_nodes(wfx_file)
+        if "frag_label" in self.inputs:
+            struct_extras = EntityExtras(wfx_file)
+            struct_extras.set("smiles", self.inputs.frag_label.value)
+
     def aim(self):
         """Run Final AIM Calculation"""
         builder = AimqbCalculation.get_builder()
         builder.parameters = self.inputs.aim_params
-        builder.file = self.ctx.sp.base.links.get_outgoing().get_node_by_label("wfx")
+        builder.file = self.ctx.sp_wfx
         builder.code = self.inputs.aim_code
         # if "frag_label" in self.inputs:
         #     builder.frag_label = self.inputs.frag_label
@@ -580,7 +666,7 @@ class SubstituentParameterWorkChain(WorkChain):
         num_atoms = len(
             self.ctx.prereor_aim.base.links.get_outgoing()
             .get_node_by_label("rotated_structure")
-            .value.split("\n")
+            .sites
         )
         #  generalize for substrates other than H
         builder.group_atoms = List([x + 1 for x in range(0, num_atoms) if x != 1])

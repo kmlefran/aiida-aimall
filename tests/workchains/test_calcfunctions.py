@@ -1,11 +1,20 @@
 """Tests for calcfunctions in aiida-aimall workchains"""
 # pylint:disable=no-member
 import pytest
-from aiida.orm import Dict, Int, SinglefileData, Str
+from aiida.orm import Dict, Int, SinglefileData, Str, StructureData
 from rdkit import Chem
 from subproptools import qtaim_extract as qt
 
 from aiida_aimall import workchains as aimw
+
+
+def test_generate_structure_data():
+    """Test generate_structure_data function"""
+    test_Str = Str(
+        "C 0.0 0.0 0.0\nH -1.0 0.0 0.0\nH 1.0 1.0 0.0\nH 1.0 -1.0 1.0\n H 1.0 -1.0 -1.0"
+    )
+    structure_data = aimw.generate_structure_data(test_Str)
+    assert isinstance(structure_data, StructureData)
 
 
 def test_calc_multiplicity():
@@ -169,4 +178,4 @@ def test_dict_to_structure():
         {"atom_symbols": ["H", "H"], "geom": [[-0.5, 0.0, 0.0], [0.5, 0.0, 0.0]]}
     )
     str_str = aimw.dict_to_structure(str_dict)
-    assert isinstance(str_str, Str)
+    assert isinstance(str_str, StructureData)
