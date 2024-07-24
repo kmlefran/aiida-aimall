@@ -4,22 +4,13 @@ Parsers provided by aiida_aimall.
 
 Register parsers via the "aiida.parsers" entry point in setup.json.
 """
-import datetime
-import io
-import re
 
-import ase  # pylint:disable=import-error
-import cclib  # pylint:disable=import-error
-import numpy as np
-from aiida.common import NotExistent, exceptions
+from aiida.common import exceptions
 from aiida.engine import ExitCode
-from aiida.orm import Dict, Float, SinglefileData, StructureData, load_group
+from aiida.orm import Dict, SinglefileData
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory, DataFactory
 from subproptools import qtaim_extract as qt  # pylint: disable=import-error
-
-# from aiida.engine import ExitCode
-
 
 AimqbCalculation = CalculationFactory("aimall.aimqb")
 
@@ -134,182 +125,6 @@ class AimqbBaseParser(Parser):
 NUM_RE = r"[-+]?(?:[0-9]*[.])?[0-9]+(?:[eE][-+]?\d+)?"
 
 SinglefileData = DataFactory("core.singlefile")
-
-
-class GaussianWFXParser(Parser):
-    """
-    Basic AiiDA parser for the output of Gaussian
-
-    Parses default cclib output as 'output_parameters' node and separates final SCF
-    energy as 'energy_ev' and output structure as 'output_structure' (if applicable)
-
-    Adapted from aiida-gaussian https://github.com/nanotech-empa/aiida-gaussian, Copyright (c) 2020 Kristjan Eimre.
-
-    """
-
-    def parse(self, **kwargs):
-        """Receives in input a dictionary of retrieved nodes. Does all the logic here."""
-        fname = self.node.process_class.OUTPUT_FILE
-
-        try:
-            out_folder = self.retrieved
-            if fname not in out_folder.base.repository.list_object_names():
-                return self.exit_codes.ERROR_OUTPUT_MISSING
-            log_file_string = out_folder.base.repository.get_object_content(fname)
-            log_file_string = log_file_string.replace("Apple", "")
-            if "output.wfx" in out_folder.base.repository.list_object_names():
-                wfx_file_string = out_folder.base.repository.get_object_content(
-                    "output.wfx"
-                )
-                sfd = SinglefileData(io.BytesIO(wfx_file_string.encode()))
-                sfd.store()
-                if "wfxgroup" in self.node.inputs:
-                    out_group = load_group(self.node.inputs.wfxgroup.value)
-                    out_group.add_nodes(sfd)
-                if "fragment_label" in self.node.inputs:
-                    sfd.base.extras.set("smiles", self.node.inputs.fragment_label.value)
-                self.out("wfx", sfd)
-        except NotExistent:
-            return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
-        except OSError:
-            return self.exit_codes.ERROR_OUTPUT_LOG_READ
-
-        exit_code = self._parse_log(log_file_string, self.node.inputs)
-
-        if exit_code is not None:
-            return exit_code
-
-        return ExitCode(0)
-
-    def _parse_log(self, log_file_string, inputs):
-
-        # parse with cclib
-        property_dict = self._parse_log_cclib(log_file_string)
-
-        if property_dict is None:
-            return self.exit_codes.ERROR_OUTPUT_PARSING
-
-        property_dict.update(self._parse_electron_numbers(log_file_string))
-
-        # set output nodes
-        self.out("output_parameters", Dict(dict=property_dict))
-
-        if "scfenergies" in property_dict:
-            self.out("energy_ev", Float(property_dict["scfenergies"][-1]))
-
-        self._set_output_structure(inputs, property_dict)
-
-        exit_code = self._final_checks_on_log(log_file_string, property_dict, inputs)
-        if exit_code is not None:
-            return exit_code
-
-        return None
-
-    def _parse_electron_numbers(self, log_file_string):
-
-        find_el = re.search(
-            r"({0})\s*alpha electrons\s*({0}) beta".format(  # pylint:disable=consider-using-f-string
-                NUM_RE
-            ),  # pylint:disable=consider-using-f-string
-            log_file_string,  # pylint:disable=consider-using-f-string
-        )
-
-        if find_el is not None:
-            return {"num_electrons": [int(e) for e in find_el.groups()]}
-        return {}
-
-    def _parse_log_cclib(self, log_file_string):
-
-        data = cclib.io.ccread(io.StringIO(log_file_string))
-
-        if data is None:
-            return None
-
-        property_dict = data.getattributes()
-
-        def make_serializeable(data):
-            """Recursively go through the dictionary and convert unserializeable values in-place:
-
-            1) In numpy arrays:
-                * ``nan`` -> ``0.0``
-                * ``inf`` -> large number
-            2) datetime.timedelta (introduced in cclib v1.8) -> convert to seconds
-
-            :param data: A mapping of data.
-            """
-            if isinstance(data, dict):
-                for key, value in data.items():
-                    data[key] = make_serializeable(value)
-            elif isinstance(data, list):
-                for index, item in enumerate(data):
-                    data[index] = make_serializeable(item)
-            elif isinstance(data, np.ndarray):
-                np.nan_to_num(data, copy=False)
-            elif isinstance(data, datetime.timedelta):
-                data = data.total_seconds()
-            return data
-
-        make_serializeable(property_dict)
-
-        return property_dict
-
-    def _set_output_structure(self, inputs, property_dict):
-        # in case of geometry optimization,
-        # return the last geometry as a separated node
-        if "atomcoords" in property_dict:
-            if (
-                "opt" in inputs.parameters["route_parameters"]
-                or len(property_dict["atomcoords"]) > 1
-            ):
-
-                opt_coords = property_dict["atomcoords"][-1]
-
-                # The StructureData output node needs a cell,
-                # even though it is not used in gaussian.
-                # Set it arbitrarily as double the bounding box + 10
-                double_bbox = 2 * np.ptp(opt_coords, axis=0) + 10
-
-                ase_opt = ase.Atoms(
-                    property_dict["atomnos"],
-                    positions=property_dict["atomcoords"][-1],
-                    cell=double_bbox,
-                )
-
-                structure = StructureData(ase=ase_opt)
-                self.out("output_structure", structure)
-
-    def _final_checks_on_log(self, log_file_string, property_dict, inputs):
-        # pylint:disable=too-many-return-statements
-        # if opt and freq in route parameters
-        # make an extra check that in log file string there should be normal termination
-        # Error related to the symmetry identification (?).
-
-        if "Logic error in ASyTop." in log_file_string:
-            return self.exit_codes.ERROR_ASYTOP
-
-        if "Inaccurate quadrature in CalDSu." in log_file_string:
-            return self.exit_codes.ERROR_INACCURATE_QUADRATURE_CALDSU
-
-        if "Convergence failure -- run terminated." in log_file_string:
-            return self.exit_codes.ERROR_SCF_FAILURE
-
-        if "Error termination" in log_file_string:
-            return self.exit_codes.ERROR_TERMINATION
-
-        if (
-            "opt" in inputs.parameters["route_parameters"]
-            and "freq" in inputs.parameters["route_parameters"]
-        ):
-            if log_file_string.count("Normal termination") != 2:
-                return self.exit_codes.ERROR_NO_NORMAL_TERMINATION
-
-        if (
-            "success" not in property_dict["metadata"]
-            or not property_dict["metadata"]["success"]
-        ):
-            return self.exit_codes.ERROR_NO_NORMAL_TERMINATION
-
-        return None
 
 
 class AimqbGroupParser(AimqbBaseParser):

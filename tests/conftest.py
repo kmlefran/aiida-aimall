@@ -7,9 +7,19 @@ import os
 import shutil
 from collections.abc import Mapping
 
+import ase.io
 import pytest
 from aiida.common import AttributeDict
-from aiida.orm import Bool, Dict, FolderData, Int, List, SinglefileData, Str
+from aiida.orm import (
+    Bool,
+    Dict,
+    FolderData,
+    Int,
+    List,
+    SinglefileData,
+    Str,
+    StructureData,
+)
 from aiida_shell import ShellCode
 
 from aiida_aimall.data import AimqbParameters
@@ -461,10 +471,13 @@ def generate_g16_inputs():
                 "input_parameters": {"output.wfx": None},
             }
         )
+        f = io.StringIO(
+            "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+        )
+        struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+        f.close()
         inputs = {
-            "structure_str": Str(
-                " C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
-            ),
+            "structure": struct_data,
             "parameters": gaussian_input,
             "code": fixture_code("gaussian"),
             "wfxgroup": Str("testsmi"),
@@ -518,7 +531,7 @@ def generate_workchain_smitog16(
                 "smiles": Str("*C"),
                 "gaussian_parameters": gaussian_input,
                 "gaussian_code": fixture_code("gaussian"),
-                "wfxgroup": Str("testsmi"),
+                # "wfxgroup": Str("testsmi"),
                 "nprocs": Int(4),
                 "mem_mb": Int(3200),
                 "time_s": Int(3600),
@@ -607,20 +620,23 @@ def generate_workchain_subparam(
                     "input_parameters": {"output.wfx": None},
                 }
             )
+            f = io.StringIO(
+                "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+            )
+            struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+            f.close()
             aiminputs = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
             inputs = {
                 "g16_opt_params": gaussian_opt_input,
                 "g16_sp_params": gaussian_sp_input,
                 "aim_params": aiminputs,
-                "structure_str": Str(
-                    " C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
-                ),
+                "structure": struct_data,
                 "g16_code": fixture_code("gaussian"),
                 "frag_label": Str("*C"),
-                "opt_wfx_group": Str("group1"),
-                "sp_wfx_group": Str("group2"),
-                "gaussian_opt_group": Str("group3"),
-                "gaussian_sp_group": Str("group4"),
+                # "opt_wfx_group": Str("group1"),
+                # "sp_wfx_group": Str("group2"),
+                # "gaussian_opt_group": Str("group3"),
+                # "gaussian_sp_group": Str("group4"),
                 "aim_code": fixture_code("aimall"),
                 "dry_run": Bool(True),
             }

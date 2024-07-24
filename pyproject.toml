@@ -34,8 +34,9 @@ dependencies = [
     "cclib @ git+https://github.com/cclib/cclib",
     "multiprocess",
     "subproptools",
-    "pymatgen",
-    "aiida-shell"
+    "aiida-gaussian",
+    "pymatgen==2023.12.18",
+    "aiida-shell",
 ]
 
 [project.urls]

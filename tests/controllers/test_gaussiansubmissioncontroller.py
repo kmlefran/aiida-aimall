@@ -1,7 +1,10 @@
 """Tests for aiida_aimall.controllers"""
+import io
+
+import ase.io
 import pytest
 from aiida.common.exceptions import NotExistent
-from aiida.orm import Group, Str
+from aiida.orm import Group, StructureData
 
 # pylint:disable=no-name-in-module
 from aiida_aimall.controllers import GaussianSubmissionController
@@ -40,17 +43,16 @@ def test_gaussiansubmission_controller(fixture_code):
         wfxgroup="test",
     )
     assert con.get_extra_unique_keys() == ("smiles",)
-    struct = Str("C 0.0 0.0 0.0\nH -0.5,0.0,0.0\nC 0.5 0.0 0.0\n H 1.0, 0.0,0.0")
+    f = io.StringIO("4\n\nC 0.0 0.0 0.0\nH -0.5 0.0 0.0\nC 0.5 0.0 0.0\n H 1.0 0.0 0.0")
+    struct = StructureData(ase=ase.io.read(f, format="xyz"))
+    f.close()
     struct.store()
     struct.base.extras.set("smiles", "unique")
     gr.add_nodes(struct)
     ins, wf = con.get_inputs_and_processclass_from_extras(extras_values=["unique"])
     assert isinstance(ins, dict)
-    assert "fragment_label" in ins
-    assert "wfxgroup" in ins
     assert "code" in ins
     assert "parameters" in ins
-    assert "structure_str" in ins
+    assert "structure" in ins
     assert "metadata" in ins
-    assert "wfxgroup" in ins
-    assert wf.get_name() == "GaussianWFXCalculation"
+    assert wf.get_name() == "GaussianCalculation"

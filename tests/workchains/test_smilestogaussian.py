@@ -3,7 +3,7 @@ import os
 
 import cclib
 from aiida.common import LinkType
-from aiida.orm import Dict, SinglefileData
+from aiida.orm import Dict, SinglefileData, StructureData
 from plumpy.utils import AttributesFrozendict
 
 
@@ -27,7 +27,7 @@ def test_default(
 ):
     """Test the default inputs of `SmilesToGaussianWorkchain"""
     entry_point_name = "aimall.smitog16"
-    entry_point_calc_job = "aimall.gaussianwfx"
+    entry_point_calc_job = "gaussian"
     test = "default"
     name = "default"
     # create the workchain node
@@ -42,6 +42,11 @@ def test_default(
     assert wkchain.update_parameters_with_cm() is None
     assert "gaussian_cm_params" in wkchain.ctx
     assert isinstance(wkchain.ctx.gaussian_cm_params, Dict)
+
+    assert wkchain.string_to_StructureData() is None
+    assert "structure" in wkchain.ctx
+    assert isinstance(wkchain.ctx.structure, StructureData)
+
     # Try the submit gaussian step, as dry_run which returns the inputs
     gaussian_inputs = wkchain.submit_gaussian()
     assert isinstance(gaussian_inputs, AttributesFrozendict)
