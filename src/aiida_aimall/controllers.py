@@ -11,7 +11,7 @@ from aiida.plugins import CalculationFactory, DataFactory, WorkflowFactory
 from aiida_submission_controller import FromGroupSubmissionController
 
 AimqbParameters = DataFactory("aimall.aimqb")
-GaussianCalculation = CalculationFactory("aimall.gaussianwfx")
+GaussianCalculation = CalculationFactory("gaussian")
 AimqbCalculation = CalculationFactory("aimall.aimqb")
 
 
@@ -473,7 +473,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
     g16_sp_params: dict
     wfxgroup: str
     # GaussianWFXCalculation entry point as defined in aiida-aimall pyproject.toml
-    CALCULATION_ENTRY_POINT = "aimall.gaussianwfx"
+    CALCULATION_ENTRY_POINT = "gaussian"
 
     def __init__(
         self,
@@ -514,11 +514,9 @@ class GaussianSubmissionController(FromGroupSubmissionController):
         code = orm.load_code(self.code_label)
         structure = self.get_parent_node_from_extras(extras_values)
         inputs = {
-            "fragment_label": Str(extras_values[0]),
             "code": code,
             "parameters": Dict(self.g16_sp_params),
-            "structure_str": structure,
-            "wfxgroup": Str(self.wfxgroup),
+            "structure": structure,
             "metadata": {
                 "options": {
                     "resources": {"num_machines": 1, "tot_num_mpiprocs": 1},

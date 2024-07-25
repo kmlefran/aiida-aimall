@@ -2,7 +2,7 @@
 # import os
 
 from aiida.common import LinkType
-from aiida.orm import Dict, SinglefileData, Str
+from aiida.orm import Dict, SinglefileData, StructureData
 
 # from aiida.plugins import WorkflowFactory
 from plumpy.utils import AttributesFrozendict
@@ -74,6 +74,6 @@ def test_default(
     assert isinstance(wkchain.ctx.rot_struct_dict, Dict)
     assert wkchain.dict_to_struct_reor() is None
     assert "rot_structure" in wkchain.ctx
-    assert isinstance(wkchain.ctx.rot_structure, Str)
+    assert isinstance(wkchain.ctx.rot_structure, StructureData)
     assert wkchain.result() is None
     assert "rotated_structure" in wkchain.outputs

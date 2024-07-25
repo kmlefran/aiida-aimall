@@ -82,7 +82,7 @@ def test_gaussiannode_returns_error(  # pylint:disable=too-many-arguments
     generate_aimqb_inputs,
 ):
     """Test that a Gaussian node returns error on parser"""
-    entry_point_calc_job = "aimall.gaussianwfx"
+    entry_point_calc_job = "gaussian"
     entry_point_parser = "aimall.base"
     name = "default"
     node = generate_calc_job_node(
