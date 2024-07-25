@@ -8,11 +8,13 @@ MultiFragmentWorkchain, entry point: multifrag
 G16OptWorkChain, entry point: g16opt
 AimAllReor WorkChain, entry point: aimreor
 """
+import io
+
 # pylint: disable=c-extension-no-member
 # pylint:disable=no-member
 import sys
 
-from aiida.engine import ToContext, WorkChain, calcfunction
+from aiida.engine import ToContext, WorkChain, calcfunction, if_
 from aiida.orm import Bool, Code, Dict, Int, List, SinglefileData, Str, load_group
 from aiida.orm.extras import EntityExtras
 from aiida.plugins.factories import CalculationFactory, DataFactory
@@ -25,7 +27,7 @@ from subproptools.sub_reor import rotate_substituent_aiida
 old_stdout = sys.stdout
 
 # load the needed calculations and data types
-GaussianCalculation = CalculationFactory("aimall.gaussianwfx")
+GaussianCalculation = CalculationFactory("gaussian")
 AimqbParameters = DataFactory("aimall.aimqb")
 AimqbCalculation = CalculationFactory("aimall.aimqb")
 
@@ -217,6 +219,30 @@ def parameters_with_cm(parameters, smiles_dict):
     return Dict(parameters_dict)
 
 
+@calcfunction
+def get_wfxname_from_retrieved(retrieved_folder):
+    """Look for wfx or wfn objects in the retrieved Folder"""
+    object_names = retrieved_folder.list_object_names()
+    wfx_files = [x for x in object_names if "wfx" in x]
+    if len(wfx_files) >= 1:
+        return Str(wfx_files[0])
+    if len(wfx_files) == 0:
+        wfn_files = [x for x in object_names if "wfn" in x]
+        if len(wfn_files) >= 1:
+            return Str(wfn_files[0])
+        if len(wfn_files) == 0:
+            return Str("")
+    # should not get here
+    return Str("")
+
+
+@calcfunction
+def create_wfx_from_retrieved(wfxname, retrieved_folder):
+    """Create wavefunciton Singlefildata from retrieved folder"""
+    wfx_file_string = retrieved_folder.get_object_content(wfxname.value)
+    return SinglefileData(io.BytesIO(wfx_file_string.encode()))
+
+
 def validate_shell_code(node, _):
     """Validate the shell code, ensuring that it is ShellCode or Str"""
     if node.node_type not in [
@@ -334,12 +360,13 @@ class SmilesToGaussianWorkchain(WorkChain):
         spec.input("smiles")
         spec.input("gaussian_parameters")
         spec.input("gaussian_code")
+        spec.input("wfxname", required=False)
         spec.input("wfxgroup", required=False)
         spec.input("nprocs", default=lambda: Int(4))
         spec.input("mem_mb", default=lambda: Int(6400))
         spec.input("time_s", default=lambda: Int(24 * 7 * 60 * 60))
         spec.input("dry_run", default=lambda: Bool(False))
-        spec.output("wfx", valid_type=SinglefileData)
+        spec.output("wfx", valid_type=SinglefileData, required=False)
         spec.output("output_parameters", valid_type=Dict)
         # spec.output("g_input")
         # spec.output("done_smiles")
@@ -347,6 +374,8 @@ class SmilesToGaussianWorkchain(WorkChain):
             cls.get_substituent_inputs_step,  # , cls.results
             cls.update_parameters_with_cm,
             cls.submit_gaussian,
+            cls.get_wfx_name,
+            if_(cls.found_wfx_name)(cls.create_wfx_file),
             cls.results,
         )
 
@@ -383,11 +412,33 @@ class SmilesToGaussianWorkchain(WorkChain):
         out_dict = {"opt": node}
         return ToContext(out_dict)
 
+    def get_wfx_name(self):
+        """Find the wavefunction file in the retrieved node"""
+        if "wfxname" in self.inputs:
+            self.ctx.wfxname = self.inputs.wfxname
+        else:
+            retrieved_folder = (
+                self.ctx["opt"].base.links.get_outgoing().get_node_by_label("retrieved")
+            )
+            self.ctx.wfxname = get_wfxname_from_retrieved(retrieved_folder)
+
+    def found_wfx_name(self):
+        """Check if we found a wfx or wfn file"""
+        if self.ctx.wfxname.value:
+            return True
+        return False
+
+    def create_wfx_file(self):
+        """Create a wavefunction file from the retireved folder"""
+        retrieved_folder = (
+            self.ctx["opt"].base.links.get_outgoing().get_node_by_label("retrieved")
+        )
+        self.ctx.wfxfile = create_wfx_from_retrieved(self.ctx.wfxname, retrieved_folder)
+
     def results(self):
         """Store our relevant information as output"""
-        self.out(
-            "wfx", self.ctx["opt"].base.links.get_outgoing().get_node_by_label("wfx")
-        )
+        if "wfxfile" in self.ctx:
+            self.out("wfx", self.ctx.wfxfile)
         self.out(
             "output_parameters",
             self.ctx["opt"]
