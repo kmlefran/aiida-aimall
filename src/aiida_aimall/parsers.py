@@ -5,6 +5,8 @@ Parsers provided by aiida_aimall.
 Register parsers via the "aiida.parsers" entry point in setup.json.
 """
 
+import numpy as np
+import pandas as pd
 from aiida.common import exceptions
 from aiida.engine import ExitCode
 from aiida.orm import Dict, SinglefileData
@@ -72,6 +74,35 @@ class AimqbBaseParser(Parser):
             out_dict["cc_properties"] = self._parse_cc_props(
                 out_dict["atomic_properties"]
             )
+
+        def make_serializeable(data):
+            """Recursively go through the dictionary and convert unserializeable values in-place:
+
+            1) In numpy arrays:
+                * ``nan`` -> ``0.0``
+                * ``inf`` -> large number
+
+            :param data: A mapping of data.
+            """
+            if isinstance(data, dict):
+                for key, value in data.items():
+                    data[key] = make_serializeable(value)
+            elif isinstance(data, list):
+                for index, item in enumerate(data):
+                    data[index] = make_serializeable(item)
+            elif isinstance(data, np.ndarray):
+                np.nan_to_num(data, copy=False)
+            elif (
+                not isinstance(data, dict)
+                and not isinstance(data, np.ndarray)
+                and not isinstance(data, list)
+                and not isinstance(data, pd.DataFrame)
+            ):
+                if np.isnan(data):
+                    data = np.nan_to_num(data)
+            return data
+
+        make_serializeable(out_dict)
         # store in node
         self.outputs.output_parameters = Dict(out_dict)
 

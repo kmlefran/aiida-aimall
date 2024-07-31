@@ -20,7 +20,6 @@ Classes
 .. autoapisummary::
 
    aiida_aimall.parsers.AimqbBaseParser
-   aiida_aimall.parsers.GaussianWFXParser
    aiida_aimall.parsers.AimqbGroupParser
 
 
@@ -87,40 +86,6 @@ Attributes
 
 
 .. py:data:: SinglefileData
-
-
-
-.. py:class:: GaussianWFXParser(node: aiida.orm.CalcJobNode)
-
-
-   Bases: :py:obj:`aiida.parsers.parser.Parser`
-
-   Basic AiiDA parser for the output of Gaussian
-
-   Parses default cclib output as 'output_parameters' node and separates final SCF
-   energy as 'energy_ev' and output structure as 'output_structure' (if applicable)
-
-   Adapted from aiida-gaussian https://github.com/nanotech-empa/aiida-gaussian, Copyright (c) 2020 Kristjan Eimre.
-
-
-   .. py:method:: parse(**kwargs)
-
-      Receives in input a dictionary of retrieved nodes. Does all the logic here.
-
-
-   .. py:method:: _parse_log(log_file_string, inputs)
-
-
-   .. py:method:: _parse_electron_numbers(log_file_string)
-
-
-   .. py:method:: _parse_log_cclib(log_file_string)
-
-
-   .. py:method:: _set_output_structure(inputs, property_dict)
-
-
-   .. py:method:: _final_checks_on_log(log_file_string, property_dict, inputs)
 
 
 

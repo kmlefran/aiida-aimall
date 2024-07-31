@@ -26,8 +26,10 @@ Classes
 .. autoapisummary::
 
    aiida_aimall.workchains.QMToAIMWorkchain
+   aiida_aimall.workchains.GenerateWFXToAIMWorkchain
    aiida_aimall.workchains.SmilesToGaussianWorkchain
    aiida_aimall.workchains.AIMAllReor
+   aiida_aimall.workchains.GaussianToAIMWorkChain
    aiida_aimall.workchains.SubstituentParameterWorkChain
 
 
@@ -38,15 +40,20 @@ Functions
 .. autoapisummary::
 
    aiida_aimall.workchains.generate_rotated_structure_aiida
+   aiida_aimall.workchains.remove
    aiida_aimall.workchains.dict_to_structure
    aiida_aimall.workchains.calc_multiplicity
    aiida_aimall.workchains.find_attachment_atoms
    aiida_aimall.workchains.reorder_molecule
    aiida_aimall.workchains.get_xyz
    aiida_aimall.workchains.get_substituent_input
+   aiida_aimall.workchains.generate_structure_data
    aiida_aimall.workchains.parameters_with_cm
+   aiida_aimall.workchains.get_wfxname_from_gaussianinputs
+   aiida_aimall.workchains.create_wfx_from_retrieved
    aiida_aimall.workchains.validate_shell_code
    aiida_aimall.workchains.validate_file_ext
+   aiida_aimall.workchains.get_wfx
 
 
 
@@ -59,8 +66,6 @@ Attributes
    aiida_aimall.workchains.GaussianCalculation
    aiida_aimall.workchains.AimqbParameters
    aiida_aimall.workchains.AimqbCalculation
-   aiida_aimall.workchains.DictData
-   aiida_aimall.workchains.PDData
 
 
 .. py:data:: old_stdout
@@ -79,14 +84,6 @@ Attributes
 
 
 
-.. py:data:: DictData
-
-
-
-.. py:data:: PDData
-
-
-
 .. py:function:: generate_rotated_structure_aiida(FolderData, atom_dict, cc_dict)
 
    Rotates the fragment to the defined coordinate system
@@ -94,6 +91,11 @@ Attributes
    :param FolderData: aim calculation folder
    :param atom_dict: AIM atom dict
    :param cc_dict: AIM cc_dict
+
+
+.. py:function:: remove(in_list)
+
+   Remove digits from a list of strings. e.g. ['O1','H2','H3'] -> ['O','H','H']
 
 
 .. py:function:: dict_to_structure(fragment_dict)
@@ -145,9 +147,24 @@ Attributes
    :returns: Dict with keys xyz, charge, multiplicity
 
 
+.. py:function:: generate_structure_data(smiles_dict)
+
+   Take an input xyz string and convert it to StructureData
+
+
 .. py:function:: parameters_with_cm(parameters, smiles_dict)
 
    Add charge and multiplicity keys to Gaussian Input
+
+
+.. py:function:: get_wfxname_from_gaussianinputs(gaussian_parameters)
+
+   Look for wfx or wfn objects in the retrieved Folder
+
+
+.. py:function:: create_wfx_from_retrieved(wfxname, retrieved_folder)
+
+   Create wavefunciton Singlefildata from retrieved folder
 
 
 .. py:function:: validate_shell_code(node, _)
@@ -192,6 +209,47 @@ Attributes
 
 
 
+.. py:class:: GenerateWFXToAIMWorkchain(inputs: dict | None = None, logger: logging.Logger | None = None, runner: aiida.engine.runners.Runner | None = None, enable_persistence: bool = True)
+
+
+   Bases: :py:obj:`aiida.engine.WorkChain`
+
+   Workchain to generate a wfx file from computational chemistry output files and submit that to an AIMQB Calculation
+
+   .. note::
+
+      This workchain uses the IOData module of the Ayer's group Horton to generate the wfx files. Supported file formats include
+      .fchk files, molden files (from Molpro, Orca, PSI4, Turbomole, and Molden), and CP2K atom log files. Further note that .fchk files
+      can simply be provided directly to an `AimqbCalculation`.
+
+      While IOData accepts other file formats, these formats are the ones available that contain the necessary information to generate
+      wfc files
+
+   .. py:method:: define(spec)
+      :classmethod:
+
+      Define the specification of the process, including its inputs, outputs and known exit codes.
+
+      A `metadata` input namespace is defined, with optional ports that are not stored in the database.
+
+
+
+   .. py:method:: generate_wfx()
+
+      Given SinglefileData generates a wfx file if IOData is capable
+
+
+   .. py:method:: aim()
+
+      Run AIM on the generated wfx file
+
+
+   .. py:method:: result()
+
+      Put results in output node
+
+
+
 .. py:class:: SmilesToGaussianWorkchain(inputs: dict | None = None, logger: logging.Logger | None = None, runner: aiida.engine.runners.Runner | None = None, enable_persistence: bool = True)
 
 
@@ -218,9 +276,29 @@ Attributes
       Update provided Gaussian parameters with charge and multiplicity of substituent
 
 
+   .. py:method:: string_to_StructureData()
+
+      Convert an xyz string of molecule geometry to StructureData
+
+
+   .. py:method:: get_wfx_name()
+
+      Find the wavefunction file in the retrieved node
+
+
    .. py:method:: submit_gaussian()
 
       Submits the gaussian calculation
+
+
+   .. py:method:: found_wfx_name()
+
+      Check if we found a wfx or wfn file
+
+
+   .. py:method:: create_wfx_file()
+
+      Create a wavefunction file from the retireved folder
 
 
    .. py:method:: results()
@@ -268,6 +346,45 @@ Attributes
 
 
 
+.. py:function:: get_wfx(retrieved_folder, wfx_filename)
+
+   Get a wfx file from retrieved folder
+
+
+.. py:class:: GaussianToAIMWorkChain(inputs: dict | None = None, logger: logging.Logger | None = None, runner: aiida.engine.runners.Runner | None = None, enable_persistence: bool = True)
+
+
+   Bases: :py:obj:`aiida.engine.WorkChain`
+
+   A workchain to submit a Gaussian calculation and automatically setup an AIMAll calculation on the output
+
+   .. py:method:: define(spec)
+      :classmethod:
+
+      Define workchain steps
+
+
+   .. py:method:: g16()
+
+      Run Gaussian calculation
+
+
+   .. py:method:: classify_wfx()
+
+      Add the wavefunction file from the previous step to the correct group and set the extras
+
+
+   .. py:method:: aim()
+
+      Run Final AIM Calculation
+
+
+   .. py:method:: result()
+
+      Put results in output node
+
+
+
 .. py:class:: SubstituentParameterWorkChain(inputs: dict | None = None, logger: logging.Logger | None = None, runner: aiida.engine.runners.Runner | None = None, enable_persistence: bool = True)
 
 
@@ -286,6 +403,11 @@ Attributes
       Submit the Gaussian optimization
 
 
+   .. py:method:: classify_opt_wfx()
+
+      Add the wavefunction file from the previous step to the correct group and set the extras
+
+
    .. py:method:: aim_reor()
 
       Submit the Aimqb calculation and reorientation
@@ -294,6 +416,11 @@ Attributes
    .. py:method:: g16_sp()
 
       Run Gaussian Single Point calculation
+
+
+   .. py:method:: classify_sp_wfx()
+
+      Add the wavefunction file from the previous step to the correct group and set the extras
 
 
    .. py:method:: aim()

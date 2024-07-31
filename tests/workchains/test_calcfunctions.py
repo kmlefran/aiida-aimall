@@ -10,9 +10,13 @@ from aiida_aimall import workchains as aimw
 
 def test_generate_structure_data():
     """Test generate_structure_data function"""
-    test_Str = Str(
-        "C 0.0 0.0 0.0\nH -1.0 0.0 0.0\nH 1.0 1.0 0.0\nH 1.0 -1.0 1.0\n H 1.0 -1.0 -1.0"
+    test_Str = Dict(
+        {
+            "xyz": "C 0.0 0.0 0.0\nH -1.0 0.0 0.0\nH 1.0 1.0 0.0\nH 1.0 -1.0 1.0\n H 1.0 -1.0 -1.0"
+        }
     )
+    #        "C 0.0 0.0 0.0\nH -1.0 0.0 0.0\nH 1.0 1.0 0.0\nH 1.0 -1.0 1.0\n H 1.0 -1.0 -1.0"
+
     structure_data = aimw.generate_structure_data(test_Str)
     assert isinstance(structure_data, StructureData)
 
