@@ -209,7 +209,7 @@ def generate_calc_job_node(fixture_localhost):
         else:
             filepath_input = "notestname"
         entry_point = format_entry_point_string("aiida.calculations", entry_point_name)
-
+        print(filepath_folder)
         node = orm.CalcJobNode(computer=computer, process_type=entry_point)
         node.base.attributes.set("input_filename", "aiida.in")
         node.base.attributes.set("output_filename", "aiida.out")
@@ -524,7 +524,7 @@ def generate_workchain_smitog16(
                     "charge": 0,
                     "multiplicity": 1,
                     "route_parameters": {"opt": None, "Output": "WFX"},
-                    "input_parameters": {"output.wfx": None},
+                    "input_parameters": {"aiida.wfx": None},
                 }
             )
             inputs = {
@@ -671,6 +671,100 @@ def generate_workchain_subparam(
             gaussian_node2.set_exit_status(exit_code.status)
             aimallreor_node.set_process_state(ProcessState.FINISHED)
             aimallreor_node.set_exit_status(exit_code.status)
+            aim_node.set_process_state(ProcessState.FINISHED)
+            aim_node.set_exit_status(exit_code.status)
+        return process
+
+    return _generate_workchain_subparam
+
+
+@pytest.fixture
+def generate_workchain_g16toaim(
+    generate_workchain, generate_calc_job_node, fixture_code
+):
+    """Generate an instance of a ``GaussianToAIMWorkChain``."""
+
+    def _generate_workchain_subparam(
+        exit_code=None,
+        inputs=None,
+        return_inputs=False,
+        aim_outputs=None,
+    ):
+        """Generate an instance of a ``GaussianToAIMWorkChain``.
+
+        :param exit_code: exit code for the ``GaussianToAIMWorkChain``.
+        :param inputs: inputs for the ``GaussianToAIMWorkChain``.
+        :param return_inputs: return the inputs of the ``GaussianToAIMWorkChain``.
+        :param pw_outputs: ``dict`` of outputs for the ``GaussianToAIMWorkChain``.
+            The keys must correspond to the link labels and the values to the output nodes.
+        """
+        # pylint:disable=too-many-locals
+        from aiida.common import LinkType
+        from plumpy import ProcessState
+
+        entry_point = "aimall.g16toaim"
+
+        if inputs is None:
+            gaussian_input = Dict(
+                {
+                    "link0_parameters": {
+                        "%chk": "aiida.chk",
+                        "%mem": "3200MB",  # Currently set to use 8000 MB in .sh files
+                        "%nprocshared": 4,
+                    },
+                    "functional": "wb97xd",
+                    "basis_set": "aug-cc-pvtz",
+                    "charge": 0,
+                    "multiplicity": 1,
+                    "route_parameters": {"opt": None, "Output": "WFX"},
+                    "input_parameters": {"output.wfx": None},
+                }
+            )
+
+            f = io.StringIO(
+                "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+            )
+            struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+            f.close()
+            aiminputs = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
+            inputs = {
+                "g16_params": gaussian_input,
+                "aim_params": aiminputs,
+                "structure": struct_data,
+                "g16_code": fixture_code("gaussian"),
+                "frag_label": Str("*C"),
+                # "opt_wfx_group": Str("group1"),
+                # "sp_wfx_group": Str("group2"),
+                # "gaussian_opt_group": Str("group3"),
+                # "gaussian_sp_group": Str("group4"),
+                "aim_code": fixture_code("aimall"),
+                "dry_run": Bool(True),
+            }
+
+        if return_inputs:
+            return inputs
+
+        process = generate_workchain(entry_point, inputs)
+
+        gaussian_node = generate_calc_job_node(inputs={"parameters": Dict()})
+
+        aim_node = generate_calc_job_node(inputs={"parameters": Dict()})
+
+        process.ctx.children = [
+            gaussian_node,
+            aim_node,
+        ]
+
+        if aim_outputs is not None:
+            for link_label, output_node in aim_outputs.items():
+                output_node.base.links.add_incoming(
+                    aim_node, link_type=LinkType.CREATE, link_label=link_label
+                )
+                output_node.store()
+
+        if exit_code is not None:
+            gaussian_node.set_process_state(ProcessState.FINISHED)
+            gaussian_node.set_exit_status(exit_code.status)
             aim_node.set_process_state(ProcessState.FINISHED)
             aim_node.set_exit_status(exit_code.status)
         return process

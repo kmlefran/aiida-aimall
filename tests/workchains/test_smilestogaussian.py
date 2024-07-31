@@ -3,7 +3,7 @@ import os
 
 import cclib
 from aiida.common import LinkType
-from aiida.orm import Dict, SinglefileData, StructureData
+from aiida.orm import Dict, SinglefileData, Str, StructureData
 from plumpy.utils import AttributesFrozendict
 
 
@@ -19,7 +19,6 @@ def test_setup(generate_workchain_aimreor):
 def test_default(
     generate_workchain_smitog16,
     fixture_localhost,
-    generate_workchain_folderdata,
     generate_g16_inputs,
     generate_calc_job_node,
     fixture_code,
@@ -47,6 +46,10 @@ def test_default(
     assert "structure" in wkchain.ctx
     assert isinstance(wkchain.ctx.structure, StructureData)
 
+    assert wkchain.get_wfx_name() is None
+    assert "wfxname" in wkchain.ctx
+    assert isinstance(wkchain.ctx.wfxname, Str)
+    assert wkchain.ctx.wfxname.value == "aiida.wfx"
     # Try the submit gaussian step, as dry_run which returns the inputs
     gaussian_inputs = wkchain.submit_gaussian()
     assert isinstance(gaussian_inputs, AttributesFrozendict)
@@ -61,13 +64,10 @@ def test_default(
     node.store()
     wkchain.ctx.opt = node
     # Get a wavefunction file to link to the gaussian calculation as output for use in next step
-    gaussian_folder = generate_workchain_folderdata(entry_point_name, test)
-    with gaussian_folder.open("aiida.wfx", "rb") as handle:
-        output_node = SinglefileData(file=handle)
-    output_node.base.links.add_incoming(
-        node, link_type=LinkType.CREATE, link_label="wfx"
-    )
-    output_node.store()
+
+    assert wkchain.create_wfx_file() is None
+
+    # output_node.store()
     # parse the log file and add the resulting dictionary to outputs
     filepath_input = os.path.join(
         filepath_tests,
@@ -85,6 +85,8 @@ def test_default(
         node, link_type=LinkType.CREATE, link_label="output_parameters"
     )
     output_parameters.store()
+    assert "wfxfile" in wkchain.ctx
+    assert isinstance(wkchain.ctx.wfxfile, SinglefileData)
     # Finish the workchain, adding the wfx and cclib parsed dictionary as workchain outputs
     assert wkchain.results() is None
     assert "wfx" in wkchain.outputs

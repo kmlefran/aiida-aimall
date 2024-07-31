@@ -35,8 +35,10 @@ dependencies = [
     "multiprocess",
     "subproptools",
     "aiida-gaussian",
-    "pymatgen==2023.12.18",
+    "pymatgen",
     "aiida-shell",
+    "qc-iodata",
+    "numpy",
 ]
 
 [project.urls]
@@ -89,6 +91,8 @@ docs = [
 "aimall.subparam" = "aiida_aimall.workchains:SubstituentParameterWorkChain"
 "aimall.smitog16" = "aiida_aimall.workchains:SmilesToGaussianWorkchain"
 "aimall.qmtoaim" = "aiida_aimall.workchains:QMToAIMWorkchain"
+"aimall.g16toaim" = "aiida_aimall.workchains:GaussianToAIMWorkChain"
+"aimall.wfxtoaim" = "aiida_aimall.workchains:GenerateWFXToAIMWorkchain"
 
 [tool.flit.module]
 name = "aiida_aimall"

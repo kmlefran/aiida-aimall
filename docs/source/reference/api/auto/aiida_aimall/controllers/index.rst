@@ -434,7 +434,7 @@ Attributes
 
 
    .. py:attribute:: CALCULATION_ENTRY_POINT
-      :value: 'aimall.gaussianwfx'
+      :value: 'gaussian'
 
 
 

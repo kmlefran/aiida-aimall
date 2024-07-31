@@ -16,7 +16,7 @@ import sys
 from string import digits
 
 import ase.io
-from aiida.engine import ToContext, WorkChain, calcfunction
+from aiida.engine import ToContext, WorkChain, calcfunction, if_
 from aiida.orm import (
     Bool,
     Code,
@@ -234,9 +234,10 @@ def get_substituent_input(smiles: str) -> dict:
 
 
 @calcfunction
-def generate_structure_data(structure_Str):
+def generate_structure_data(smiles_dict):
     """Take an input xyz string and convert it to StructureData"""
-    structure_str = structure_Str.value
+    structure_Str = smiles_dict["xyz"]
+    structure_str = structure_Str
     num_atoms = len(structure_str.split("\n"))
     xyz_string = f"{num_atoms}\n\n" + structure_str
     f = io.StringIO(xyz_string)
@@ -253,6 +254,33 @@ def parameters_with_cm(parameters, smiles_dict):
     parameters_dict["charge"] = smiles_dict_dict["charge"]
     parameters_dict["multiplicity"] = smiles_dict_dict["multiplicity"]
     return Dict(parameters_dict)
+
+
+@calcfunction
+def get_wfxname_from_gaussianinputs(gaussian_parameters):
+    """Look for wfx or wfn objects in the retrieved Folder"""
+    gaussian_dict = gaussian_parameters.get_dict()
+    if "input_parameters" not in gaussian_dict:
+        return Str("")
+    object_names = list(gaussian_dict["input_parameters"].keys())
+    wfx_files = [x for x in object_names if "wfx" in x]
+    if len(wfx_files) >= 1:
+        return Str(wfx_files[0])
+    if len(wfx_files) == 0:
+        wfn_files = [x for x in object_names if "wfn" in x]
+        if len(wfn_files) >= 1:
+            return Str(wfn_files[0])
+        if len(wfn_files) == 0:
+            return Str("")
+    # should not get here
+    return Str("")
+
+
+@calcfunction
+def create_wfx_from_retrieved(wfxname, retrieved_folder):
+    """Create wavefunciton Singlefildata from retrieved folder"""
+    wfx_file_string = retrieved_folder.get_object_content(wfxname.value)
+    return SinglefileData(io.BytesIO(wfx_file_string.encode()))
 
 
 def validate_shell_code(node, _):
@@ -303,6 +331,7 @@ class QMToAIMWorkchain(WorkChain):
             default=lambda: Str("aimall.base"),
         )
         spec.input("dry_run", valid_type=Bool, default=lambda: Bool(False))
+
         spec.output("parameter_dict", valid_type=Dict)
         spec.outline(cls.shell_job, cls.aim, cls.result)
 
@@ -363,6 +392,63 @@ class QMToAIMWorkchain(WorkChain):
         )
 
 
+class GenerateWFXToAIMWorkchain(WorkChain):
+    """Workchain to generate a wfx file from computational chemistry output files and submit that to an AIMQB Calculation
+
+    Note:
+        This workchain uses the IOData module of the Ayer's group Horton to generate the wfx files. Supported file formats
+        include .fchk files, molden files (from Molpro, Orca, PSI4, Turbomole, and Molden), and CP2K atom log files. Further
+        note that .fchk files can simply be provided directly to an `AimqbCalculation`.
+
+        While IOData accepts other file formats, these formats are the ones available that contain the necessary information
+        to generate wfc files
+    """
+
+    @classmethod
+    def define(cls, spec):
+        super().define(spec)
+        spec.input("input_file", valid_type=SinglefileData)
+        spec.input("aim_params", valid_type=AimqbParameters)
+        spec.input("aim_code")
+        spec.output("output_parameters", valid_type=Dict)
+        spec.outline(cls.generate_wfx, cls.aim, cls.result)
+
+    def generate_wfx(self):
+        """Given SinglefileData generates a wfx file if IOData is capable"""
+        _, node = launch_shell_job(
+            "iodata-convert",
+            arguments="{file} output.wfx",
+            nodes={"file": self.inputs.input_file},
+            outputs=["output.wfx"],
+            submit=True,
+        )
+        out_dict = {"shell_wfx": node}
+        return ToContext(out_dict)
+
+    def aim(self):
+        """Run AIM on the generated wfx file"""
+        builder = AimqbCalculation.get_builder()
+        builder.parameters = self.inputs.aim_params
+        builder.file = self.ctx.shell_wfx.base.links.get_outgoing().get_node_by_label(
+            "output_wfx"
+        )
+        builder.code = self.inputs.aim_code
+        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
+        #  generalize for substrates other than H
+        process_node = self.submit(builder)
+        out_dict = {"aim": process_node}
+        return ToContext(out_dict)
+
+    def result(self):
+        """Put results in output node"""
+        self.out(
+            "output_parameters",
+            self.ctx.aim.base.links.get_outgoing().get_node_by_label(
+                "output_parameters"
+            ),
+        )
+
+
 class SmilesToGaussianWorkchain(WorkChain):
     """Workchain to take a SMILES, generate xyz, charge, and multiplicity"""
 
@@ -372,19 +458,23 @@ class SmilesToGaussianWorkchain(WorkChain):
         spec.input("smiles")
         spec.input("gaussian_parameters")
         spec.input("gaussian_code")
+        spec.input("wfxname", required=False)
         spec.input("wfxgroup", required=False)
         spec.input("nprocs", default=lambda: Int(4))
         spec.input("mem_mb", default=lambda: Int(6400))
         spec.input("time_s", default=lambda: Int(24 * 7 * 60 * 60))
         spec.input("dry_run", default=lambda: Bool(False))
-        spec.output("wfx", valid_type=SinglefileData)
+        spec.output("wfx", valid_type=SinglefileData, required=False)
         spec.output("output_parameters", valid_type=Dict)
         # spec.output("g_input")
         # spec.output("done_smiles")
         spec.outline(
             cls.get_substituent_inputs_step,  # , cls.results
             cls.update_parameters_with_cm,
+            cls.string_to_StructureData,
+            cls.get_wfx_name,
             cls.submit_gaussian,
+            if_(cls.found_wfx_name)(cls.create_wfx_file),
             cls.results,
         )
 
@@ -400,7 +490,16 @@ class SmilesToGaussianWorkchain(WorkChain):
 
     def string_to_StructureData(self):
         """Convert an xyz string of molecule geometry to StructureData"""
-        self.ctx.structure = generate_structure_data(self.ctx.smiles_geom["xyz"])
+        self.ctx.structure = generate_structure_data(self.ctx.smiles_geom)
+
+    def get_wfx_name(self):
+        """Find the wavefunction file in the retrieved node"""
+        if "wfxname" in self.inputs:
+            self.ctx.wfxname = self.inputs.wfxname
+        else:
+            self.ctx.wfxname = get_wfxname_from_gaussianinputs(
+                self.inputs.gaussian_parameters
+            )
 
     def submit_gaussian(self):
         """Submits the gaussian calculation"""
@@ -417,6 +516,8 @@ class SmilesToGaussianWorkchain(WorkChain):
             int(self.inputs.mem_mb.value * 1.25) * 1024
         )
         builder.metadata.options.max_wallclock_seconds = self.inputs.time_s.value
+        if self.ctx.wfxname.value:
+            builder.metadata.options.additional_retrieve_list = [self.ctx.wfxname.value]
 
         if self.inputs.dry_run.value:
             return self.inputs
@@ -424,16 +525,28 @@ class SmilesToGaussianWorkchain(WorkChain):
         out_dict = {"opt": node}
         return ToContext(out_dict)
 
-    def results(self):
-        """Store our relevant information as output"""
+    def found_wfx_name(self):
+        """Check if we found a wfx or wfn file"""
+        if self.ctx.wfxname.value:
+            return True
+        return False
+
+    def create_wfx_file(self):
+        """Create a wavefunction file from the retireved folder"""
+        retrieved_folder = (
+            self.ctx["opt"].base.links.get_outgoing().get_node_by_label("retrieved")
+        )
+        wfx_node = create_wfx_from_retrieved(self.ctx.wfxname, retrieved_folder)
+        wfx_node.base.extras.set("smiles", self.inputs.smiles)
+        self.ctx.wfxfile = wfx_node
         if "wfxgroup" in self.inputs:
             wfx_group = load_group(self.inputs.wfxgroup.value)
-            wfx_group.add_nodes(
-                self.ctx["opt"].base.links.get_outgoing().get_node_by_label("wfx")
-            )
-        self.out(
-            "wfx", self.ctx["opt"].base.links.get_outgoing().get_node_by_label("wfx")
-        )
+            wfx_group.add_nodes(wfx_node)
+
+    def results(self):
+        """Store our relevant information as output"""
+        if "wfxfile" in self.ctx:
+            self.out("wfx", self.ctx.wfxfile)
         self.out(
             "output_parameters",
             self.ctx["opt"]
@@ -475,7 +588,7 @@ class AIMAllReor(WorkChain):
         }
         if self.inputs.dry_run.value:
             return self.inputs
-        aim_calc = self.submit(builder, dry_run=self.inputs.dry_run)
+        aim_calc = self.submit(builder)
         aim_calc.store()
         if "aim_group" in self.inputs:
             aim_noreor_group = load_group(self.inputs.aim_group)
@@ -517,6 +630,112 @@ class AIMAllReor(WorkChain):
         self.out("rotated_structure", self.ctx.rot_structure)
 
 
+@calcfunction
+def get_wfx(retrieved_folder, wfx_filename):
+    """Get a wfx file from retrieved folder"""
+    folder_data = retrieved_folder
+    # later scan input parameters for filename
+    wfx_file = SinglefileData(
+        io.BytesIO(folder_data.get_object_content(wfx_filename.value).encode())
+    )
+    return wfx_file
+
+
+class GaussianToAIMWorkChain(WorkChain):
+    """A workchain to submit a Gaussian calculation and automatically setup an AIMAll calculation on the output"""
+
+    @classmethod
+    def define(cls, spec):
+        """Define workchain steps"""
+        super().define(spec)
+        spec.input("g16_params", valid_type=Dict, required=True)
+        spec.input("aim_params", valid_type=AimqbParameters, required=True)
+        spec.input("structure", valid_type=StructureData, required=True)
+        spec.input("g16_code", valid_type=Code)
+        spec.input(
+            "frag_label",
+            valid_type=Str,
+            help="Label for substituent fragment, stored as extra",
+            required=False,
+        )
+        spec.input("wfx_group", valid_type=Str, required=False)
+        spec.input("gaussian_group", valid_type=Str, required=False)
+        spec.input("aim_code", valid_type=Code)
+        spec.input("dry_run", valid_type=Bool, default=lambda: Bool(False))
+        spec.input("wfx_filename", valid_type=Str, default=lambda: Str("output.wfx"))
+        spec.output("parameter_dict", valid_type=Dict)
+        spec.outline(
+            cls.g16,
+            cls.classify_wfx,
+            cls.aim,
+            cls.result,
+        )
+
+    def g16(self):
+        """Run Gaussian calculation"""
+        builder = GaussianCalculation.get_builder()
+        builder.structure = self.inputs.structure
+        builder.parameters = self.inputs.g16_params
+        builder.code = self.inputs.g16_code
+        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
+        builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
+        builder.metadata.options.max_wallclock_seconds = 604800
+        builder.metadata.options.additional_retrieve_list = [
+            self.inputs.wfx_filename.value
+        ]
+        if self.inputs.dry_run.value:
+            return self.inputs
+        process_node = self.submit(builder)
+        if "gaussian_group" in self.inputs:
+            g16_group = load_group(self.inputs.gaussian_sp_group)
+            g16_group.add_nodes(process_node)
+        out_dict = {"g16": process_node}
+        # self.ctx.standard_wfx = process_node.get_outgoing().get_node_by_label("wfx")
+        return ToContext(out_dict)
+
+    def classify_wfx(self):
+        """Add the wavefunction file from the previous step to the correct group and set the extras"""
+        folder_data = self.ctx.g16.base.links.get_outgoing().get_node_by_label(
+            "retrieved"
+        )
+        self.ctx.wfx = get_wfx(folder_data, self.inputs.wfx_filename)
+        # later scan input parameters for filename
+
+        if "wfx_group" in self.inputs:
+            wf_group = load_group(self.inputs.wfx_group)
+            wf_group.add_nodes(self.ctx.wfx)
+        if "frag_label" in self.inputs:
+            struct_extras = EntityExtras(self.ctx.wfx)
+            struct_extras.set("smiles", self.inputs.frag_label.value)
+
+    def aim(self):
+        """Run Final AIM Calculation"""
+        builder = AimqbCalculation.get_builder()
+        builder.parameters = self.inputs.aim_params
+        builder.file = self.ctx.wfx
+        builder.code = self.inputs.aim_code
+        # if "frag_label" in self.inputs:
+        #     builder.frag_label = self.inputs.frag_label
+        builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
+        num_atoms = len(self.inputs.structure.sites)
+        #  generalize for substrates other than H
+        builder.group_atoms = List([x + 1 for x in range(0, num_atoms) if x != 1])
+        if self.inputs.dry_run.value:
+            return self.inputs
+        process_node = self.submit(builder)
+        out_dict = {"aim": process_node}
+        return ToContext(out_dict)
+
+    def result(self):
+        """Put results in output node"""
+        self.out(
+            "parameter_dict",
+            self.ctx.aim.base.links.get_outgoing().get_node_by_label(
+                "output_parameters"
+            ),
+        )
+
+
 class SubstituentParameterWorkChain(WorkChain):
     """A workchain to perform the full suite of KLG's substituent parameter determining"""
 
@@ -539,6 +758,12 @@ class SubstituentParameterWorkChain(WorkChain):
         spec.input("sp_wfx_group", valid_type=Str, required=False)
         spec.input("gaussian_opt_group", valid_type=Str, required=False)
         spec.input("gaussian_sp_group", valid_type=Str, required=False)
+        spec.input(
+            "wfx_filename",
+            valid_type=Str,
+            required=False,
+            default=lambda: Str("output.wfx"),
+        )
         # spec.input("file", valid_type=SinglefileData)
         # spec.output('aim_dict',valid_type=Dict)
         spec.input("aim_code", valid_type=Code)
@@ -565,7 +790,9 @@ class SubstituentParameterWorkChain(WorkChain):
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
         builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
         builder.metadata.options.max_wallclock_seconds = 604800
-        builder.metadata.options.additional_retrieve_list = ["aiida.wfx"]
+        builder.metadata.options.additional_retrieve_list = [
+            self.inputs.wfx_filename.value
+        ]
         if self.inputs.dry_run.value:
             return self.inputs
         process_node = self.submit(builder)
@@ -582,10 +809,7 @@ class SubstituentParameterWorkChain(WorkChain):
             "retrieved"
         )
         # later scan input parameters for filename
-        wfx_file = SinglefileData(
-            io.BytesIO(folder_data.get_object_content("output.wfx").encode())
-        )
-        wfx_file.store()
+        wfx_file = get_wfx(folder_data, self.inputs.wfx_filename.value)
         self.ctx.opt_wfx = wfx_file
 
         if "opt_wfx_group" in self.inputs:
@@ -601,7 +825,7 @@ class SubstituentParameterWorkChain(WorkChain):
         builder.aim_params = self.inputs.aim_params
         builder.file = self.ctx.opt_wfx
         builder.aim_code = self.inputs.aim_code
-        builder.dry_run = self.inputs.dry_run
+        # builder.dry_run = self.inputs.dry_run
         if "frag_label" in self.inputs:
             builder.frag_label = self.inputs.frag_label
         if self.inputs.dry_run.value:
@@ -623,7 +847,9 @@ class SubstituentParameterWorkChain(WorkChain):
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
         builder.metadata.options.max_memory_kb = int(6400 * 1.25) * 1024
         builder.metadata.options.max_wallclock_seconds = 604800
-        builder.metadata.options.additional_retrieve_list = ["output.wfx"]
+        builder.metadata.options.additional_retrieve_list = [
+            self.inputs.wfx_filename.value
+        ]
         if self.inputs.dry_run.value:
             return self.inputs
         process_node = self.submit(builder)
@@ -640,10 +866,7 @@ class SubstituentParameterWorkChain(WorkChain):
             "retrieved"
         )
         # later scan input parameters for filename
-        wfx_file = SinglefileData(
-            io.BytesIO(folder_data.get_object_content("output.wfx").encode())
-        )
-        wfx_file.store()
+        wfx_file = get_wfx(folder_data, self.inputs.wfx_filename.value)
         self.ctx.sp_wfx = wfx_file
 
         if "sp_wfx_group" in self.inputs:
