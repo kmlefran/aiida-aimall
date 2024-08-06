@@ -12,11 +12,12 @@ import io
 
 # pylint: disable=c-extension-no-member
 # pylint:disable=no-member
-import sys
+# pylint:disable=too-many-lines
 from string import digits
 
 import ase.io
 from aiida.engine import ToContext, WorkChain, calcfunction, if_
+from aiida.engine.processes import ExitCode
 from aiida.orm import (
     Bool,
     Code,
@@ -36,9 +37,6 @@ from rdkit.Chem import AllChem, rdmolops, rdqueries
 from rdkit.Chem.MolKey.MolKey import BadMoleculeException
 from subproptools.sub_reor import rotate_substituent_aiida
 
-old_stdout = sys.stdout
-
-# load the needed calculations and data types
 GaussianCalculation = CalculationFactory("gaussian")
 AimqbParameters = DataFactory("aimall.aimqb")
 AimqbCalculation = CalculationFactory("aimall.aimqb")
@@ -364,8 +362,6 @@ class QMToAIMWorkchain(WorkChain):
             wfx_file = self.inputs.wfx_filename.value.replace(".", "_")
         builder.file = self.ctx.qm.base.links.get_outgoing().get_node_by_label(wfx_file)
         builder.code = self.inputs.aim_code
-        # if "frag_label" in self.inputs:
-        #     builder.frag_label = self.inputs.frag_label
         builder.metadata.options.parser_name = self.inputs.aim_parser.value
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
         # future work, enable group
@@ -466,8 +462,6 @@ class SmilesToGaussianWorkchain(WorkChain):
         spec.input("dry_run", default=lambda: Bool(False))
         spec.output("wfx", valid_type=SinglefileData, required=False)
         spec.output("output_parameters", valid_type=Dict)
-        # spec.output("g_input")
-        # spec.output("done_smiles")
         spec.outline(
             cls.get_substituent_inputs_step,  # , cls.results
             cls.update_parameters_with_cm,
@@ -572,9 +566,7 @@ class AIMAllReor(WorkChain):
         spec.input("reor_group", valid_type=Str, required=False)
         spec.input("dry_run", valid_type=Bool, default=lambda: Bool(False))
         spec.output("rotated_structure", valid_type=StructureData)
-        spec.outline(
-            cls.aimall, cls.rotate, cls.dict_to_struct_reor, cls.result
-        )  # ,cls.aimall)#, cls.aimall,cls.reorient,cls.aimall)
+        spec.outline(cls.aimall, cls.rotate, cls.dict_to_struct_reor, cls.result)
 
     def aimall(self):
         """submit the aimall calculation"""
@@ -641,7 +633,123 @@ def get_wfx(retrieved_folder, wfx_filename):
     return wfx_file
 
 
-class GaussianToAIMWorkChain(WorkChain):
+class BaseInputWorkChain(WorkChain):
+    """A workchain to generate and validate inputs. One of SinglefileData, Smiles as Str or StructureData should be
+    provided"""
+
+    @classmethod
+    def define(cls, spec):
+        super().define(spec)
+        spec.input("structure", valid_type=StructureData, required=False)
+        spec.input("smiles", valid_type=Str, required=False)
+        spec.input("xyz_file", valid_type=SinglefileData, required=False)
+        spec.exit_code(
+            200,
+            "ERROR_MULTIPLE_INPUTS",
+            "the process received two or more of the following inputs: structure, smiles, xyz_file",
+        )
+        spec.exit_code(
+            201,
+            "ERROR_NO_INPUTS",
+            "None of structure, smiles, xyz_file were provided, at least one must be",
+        )
+        spec.outline(
+            cls.validate_input,
+            if_(cls.is_xyz_input)(cls.create_structure_from_xyz),
+            if_(cls.is_smiles_input)(
+                cls.get_molecule_inputs_step, cls.string_to_StructureData
+            ),
+            if_(cls.is_structure_input)(cls.structure_in_context),
+        )
+
+    def is_xyz_input(self):
+        """Validates if xyz_file was provided as input"""
+        if "xyz_file" in self.inputs:
+            return True
+        return False
+
+    def is_smiles_input(self):
+        """Validates if smiles was provided as input"""
+        if "smiles" in self.inputs:
+            return True
+        return False
+
+    def is_structure_input(self):
+        """Validates if structure was provided as input"""
+        if "structure" in self.inputs:
+            return True
+        return False
+
+    # pylint:disable=inconsistent-return-statements
+    def validate_input(self):
+        """Check that only one of smiles, structure, or xyz_file was input"""
+        if "smiles" in self.inputs and (
+            "xyz_file" in self.inputs or "structure" in self.inputs
+        ):
+            return ExitCode(200)
+        if "xyz_file" in self.inputs and (
+            "smiles" in self.inputs or "structure" in self.inputs
+        ):
+            return ExitCode(200)
+        if "structure" in self.inputs and (
+            "xyz_file" in self.inputs or "smiles" in self.inputs
+        ):
+            return ExitCode(200)
+        if (
+            "structure" not in self.inputs
+            and "xyz_file" not in self.inputs
+            and "smiles" not in self.inputs
+        ):
+            return ExitCode(201)
+
+    def create_structure_from_xyz(self):
+        """Convert the xyzfile to StructureData"""
+        self.ctx.structure = xyzfile_to_StructureData(self.inputs.xyz_file)
+
+    def structure_in_context(self):
+        """Store the input structure in context, to make consistent with the results of xyz_file or SMILES input"""
+        self.ctx.structure = self.inputs.structure
+
+    def get_molecule_inputs_step(self):
+        """Given list of substituents and previously done smiles, get input"""
+        self.ctx.smiles_geom = get_molecule_str_from_smiles(self.inputs.smiles)
+
+    def string_to_StructureData(self):
+        """Convert an xyz string of molecule geometry to StructureData"""
+        self.ctx.structure = generate_structure_data(self.ctx.smiles_geom)
+
+
+@calcfunction
+def get_molecule_str_from_smiles(smiles):
+    """For a given smiles, determine xyz structure, charge, and multiplicity
+
+    Args:
+        smiles: SMILEs of substituent to run
+
+    Returns:
+        Dict with keys xyz, charge, multiplicity
+
+    """
+    mol = Chem.MolFromSmiles(smiles.value)
+    if not mol:
+        raise ValueError(
+            f"Molecule could not be constructed for substituent input SMILES {smiles.value}"
+        )
+    h_mol_rw = Chem.RWMol(mol)  # Change type of molecule object
+    h_mol_rw = Chem.AddHs(h_mol_rw)
+    xyz_string = get_xyz(h_mol_rw)
+    if xyz_string == "Could not determine xyz coordinates":
+        raise BadMoleculeException(
+            "Maximum iterations exceeded, could not determine xyz coordinates for f{smiles.value}"
+        )
+    h_mol_rw.UpdatePropertyCache()
+    charge = Chem.GetFormalCharge(h_mol_rw)
+    multiplicity = calc_multiplicity(h_mol_rw)
+    out_dict = Dict({"xyz": xyz_string, "charge": charge, "multiplicity": multiplicity})
+    return out_dict
+
+
+class GaussianToAIMWorkChain(BaseInputWorkChain):
     """A workchain to submit a Gaussian calculation and automatically setup an AIMAll calculation on the output"""
 
     @classmethod
@@ -650,7 +758,6 @@ class GaussianToAIMWorkChain(WorkChain):
         super().define(spec)
         spec.input("g16_params", valid_type=Dict, required=True)
         spec.input("aim_params", valid_type=AimqbParameters, required=True)
-        spec.input("structure", valid_type=StructureData, required=True)
         spec.input("g16_code", valid_type=Code)
         spec.input(
             "frag_label",
@@ -665,6 +772,12 @@ class GaussianToAIMWorkChain(WorkChain):
         spec.input("wfx_filename", valid_type=Str, default=lambda: Str("output.wfx"))
         spec.output("parameter_dict", valid_type=Dict)
         spec.outline(
+            cls.validate_input,
+            if_(cls.is_xyz_input)(cls.create_structure_from_xyz),
+            if_(cls.is_smiles_input)(
+                cls.get_molecule_inputs_step, cls.string_to_StructureData
+            ),
+            if_(cls.is_structure_input)(cls.structure_in_context),
             cls.g16,
             cls.classify_wfx,
             cls.aim,
@@ -674,7 +787,7 @@ class GaussianToAIMWorkChain(WorkChain):
     def g16(self):
         """Run Gaussian calculation"""
         builder = GaussianCalculation.get_builder()
-        builder.structure = self.inputs.structure
+        builder.structure = self.ctx.structure
         builder.parameters = self.inputs.g16_params
         builder.code = self.inputs.g16_code
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
@@ -717,7 +830,7 @@ class GaussianToAIMWorkChain(WorkChain):
         # if "frag_label" in self.inputs:
         #     builder.frag_label = self.inputs.frag_label
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
-        num_atoms = len(self.inputs.structure.sites)
+        num_atoms = len(self.ctx.structure.sites)
         #  generalize for substrates other than H
         builder.group_atoms = List([x + 1 for x in range(0, num_atoms) if x != 1])
         if self.inputs.dry_run.value:
@@ -736,7 +849,14 @@ class GaussianToAIMWorkChain(WorkChain):
         )
 
 
-class SubstituentParameterWorkChain(WorkChain):
+@calcfunction
+def xyzfile_to_StructureData(xyz_SFD):
+    """Convert the xyz file provided as SinglefileData to StructureData"""
+    with xyz_SFD.as_path() as filepath:
+        return StructureData(ase=ase.io.read(filepath, format="xyz"))
+
+
+class SubstituentParameterWorkChain(BaseInputWorkChain):
     """A workchain to perform the full suite of KLG's substituent parameter determining"""
 
     @classmethod
@@ -746,7 +866,6 @@ class SubstituentParameterWorkChain(WorkChain):
         spec.input("g16_opt_params", valid_type=Dict, required=True)
         spec.input("g16_sp_params", valid_type=Dict, required=True)
         spec.input("aim_params", valid_type=AimqbParameters, required=True)
-        spec.input("structure", valid_type=StructureData, required=True)
         spec.input("g16_code", valid_type=Code)
         spec.input(
             "frag_label",
@@ -772,6 +891,12 @@ class SubstituentParameterWorkChain(WorkChain):
         # spec.output("rotated_structure", valid_type=Str)
         spec.output("parameter_dict", valid_type=Dict)
         spec.outline(
+            cls.validate_input,
+            if_(cls.is_xyz_input)(cls.create_structure_from_xyz),
+            if_(cls.is_smiles_input)(
+                cls.get_substituent_inputs_step, cls.string_to_StructureData
+            ),
+            if_(cls.is_structure_input)(cls.structure_in_context),
             cls.g16_opt,
             cls.classify_opt_wfx,
             cls.aim_reor,
@@ -781,10 +906,14 @@ class SubstituentParameterWorkChain(WorkChain):
             cls.result,
         )
 
+    def get_substituent_inputs_step(self):
+        """Get a dictionary of the substituent input for a given SMILES"""
+        self.ctx.smiles_geom = get_substituent_input(self.inputs.smiles)
+
     def g16_opt(self):
         """Submit the Gaussian optimization"""
         builder = GaussianCalculation.get_builder()
-        builder.structure = self.inputs.structure
+        builder.structure = self.ctx.structure
         builder.parameters = self.inputs.g16_opt_params
         builder.code = self.inputs.g16_code
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 4}
@@ -882,8 +1011,6 @@ class SubstituentParameterWorkChain(WorkChain):
         builder.parameters = self.inputs.aim_params
         builder.file = self.ctx.sp_wfx
         builder.code = self.inputs.aim_code
-        # if "frag_label" in self.inputs:
-        #     builder.frag_label = self.inputs.frag_label
         builder.metadata.options.parser_name = "aimall.group"
         builder.metadata.options.resources = {"num_machines": 1, "tot_num_mpiprocs": 2}
         num_atoms = len(

@@ -574,6 +574,7 @@ def generate_workchain_subparam(
         inputs=None,
         return_inputs=False,
         aim_outputs=None,
+        input_type="structure",
     ):
         """Generate an instance of a ``SubstituentParameterWorkChain``.
 
@@ -583,7 +584,7 @@ def generate_workchain_subparam(
         :param pw_outputs: ``dict`` of outputs for the ``SubstituentParameterWorkChain``.
             The keys must correspond to the link labels and the values to the output nodes.
         """
-        # pylint:disable=too-many-locals
+        # pylint:disable=too-many-locals,too-many-arguments
         from aiida.common import LinkType
         from plumpy import ProcessState
 
@@ -620,17 +621,11 @@ def generate_workchain_subparam(
                     "input_parameters": {"output.wfx": None},
                 }
             )
-            f = io.StringIO(
-                "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
-            )
-            struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
-            f.close()
             aiminputs = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
             inputs = {
                 "g16_opt_params": gaussian_opt_input,
                 "g16_sp_params": gaussian_sp_input,
                 "aim_params": aiminputs,
-                "structure": struct_data,
                 "g16_code": fixture_code("gaussian"),
                 "frag_label": Str("*C"),
                 # "opt_wfx_group": Str("group1"),
@@ -640,6 +635,20 @@ def generate_workchain_subparam(
                 "aim_code": fixture_code("aimall"),
                 "dry_run": Bool(True),
             }
+            if input_type == "structure":
+                f = io.StringIO(
+                    "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+                )
+                struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+                f.close()
+
+                inputs["structure"] = struct_data
+            elif input_type == "smiles":
+                inputs["smiles"] = Str("*C")
+            elif input_type == "xyz":
+                wfx_string = "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+                xyz_data = SinglefileData(io.BytesIO(wfx_string.encode()))
+                inputs["xyz_file"] = xyz_data
 
         if return_inputs:
             return inputs
@@ -684,11 +693,12 @@ def generate_workchain_g16toaim(
 ):
     """Generate an instance of a ``GaussianToAIMWorkChain``."""
 
-    def _generate_workchain_subparam(
+    def _generate_workchain_g16toaim(
         exit_code=None,
         inputs=None,
         return_inputs=False,
         aim_outputs=None,
+        input_type="structure",
     ):
         """Generate an instance of a ``GaussianToAIMWorkChain``.
 
@@ -720,27 +730,56 @@ def generate_workchain_g16toaim(
                     "input_parameters": {"output.wfx": None},
                 }
             )
-
-            f = io.StringIO(
-                "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
-            )
-            struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
-            f.close()
             aiminputs = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
-            inputs = {
-                "g16_params": gaussian_input,
-                "aim_params": aiminputs,
-                "structure": struct_data,
-                "g16_code": fixture_code("gaussian"),
-                "frag_label": Str("*C"),
-                # "opt_wfx_group": Str("group1"),
-                # "sp_wfx_group": Str("group2"),
-                # "gaussian_opt_group": Str("group3"),
-                # "gaussian_sp_group": Str("group4"),
-                "aim_code": fixture_code("aimall"),
-                "dry_run": Bool(True),
-            }
-
+            if input_type == "structure":
+                f = io.StringIO(
+                    "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+                )
+                struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+                f.close()
+                inputs = {
+                    "g16_params": gaussian_input,
+                    "aim_params": aiminputs,
+                    "structure": struct_data,
+                    "g16_code": fixture_code("gaussian"),
+                    "frag_label": Str("*C"),
+                    # "opt_wfx_group": Str("group1"),
+                    # "sp_wfx_group": Str("group2"),
+                    # "gaussian_opt_group": Str("group3"),
+                    # "gaussian_sp_group": Str("group4"),
+                    "aim_code": fixture_code("aimall"),
+                    "dry_run": Bool(True),
+                }
+            elif input_type == "xyz":
+                wfx_string = "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+                xyz_data = SinglefileData(io.BytesIO(wfx_string.encode()))
+                inputs = {
+                    "g16_params": gaussian_input,
+                    "aim_params": aiminputs,
+                    "xyz_file": xyz_data,
+                    "g16_code": fixture_code("gaussian"),
+                    "frag_label": Str("*C"),
+                    # "opt_wfx_group": Str("group1"),
+                    # "sp_wfx_group": Str("group2"),
+                    # "gaussian_opt_group": Str("group3"),
+                    # "gaussian_sp_group": Str("group4"),
+                    "aim_code": fixture_code("aimall"),
+                    "dry_run": Bool(True),
+                }
+            elif input_type == "smiles":
+                inputs = {
+                    "g16_params": gaussian_input,
+                    "aim_params": aiminputs,
+                    "smiles": Str("C"),
+                    "g16_code": fixture_code("gaussian"),
+                    "frag_label": Str("*C"),
+                    # "opt_wfx_group": Str("group1"),
+                    # "sp_wfx_group": Str("group2"),
+                    # "gaussian_opt_group": Str("group3"),
+                    # "gaussian_sp_group": Str("group4"),
+                    "aim_code": fixture_code("aimall"),
+                    "dry_run": Bool(True),
+                }
         if return_inputs:
             return inputs
 
@@ -769,7 +808,7 @@ def generate_workchain_g16toaim(
             aim_node.set_exit_status(exit_code.status)
         return process
 
-    return _generate_workchain_subparam
+    return _generate_workchain_g16toaim
 
 
 @pytest.fixture
