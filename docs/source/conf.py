@@ -16,9 +16,10 @@ import pathlib
 import sys
 import time
 
-from aiida.manage.configuration import load_documentation_profile
-
 import aiida_aimall
+
+# from aiida.manage.configuration import load_documentation_profile
+
 
 # from aiida.manage.configuration import Profile, load_profile
 
@@ -28,7 +29,7 @@ import aiida_aimall
 # -- AiiDA-related setup --------------------------------------------------
 
 # Load the dummy documentation profile
-load_documentation_profile()
+# load_documentation_profile()
 
 # -- General configuration ------------------------------------------------
 
