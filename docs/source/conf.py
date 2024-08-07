@@ -177,6 +177,8 @@ html_sidebars = {
         "sbt-sidebar-nav.html",
     ]
 }
+
+nbsphinx_allow_errors = True
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
 # base URL from which the finished HTML is served.
