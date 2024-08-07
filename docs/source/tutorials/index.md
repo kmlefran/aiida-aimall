@@ -15,6 +15,7 @@ aimtogaussian.ipynb
 substituentparameter.ipynb
 quantumsoftware.ipynb
 controllers.ipynb
+makewfx.ipynb
 
 ```
 ::::{grid} 2

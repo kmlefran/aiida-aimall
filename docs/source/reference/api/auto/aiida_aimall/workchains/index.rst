@@ -29,6 +29,7 @@ Classes
    aiida_aimall.workchains.GenerateWFXToAIMWorkchain
    aiida_aimall.workchains.SmilesToGaussianWorkchain
    aiida_aimall.workchains.AIMAllReor
+   aiida_aimall.workchains.BaseInputWorkChain
    aiida_aimall.workchains.GaussianToAIMWorkChain
    aiida_aimall.workchains.SubstituentParameterWorkChain
 
@@ -54,6 +55,8 @@ Functions
    aiida_aimall.workchains.validate_shell_code
    aiida_aimall.workchains.validate_file_ext
    aiida_aimall.workchains.get_wfx
+   aiida_aimall.workchains.get_molecule_str_from_smiles
+   aiida_aimall.workchains.xyzfile_to_StructureData
 
 
 
@@ -218,12 +221,12 @@ Attributes
 
    .. note::
 
-      This workchain uses the IOData module of the Ayer's group Horton to generate the wfx files. Supported file formats include
-      .fchk files, molden files (from Molpro, Orca, PSI4, Turbomole, and Molden), and CP2K atom log files. Further note that .fchk files
-      can simply be provided directly to an `AimqbCalculation`.
+      This workchain uses the IOData module of the Ayer's group Horton to generate the wfx files. Supported file formats
+      include .fchk files, molden files (from Molpro, Orca, PSI4, Turbomole, and Molden), and CP2K atom log files. Further
+      note that .fchk files can simply be provided directly to an `AimqbCalculation`.
 
-      While IOData accepts other file formats, these formats are the ones available that contain the necessary information to generate
-      wfc files
+      While IOData accepts other file formats, these formats are the ones available that contain the necessary information
+      to generate wfc files
 
    .. py:method:: define(spec)
       :classmethod:
@@ -351,10 +354,66 @@ Attributes
    Get a wfx file from retrieved folder
 
 
-.. py:class:: GaussianToAIMWorkChain(inputs: dict | None = None, logger: logging.Logger | None = None, runner: aiida.engine.runners.Runner | None = None, enable_persistence: bool = True)
+.. py:class:: BaseInputWorkChain(inputs: dict | None = None, logger: logging.Logger | None = None, runner: aiida.engine.runners.Runner | None = None, enable_persistence: bool = True)
 
 
    Bases: :py:obj:`aiida.engine.WorkChain`
+
+   A workchain to generate and validate inputs. One of SinglefileData, Smiles as Str or StructureData should be provided
+
+   .. py:method:: define(spec)
+      :classmethod:
+
+      Define the specification of the process, including its inputs, outputs and known exit codes.
+
+      A `metadata` input namespace is defined, with optional ports that are not stored in the database.
+
+
+
+   .. py:method:: is_xyz_input()
+
+
+   .. py:method:: is_smiles_input()
+
+
+   .. py:method:: is_structure_input()
+
+
+   .. py:method:: validate_input()
+
+      Check that only one of smiles, structure, or xyz_file was input
+
+
+   .. py:method:: create_structure_from_xyz()
+
+
+   .. py:method:: structure_in_context()
+
+
+   .. py:method:: get_molecule_inputs_step()
+
+      Given list of substituents and previously done smiles, get input
+
+
+   .. py:method:: string_to_StructureData()
+
+      Convert an xyz string of molecule geometry to StructureData
+
+
+
+.. py:function:: get_molecule_str_from_smiles(smiles)
+
+   For a given smiles, determine xyz structure, charge, and multiplicity
+
+   :param smiles: SMILEs of substituent to run
+
+   :returns: Dict with keys xyz, charge, multiplicity
+
+
+.. py:class:: GaussianToAIMWorkChain(inputs: dict | None = None, logger: logging.Logger | None = None, runner: aiida.engine.runners.Runner | None = None, enable_persistence: bool = True)
+
+
+   Bases: :py:obj:`BaseInputWorkChain`
 
    A workchain to submit a Gaussian calculation and automatically setup an AIMAll calculation on the output
 
@@ -385,10 +444,15 @@ Attributes
 
 
 
+.. py:function:: xyzfile_to_StructureData(xyz_SFD)
+
+   Convert the xyz file provided as SinglefileData to StructureData
+
+
 .. py:class:: SubstituentParameterWorkChain(inputs: dict | None = None, logger: logging.Logger | None = None, runner: aiida.engine.runners.Runner | None = None, enable_persistence: bool = True)
 
 
-   Bases: :py:obj:`aiida.engine.WorkChain`
+   Bases: :py:obj:`BaseInputWorkChain`
 
    A workchain to perform the full suite of KLG's substituent parameter determining
 
@@ -396,6 +460,9 @@ Attributes
       :classmethod:
 
       Define workchain steps
+
+
+   .. py:method:: get_substituent_inputs_step()
 
 
    .. py:method:: g16_opt()
