@@ -65,14 +65,9 @@ Attributes
 
 .. autoapisummary::
 
-   aiida_aimall.workchains.old_stdout
    aiida_aimall.workchains.GaussianCalculation
    aiida_aimall.workchains.AimqbParameters
    aiida_aimall.workchains.AimqbCalculation
-
-
-.. py:data:: old_stdout
-
 
 
 .. py:data:: GaussianCalculation
@@ -359,7 +354,8 @@ Attributes
 
    Bases: :py:obj:`aiida.engine.WorkChain`
 
-   A workchain to generate and validate inputs. One of SinglefileData, Smiles as Str or StructureData should be provided
+   A workchain to generate and validate inputs. One of SinglefileData, Smiles as Str or StructureData should be
+   provided
 
    .. py:method:: define(spec)
       :classmethod:
@@ -372,11 +368,17 @@ Attributes
 
    .. py:method:: is_xyz_input()
 
+      Validates if xyz_file was provided as input
+
 
    .. py:method:: is_smiles_input()
 
+      Validates if smiles was provided as input
+
 
    .. py:method:: is_structure_input()
+
+      Validates if structure was provided as input
 
 
    .. py:method:: validate_input()
@@ -386,8 +388,12 @@ Attributes
 
    .. py:method:: create_structure_from_xyz()
 
+      Convert the xyzfile to StructureData
+
 
    .. py:method:: structure_in_context()
+
+      Store the input structure in context, to make consistent with the results of xyz_file or SMILES input
 
 
    .. py:method:: get_molecule_inputs_step()
@@ -463,6 +469,8 @@ Attributes
 
 
    .. py:method:: get_substituent_inputs_step()
+
+      Get a dictionary of the substituent input for a given SMILES
 
 
    .. py:method:: g16_opt()
