@@ -51,69 +51,37 @@ from `aiida-submission-controller` to limit active processes.
 
 # Features
 `aiida-aimall` contains many different classes from `aiida` tailored to ensure ease of use of
-AIMAll calculations. Numerous features provided by `aiida-aimall` are provided in the documentation webpage hosted on ReadTheDocs. Select features are highlighted here.
+AIMAll calculations. Numerous features provided by `aiida-aimall` are described in full on the [documentation webpage hosted on ReadTheDocs](https://aiida-aimall.readthedocs.io/en/latest/). A brief description of main features is provided here.
 
-Apart from the  `AimqbCalculation` that provides the functionality, to run
-AIMAll calculations, a key feature is the `AimqbParameters` data type. The `AimqbParameters` datatype
+## Running Simple AIMAll Calculations
+
+The simplest functionality provided by `aiida-aimall` is running AIMAll calculations. All AIMAll calculations utilize the `AimqbParameters` `Data` type provided by `aiida-aimall`. The `AimqbParameters` datatype
 is a validator for `AIMAll` command line input. Command line parameters are to be provided as a dictionary,
 then `AimqbParameters` ensures that the parameters match options available for AIMAll software as
 [defined on the software website](https://aim.tkgristmill.com/manual/aimqb/aimqb.html), and that the
 correct data type is provided for each parameter. In this way, `AimqbParameters` verifies the provided input
-to AIMAll calculations prior to launch of the calculation.
+to AIMAll calculations prior to launch of the calculation. These parameters, along with `SinglefileData` of a valid AIMAll input file, a `Code` object for AIMAll software, and relevant metadata are provided to an `AimqbCalculation`.
 
-Further, AiiDA workchains are provided to automate routine workflows associated with AIMAll calculations.
-The simplest workchain takes links a Gaussian calculation to an AIMAll calculation through a .wfx file produced by
-the Gaussian calculation. More complex workchains exist to produce substituent parameters as defined by the authors in a series of publications. To not limit the usefulness of `aiida-aimall` to only users who use Gaussian software,
-an additional WorkChain is provided using `aiida-shell` to interface with any quantum chemistry package that can
-be run through the command line.
+This functionality in itself is an overcomplication of the simple process of running the software normally. However, it does have some benefits. The output is already extracted and stored in the database in a readily useable manner. Related, it is now simple to see the history of the calculation.
 
+## Integrations with Computational Chemistry Software
+
+`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table COMPLETE. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package.
+
+Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points that can be used to load them by `aiida.plugins.WorkflowFactory`, a brief description, and their main inputs. These workflows all end with the output of an `AimqbCalculation` as their main output.[]{label="workflows"}
+| Workflow | Entry Point | Purpose | Input |
+|----------|:-----------:|:-------:|:-----:|
+|`QMToAIMWorkchain` | aimall.qmtoaim | Run a general computational chemistry software and link it to an AIMAll calculation |Shell Command Line<br> Output File(s) to Get <br> Shell Code |
+|`GenerateWFXToAIMWorkchain` | aimall.wfxtoaim | Take non-standard AIMAll input files, and run AIMAll | .cp2k or .molden files |
+|`GaussianToAIMWorkChain` | aimall.g16toaim | Run a Gaussian calculation and automatically run an AIMAll calculation on its outputs | `GaussianCalculation` inputs <br> wfx filename |
+| `SubstituentParameterWorkChain` | aimall.subparam | Compute substituent properties defined by the authors<br>obtained from multistep calculation<br>automatically| Input structure as .xyz file `SinglefileData`, `StructureData` or SMILES `Str`<br>`GaussianCalculation` inputs <br> |
+
+## Controllers to limit computer burden when running large numbers of jobs
 The last main contribution of `aiida-aimall` is through the definition of `FromGroupSubmissionController`s from the `aiida-submission-controller` package. These controllers limit active processes and can be used together as
-demonstrated in (the example notebook) to automate the entire process of generating the author's substituent
-parameters for numerous inputs without overloading local or remote computers.
-
-# Mathematics
-
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
-
-Double dollars make self-standing equations:
-
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
-
-You can also use plain \LaTeX for equations
-\begin{equation}\label{eq:fourier}
-\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
-\end{equation}
-and refer to \autoref{eq:fourier} from text.
-
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
-
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
-
-# Figures
-
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
-
-Figure sizes can be customized by adding an optional second parameter:
-![Caption for example figure.](figure.png){ width=20% }
+demonstrated in (the example notebook) to automate the entire `SubstituentParameterWorkchain`. These use a number of `Workchains` developed just for their use in these controllers. The process flows as `SmilesToGaussianController` -> `AIMAllReorController` -> `GaussianController` -> `AIMAllController`. The latter two controllers can also be seen and used as general use controllers wrapping `GaussianCalculations` and `AimqbCalculations`
 
 # Acknowledgements
 
-We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
+We acknowledge NSERC,
 
 # References
