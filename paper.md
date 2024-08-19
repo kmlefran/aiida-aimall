@@ -70,12 +70,27 @@ This functionality in itself is an overcomplication of the simple process of run
 
 Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points that can be used to load them by `aiida.plugins.WorkflowFactory`, and a brief description. These workflows all end with the output of an `AimqbCalculation` as their main output.[]{label="workflows"}
 
-| Workflow                        | Entry Point     | Purpose                                                                                       |
-|---------------------------------|-----------------|-----------------------------------------------------------------------------------------------|
-|`QMToAIMWorkchain`               | aimall.qmtoaim  | Run a general computational<br><br> chemistry software andl<br><br> link it to an AIMAll <br>calculation   |
-|`GenerateWFXToAIMWorkchain`      | aimall.wfxtoaim | Take non-standard AIMAlll<br><br>  input files,l<br><br>  and run AIMAll                                  |
-|`GaussianToAIMWorkChain`         | aimall.g16toaim | Run a Gaussian calculationl<br><br>  and automatically runl<br><br>  an AIMAll calculation onl<br><br>  its outputs |
-| `SubstituentParameterWorkChain` | aimall.subparam | Compute substituentl<br><br>  properties defined by<br><br> the authors automatically|
++---------------------------------+-----------------+------------------------------+
+| Workflow                        | Entry Point     | Purpose                      |
++:===============================:+:===============:+:============================:+
+|`QMToAIMWorkchain`               | aimall.qmtoaim  | Run a general computational\ |
+|                                 |                 | chemistry software and link\ |
+|                                 |                 | it to an AIMAll\             |
+|                                 |                 | calculation                  |
++---------------------------------+-----------------+------------------------------+
+|`GenerateWFXToAIMWorkchain`      | aimall.wfxtoaim | Take non-standard AIMAlll\   |
+|                                 |                 | input files,  and run AIMAll |
++---------------------------------+-----------------+------------------------------+
+|`GaussianToAIMWorkChain`         | aimall.g16toaim | Run a Gaussian calculationl\ |
+|                                 |                 |   and automatically run\     |
+|                                 |                 |   an AIMAll calculation on \ |
+|                                 |                 |   its outputs                |
++---------------------------------+-----------------+------------------------------+
+| `SubstituentParameterWorkChain` | aimall.subparam | Compute substituent \        |
+|                                 |                 |   properties defined by \    |
+|                                 |                 |   the authors automatically  |
++:===============================:+:===============:+:============================:+
+
 
 ## Controllers to limit computer burden when running large numbers of jobs
 The last main contribution of `aiida-aimall` is through the definition of `FromGroupSubmissionController`s from the `aiida-submission-controller` package. These controllers limit active processes and can be used together as
