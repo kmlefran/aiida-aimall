@@ -1,13 +1,14 @@
 """Tests for AimReor Workchain"""
 # import os
 
-from aiida.orm import Dict, SinglefileData, Str
+from aiida.common import LinkType
+from aiida.orm import Dict, SinglefileData, StructureData
 
 # from aiida.plugins import WorkflowFactory
 from plumpy.utils import AttributesFrozendict
 from subproptools import qtaim_extract as qt
 
-from aiida_aimall.workchains import dict_to_structure, generate_rotated_structure_aiida
+# from aiida_aimall.workchains import dict_to_structure, generate_rotated_structure_aiida
 
 
 def test_setup(generate_workchain_aimreor):
@@ -17,10 +18,26 @@ def test_setup(generate_workchain_aimreor):
     assert isinstance(process.inputs, AttributesFrozendict)
 
 
-def test_generate_rotated_structure_aiida(generate_workchain_folderdata):
-    """Test generate_rotated_structure_aiida"""
+# pylint:disable=too-many-arguments
+# pylint:disable=too-many-locals
+def test_default(
+    generate_workchain_aimreor,
+    fixture_localhost,
+    generate_workchain_folderdata,
+    generate_aimqb_inputs,
+    generate_calc_job_node,
+    fixture_code,
+    filepath_tests,
+):
+    """Test instantiating the WorkChain, then mock its process, by calling methods in the ``spec.outline``."""
     entry_point_name = "aimall.aimreor"
+    entry_point_calc_job = "aimall.aimqb"
     test = "default"
+    name = "default"
+    wkchain = generate_workchain_aimreor()
+    aim_inputs = wkchain.aimall()
+    assert isinstance(aim_inputs, AttributesFrozendict)
+
     aim_folder = generate_workchain_folderdata(entry_point_name, test)
     with aim_folder.open("aiida.sum", "rb") as handle:
         output_node = SinglefileData(file=handle)
@@ -38,29 +55,25 @@ def test_generate_rotated_structure_aiida(generate_workchain_folderdata):
         )
         for x in atom_list
     }
-    rot_Dict = generate_rotated_structure_aiida(aim_folder, a_props, cc_dict)
-    rot_dict = rot_Dict.get_dict()
-    assert isinstance(rot_Dict, Dict)
-    assert "atom_symbols" in rot_dict
-    assert "geom" in rot_dict
-    assert abs(rot_dict["geom"][0][0]) < 0.0001
-    assert abs(rot_dict["geom"][0][1]) < 0.0001
-    assert abs(rot_dict["geom"][0][2]) < 0.0001
-    assert rot_dict["geom"][1][0] < 0
-    assert abs(rot_dict["geom"][1][1]) < 0.0001
-    assert abs(rot_dict["geom"][1][2]) < 0.0001
-
-
-def test_dict_to_structure():
-    """Test dict_to_structure"""
-    str_dict = Dict(
-        {"atom_symbols": ["H", "H"], "geom": [[-0.5, 0.0, 0.0], [0.5, 0.0, 0.0]]}
+    node = generate_calc_job_node(
+        entry_point_calc_job,
+        fixture_localhost,
+        name,
+        generate_aimqb_inputs(fixture_code, filepath_tests),
     )
-    str_str = dict_to_structure(str_dict)
-    assert isinstance(str_str, Str)
-
-
-# def test_aimall():
-#     """Test aimall step of AIMReor"""
-#     AIMAllReor = WorkflowFactory("aimall.aimreor")
-#     wf = AIMAllReor()
+    node.store()
+    output_parameters = Dict({"atomic_properties": a_props, "cc_properties": cc_dict})
+    output_parameters.base.links.add_incoming(
+        node, link_type=LinkType.CREATE, link_label="output_parameters"
+    )
+    output_parameters.store()
+    wkchain.ctx.aim = node
+    # aim_folder.base.links.add_incoming(node,link_type=LinkType.CREATE,link_label='retrieved')
+    assert wkchain.rotate() is None
+    assert "rot_struct_dict" in wkchain.ctx
+    assert isinstance(wkchain.ctx.rot_struct_dict, Dict)
+    assert wkchain.dict_to_struct_reor() is None
+    assert "rot_structure" in wkchain.ctx
+    assert isinstance(wkchain.ctx.rot_structure, StructureData)
+    assert wkchain.result() is None
+    assert "rotated_structure" in wkchain.outputs

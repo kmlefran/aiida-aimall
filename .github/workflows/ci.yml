@@ -126,22 +126,3 @@ jobs:
     #   uses: codecov/codecov-action@v3
     #   env:
     #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  docs:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-    - name: Install python dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -e .[docs]
-        pip install subproptools
-        pip install group_decomposition
-        pip install pymatgen
-    - name: Build docs
-      run: cd docs && make
