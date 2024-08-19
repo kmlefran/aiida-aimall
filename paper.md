@@ -69,11 +69,12 @@ This functionality in itself is an overcomplication of the simple process of run
 `aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table COMPLETE. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package.
 
 Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points that can be used to load them by `aiida.plugins.WorkflowFactory`, a brief description, and their main inputs. These workflows all end with the output of an `AimqbCalculation` as their main output.[]{label="workflows"}
-| Workflow | Entry Point | Purpose | Input |
-|----------|:-----------:|:-------:|:-----:|
-|`QMToAIMWorkchain` | aimall.qmtoaim | Run a general computational chemistry software and link it to an AIMAll calculation |Shell Command Line<br> Output File(s) to Get <br> Shell Code |
-|`GenerateWFXToAIMWorkchain` | aimall.wfxtoaim | Take non-standard AIMAll input files, and run AIMAll | .cp2k or .molden files |
-|`GaussianToAIMWorkChain` | aimall.g16toaim | Run a Gaussian calculation and automatically run an AIMAll calculation on its outputs | `GaussianCalculation` inputs <br> wfx filename |
+
+| Workflow                        | Entry Point     | Purpose | Input |
+|---------------------------------|:---------------:|:------------------------------------------------------------------------------------:|:-----:|
+|`QMToAIMWorkchain`               | aimall.qmtoaim  | Run a general computational chemistry software and link it to an AIMAll calculation |Shell Command Line<br> Output File(s) to Get <br> Shell Code |
+|`GenerateWFXToAIMWorkchain`      | aimall.wfxtoaim | Take non-standard AIMAll input files, and run AIMAll | .cp2k or .molden files |
+|`GaussianToAIMWorkChain`         | aimall.g16toaim | Run a Gaussian calculation and automatically run an AIMAll calculation on its outputs | `GaussianCalculation` inputs <br> wfx filename |
 | `SubstituentParameterWorkChain` | aimall.subparam | Compute substituent properties defined by the authors<br>obtained from multistep calculation<br>automatically| Input structure as .xyz file `SinglefileData`, `StructureData` or SMILES `Str`<br>`GaussianCalculation` inputs <br> |
 
 ## Controllers to limit computer burden when running large numbers of jobs
