@@ -150,13 +150,13 @@ Using the commands above, you will set up a code that uses the first `aimqb` bin
 You can find out the absolute path to this binary using the `which` command:
 
 ```console
-which aimall
+which aimqb
 ```
 
 If this is not the AIMQB version you want to run, pass the correct absolute path as the filepath executable.
 :::
 
-`aiida-aimall` also provides workflows to automatically interface with electronic structure programs. Many workflows, by default, interface with [Gaussian Software](https://gaussian.com). To use Gaussian software in these workflows,
+`aiida-aimall` also provides workflows to automatically interface with electronic structure programs. Many workflows, by default, interface with [Gaussian Software](https://gaussian.com). To use Gaussian software in these workflows, an
 AiiDA code instance must also be setup for Gaussian Software, following similar steps to the above setup of AIMAll software.
 
 ::::{tab-set}

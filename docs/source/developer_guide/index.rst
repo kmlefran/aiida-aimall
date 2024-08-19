@@ -8,7 +8,7 @@ Running the tests
 The following will discover and run all unit test::
 
     pip install --upgrade pip
-    pip install -e .[testing]
+    pip install -e ".[testing]"
     pytest -v
 
 You can also run the tests in a virtual environment with `tox <https://tox.wiki/en/latest/>`_::
@@ -21,7 +21,7 @@ Automatic coding style checks
 
 Enable enable automatic checks of code sanity and coding style::
 
-    pip install -e .[pre-commit]
+    pip install -e ".[pre-commit]"
     pre-commit install
 
 After this, the `black <https://black.readthedocs.io>`_ formatter,
@@ -45,7 +45,6 @@ Continuous integration
 ``aiida-aimall`` comes with a ``.github`` folder that contains continuous integration tests on every commit using `GitHub Actions <https://github.com/features/actions>`_. It will:
 
 #. run all tests
-#. build the documentation
 #. check coding style and version number (not required to pass by default)
 
 Building the documentation
@@ -53,7 +52,7 @@ Building the documentation
 
  #. Install the ``docs`` extra::
 
-        pip install -e .[docs]
+        pip install -e ".[docs]"
 
  #. Edit the individual documentation pages::
 

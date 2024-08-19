@@ -2,7 +2,7 @@
 
 # Tutorials
 
-`aiida-aimall` provides numerous `CalcFunctions`, `WorkChain`s, `FromGroupSubmissionController`s. Explore the documents below to learn how to use the numerous features provided.
+`aiida-aimall` provides numerous `CalcFunction`, `WorkChain`, and `FromGroupSubmissionController`. Explore the documents below to learn how to use the numerous features provided.
 
 ```{toctree}
 :hidden: true
@@ -25,8 +25,6 @@ makewfx.ipynb
 :text-align: center
 :shadow: md
 
-Instructions to create the `AimqbParameters` datatype used throughout `aiida-aimall`
-
 +++
 
 ```{button-ref} aimqbparameters
@@ -42,8 +40,6 @@ Instructions to create the `AimqbParameters` datatype used throughout `aiida-aim
 :::{grid-item-card} {fa}`rocket;mr-1` `AimqbCalculation`
 :text-align: center
 :shadow: md
-
-Instructions to setup, launch, and analyze the results of the `AimqbCalculation` `CalcJob` class.
 
 +++
 
@@ -63,11 +59,9 @@ Instructions to setup, launch, and analyze the results of the `AimqbCalculation`
 ::::{grid} 2
 :gutter: 3
 
-:::{grid-item-card} {fa}`info-circle;mr-1` `Group Properties`
+:::{grid-item-card} {fa}`info-circle;mr-1` Substituent/Functional Group Properties
 :text-align: center
 :shadow: md
-
-Using `aiida-aimall` to compute group properties.
 
 +++
 
@@ -80,11 +74,9 @@ Using `aiida-aimall` to compute group properties.
 ```
 :::
 
-:::{grid-item-card} {fa}`info-circle;mr-1` Workflow
+:::{grid-item-card} {fa}`info-circle;mr-1` Setting up Gaussian calculations with SMILES
 :text-align: center
 :shadow: md
-
-Workflow to generate a Gaussian calculation from a Substituent SMILES
 
 +++
 
@@ -101,11 +93,9 @@ Workflow to generate a Gaussian calculation from a Substituent SMILES
 ::::{grid} 2
 :gutter: 3
 
-:::{grid-item-card} {fa}`info-circle;mr-1` `One step Workflow`
+:::{grid-item-card} {fa}`info-circle;mr-1` One step Workflow
 :text-align: center
 :shadow: md
-
-Using `aiida-aimall` to compute group properties.
 
 +++
 
@@ -118,11 +108,9 @@ Using `aiida-aimall` to compute group properties.
 ```
 :::
 
-:::{grid-item-card} {fa}`info-circle;mr-1` `Multi Step Workflow`
+:::{grid-item-card} {fa}`info-circle;mr-1` Multi Step Workflow
 :text-align: center
 :shadow: md
-
-Workflow to start at a Gaussian calculation, optimize a molecule, run AIM, reorient, run Gaussian single point, run AIM, and get resulting substituent properties.
 
 +++
 
@@ -140,11 +128,9 @@ Workflow to start at a Gaussian calculation, optimize a molecule, run AIM, reori
 ::::{grid} 2
 :gutter: 3
 
-:::{grid-item-card} {fa}`info-circle;mr-1` `Breaking the process into controllers`
+:::{grid-item-card} {fa}`info-circle;mr-1` Breaking the process into controllers
 :text-align: center
 :shadow: md
-
-Use controllers to compute substituent properties for a large set of substituents.
 
 +++
 
@@ -157,11 +143,10 @@ Use controllers to compute substituent properties for a large set of substituent
 ```
 :::
 
-:::{grid-item-card} {fa}`info-circle;mr-1` `Generating WFX from other calculations`
+:::{grid-item-card} {fa}`info-circle;mr-1` Generating WFX from other Output Files
 :text-align: center
 :shadow: md
 
-Workflow to generate .wfx files from MOLDEN, .fchk, or CP2K atom log files
 
 +++
 
