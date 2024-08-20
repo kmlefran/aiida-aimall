@@ -39,13 +39,12 @@ so long as it generates the input files required by `AIMAll`.
 to assist users with generating inputs for AIMAll software [@AIMAll]. The goal of
 the AiiDA infrastructure are, in part, to ensure data provenance and calculation
 reproducibility. While `aiida-aimall` has been developed primarily for interface
-with Gaussian software outputs [@gaussian], through modification of classes provided
-by `aiida-gaussian` [@aiidagaussian], a versatile workflow enabling interface with
+with Gaussian software outputs [@gaussian], a versatile workflow enabling interface with
 other quantum chemistry packages is also made available.
 
-Through a variety of workflows that can start with Cartesian coordinates, or even with
+Through a variety of workflows that can start with an .xyz file, AiiDA `StructureData`, or even with
 a SMILES string of a molecule, `aiida-aimall` provides a variety of use cases for automating
-and complex workflows. Additionally tools to ensure that computers are not overloaded through
+and complex workflows. Additionally, tools to ensure that computers are not overloaded through
 too many simultaneous processes are made availabe through classes of `FromGroupSubmissionController`s
 from `aiida-submission-controller` to limit active processes.
 
@@ -55,18 +54,22 @@ AIMAll calculations. Numerous features provided by `aiida-aimall` are described 
 
 ## Running Simple AIMAll Calculations
 
-The simplest functionality provided by `aiida-aimall` is running AIMAll calculations. All AIMAll calculations utilize the `AimqbParameters` `Data` type provided by `aiida-aimall`. The `AimqbParameters` datatype
+The simplest functionality provided by `aiida-aimall` is running AIMAll calculations. All AIMAll calculations utilize the `AimqbParameters` datatype provided by `aiida-aimall`. The `AimqbParameters` datatype
 is a validator for `AIMAll` command line input. Command line parameters are to be provided as a dictionary,
 then `AimqbParameters` ensures that the parameters match options available for AIMAll software as
 [defined on the software website](https://aim.tkgristmill.com/manual/aimqb/aimqb.html), and that the
 correct data type is provided for each parameter. In this way, `AimqbParameters` verifies the provided input
 to AIMAll calculations prior to launch of the calculation. These parameters, along with `SinglefileData` of a valid AIMAll input file, a `Code` object for AIMAll software, and relevant metadata are provided to an `AimqbCalculation`.
 
-This functionality in itself is an overcomplication of the simple process of running the software normally. However, it does have some benefits. The output is already extracted and stored in the database in a readily useable manner. Related, it is now simple to see the history of the calculation.
+This functionality in itself is an overcomplication of the simple process of running the software normally. However, it does have some benefits. The output is already extracted and stored in the database in a readily useable manner through the use of the `AimqbBaseParser`. It is now simple to see the history of the calculation.
+
+## Substituent Properties
+
+Some of the workflows in `aiida-aimall` automate calculation of substituent properties from AIMAll output. The `SubstituentParameterWorkChain` does this automatically, and any routine AIMAll calculation can make use of this by using the `AimqbGroupParser`, which can be provided in metadata input to `AimqbCalculation` as an entry in the metadata dictionary: `metadata.options.parser_name:'aimall.group'`. A detailed description of the calculated substituent properties is available [in a tutorial in the documentation.](https://aiida-aimall.readthedocs.io/en/latest/tutorials/aimqbgroupcalculation.html) Integrated and graph properties are obtained.
 
 ## Integrations with Computational Chemistry Software
 
-`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table COMPLETE. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package.
+`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table 1. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package. Other computational chemistry software like ORCA can be run through the `QMToAIMWorkchain`, which uses `aiida-shell` to run software than can be run through the command line. If .molden or .cp2k output formats are available, one could alternatively use these to generate the needed .wfx files for AIMAll, and automatically run AIMAll through the `GenerateWFXToAIMWorkchain`.
 
 Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points that can be used to load them by `aiida.plugins.WorkflowFactory`, and a brief description. These workflows all end with the output of an `AimqbCalculation` as their main output.[]{label="workflows"}
 
@@ -98,6 +101,6 @@ demonstrated in (the example notebook) to automate the entire `SubstituentParame
 
 # Acknowledgements
 
-We acknowledge NSERC,
+We acknowledge NSERC, NWO Heritage ....
 
 # References
