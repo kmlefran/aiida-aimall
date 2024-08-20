@@ -17,7 +17,7 @@ def test_unstored_parentgrouplabel_returns_error():
             group_label="opt_workchain",
             code_label="test.aimall.aimqb",
             max_concurrent=1,
-            g16_opt_params={},
+            gauss_opt_params={},
             wfxgroup="wfx",
             nprocs=4,
             mem_mb=6400,
@@ -27,7 +27,7 @@ def test_unstored_parentgrouplabel_returns_error():
 
 
 @pytest.mark.usefixtures("aiida_profile")
-def test_aimreor_controller(fixture_code):
+def test_smigauss_controller(fixture_code):
     """Test that error returns when groups are not defined"""
 
     gr = Group(label="smitogaussian")
@@ -39,7 +39,7 @@ def test_aimreor_controller(fixture_code):
         group_label="opt_workchain",
         code_label=code.label,
         max_concurrent=1,
-        g16_opt_params={},
+        gauss_opt_params={},
         wfxgroup="wfx",
         nprocs=4,
         mem_mb=6400,
@@ -62,4 +62,4 @@ def test_aimreor_controller(fixture_code):
     assert "nprocs" in ins
     assert "mem_mb" in ins
     assert "time_s" in ins
-    assert wf.get_name() == "SmilesToGaussianWorkchain"
+    assert wf.get_name() == "SmilesToGaussianWorkChain"

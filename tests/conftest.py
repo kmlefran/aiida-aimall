@@ -451,10 +451,10 @@ def generate_shelljob_inputs():
 
 
 @pytest.fixture
-def generate_g16_inputs():
+def generate_gauss_inputs():
     """Generates inputs of a default aimqb calculation"""
 
-    def _generate_g16_inputs(fixture_code):
+    def _generate_gauss_inputs(fixture_code):
         """Return only those inputs the parser will expect to be there"""
         gaussian_input = Dict(
             {
@@ -486,17 +486,17 @@ def generate_g16_inputs():
         }
         return AttributeDict(inputs)
 
-    return _generate_g16_inputs
+    return _generate_gauss_inputs
 
 
 @pytest.fixture
-def generate_workchain_smitog16(
+def generate_workchain_smitogauss(
     generate_workchain, generate_calc_job_node, fixture_code
 ):
     """Generate an instance of a ``SmilesToGaussianWorkchain``."""
 
-    def _generate_workchain_smitog16(
-        exit_code=None, inputs=None, return_inputs=False, g16_outputs=None
+    def _generate_workchain_smitogauss(
+        exit_code=None, inputs=None, return_inputs=False, gauss_outputs=None
     ):
         """Generate an instance of a ``SmilesToGaussianWorkchain``.
 
@@ -509,7 +509,7 @@ def generate_workchain_smitog16(
         from aiida.common import LinkType
         from plumpy import ProcessState
 
-        entry_point = "aimall.smitog16"
+        entry_point = "aimall.smitogauss"
 
         if inputs is None:
             gaussian_input = Dict(
@@ -546,8 +546,8 @@ def generate_workchain_smitog16(
         gaussian_node = generate_calc_job_node(inputs={"parameters": Dict()})
         process.ctx.children = [gaussian_node]
 
-        if g16_outputs is not None:
-            for link_label, output_node in g16_outputs.items():
+        if gauss_outputs is not None:
+            for link_label, output_node in gauss_outputs.items():
                 output_node.base.links.add_incoming(
                     gaussian_node, link_type=LinkType.CREATE, link_label=link_label
                 )
@@ -559,7 +559,7 @@ def generate_workchain_smitog16(
 
         return process
 
-    return _generate_workchain_smitog16
+    return _generate_workchain_smitogauss
 
 
 @pytest.fixture
@@ -623,10 +623,10 @@ def generate_workchain_subparam(
             )
             aiminputs = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
             inputs = {
-                "g16_opt_params": gaussian_opt_input,
-                "g16_sp_params": gaussian_sp_input,
+                "gauss_opt_params": gaussian_opt_input,
+                "gauss_sp_params": gaussian_sp_input,
                 "aim_params": aiminputs,
-                "g16_code": fixture_code("gaussian"),
+                "gauss_code": fixture_code("gaussian"),
                 "frag_label": Str("*C"),
                 # "opt_wfx_group": Str("group1"),
                 # "sp_wfx_group": Str("group2"),
@@ -688,12 +688,12 @@ def generate_workchain_subparam(
 
 
 @pytest.fixture
-def generate_workchain_g16toaim(
+def generate_workchain_gausstoaim(
     generate_workchain, generate_calc_job_node, fixture_code
 ):
     """Generate an instance of a ``GaussianToAIMWorkChain``."""
 
-    def _generate_workchain_g16toaim(
+    def _generate_workchain_gausstoaim(
         exit_code=None,
         inputs=None,
         return_inputs=False,
@@ -712,7 +712,7 @@ def generate_workchain_g16toaim(
         from aiida.common import LinkType
         from plumpy import ProcessState
 
-        entry_point = "aimall.g16toaim"
+        entry_point = "aimall.gausstoaim"
 
         if inputs is None:
             gaussian_input = Dict(
@@ -738,10 +738,10 @@ def generate_workchain_g16toaim(
                 struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
                 f.close()
                 inputs = {
-                    "g16_params": gaussian_input,
+                    "gauss_params": gaussian_input,
                     "aim_params": aiminputs,
                     "structure": struct_data,
-                    "g16_code": fixture_code("gaussian"),
+                    "gauss_code": fixture_code("gaussian"),
                     "frag_label": Str("*C"),
                     # "opt_wfx_group": Str("group1"),
                     # "sp_wfx_group": Str("group2"),
@@ -754,10 +754,10 @@ def generate_workchain_g16toaim(
                 wfx_string = "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
                 xyz_data = SinglefileData(io.BytesIO(wfx_string.encode()))
                 inputs = {
-                    "g16_params": gaussian_input,
+                    "gauss_params": gaussian_input,
                     "aim_params": aiminputs,
                     "xyz_file": xyz_data,
-                    "g16_code": fixture_code("gaussian"),
+                    "gauss_code": fixture_code("gaussian"),
                     "frag_label": Str("*C"),
                     # "opt_wfx_group": Str("group1"),
                     # "sp_wfx_group": Str("group2"),
@@ -768,10 +768,10 @@ def generate_workchain_g16toaim(
                 }
             elif input_type == "smiles":
                 inputs = {
-                    "g16_params": gaussian_input,
+                    "gauss_params": gaussian_input,
                     "aim_params": aiminputs,
                     "smiles": Str("C"),
-                    "g16_code": fixture_code("gaussian"),
+                    "gauss_code": fixture_code("gaussian"),
                     "frag_label": Str("*C"),
                     # "opt_wfx_group": Str("group1"),
                     # "sp_wfx_group": Str("group2"),
@@ -808,7 +808,7 @@ def generate_workchain_g16toaim(
             aim_node.set_exit_status(exit_code.status)
         return process
 
-    return _generate_workchain_g16toaim
+    return _generate_workchain_gausstoaim
 
 
 @pytest.fixture

@@ -79,20 +79,18 @@ docs = [
 
 [project.entry-points."aiida.calculations"]
 "aimall.aimqb" = "aiida_aimall.calculations:AimqbCalculation"
-"aimall.gaussianwfx" = "aiida_aimall.calculations:GaussianWFXCalculation"
 
 [project.entry-points."aiida.parsers"]
 "aimall.base" = "aiida_aimall.parsers:AimqbBaseParser"
 "aimall.group" = "aiida_aimall.parsers:AimqbGroupParser"
-"aimall.gaussianwfx" = "aiida_aimall.parsers:GaussianWFXParser"
 
 [project.entry-points."aiida.workflows"]
-"aimall.aimreor" = "aiida_aimall.workchains:AIMAllReor"
-"aimall.subparam" = "aiida_aimall.workchains:SubstituentParameterWorkChain"
-"aimall.smitog16" = "aiida_aimall.workchains:SmilesToGaussianWorkchain"
-"aimall.qmtoaim" = "aiida_aimall.workchains:QMToAIMWorkchain"
-"aimall.g16toaim" = "aiida_aimall.workchains:GaussianToAIMWorkChain"
-"aimall.wfxtoaim" = "aiida_aimall.workchains:GenerateWFXToAIMWorkchain"
+"aimall.aimreor" = "aiida_aimall.workchains.param_parts:AIMAllReorWorkChain"
+"aimall.subparam" = "aiida_aimall.workchains.subparam:SubstituentParameterWorkChain"
+"aimall.smitogauss" = "aiida_aimall.workchains.param_parts:SmilesToGaussianWorkChain"
+"aimall.qmtoaim" = "aiida_aimall.workchains.qc_programs:QMToAIMWorkChain"
+"aimall.gausstoaim" = "aiida_aimall.workchains.qc_programs:GaussianToAIMWorkChain"
+"aimall.wfxtoaim" = "aiida_aimall.workchains.qc_programs:GenerateWFXToAIMWorkChain"
 
 [tool.flit.module]
 name = "aiida_aimall"

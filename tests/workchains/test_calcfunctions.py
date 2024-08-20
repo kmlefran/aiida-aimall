@@ -5,7 +5,7 @@ from aiida.orm import Dict, Int, SinglefileData, Str, StructureData
 from rdkit import Chem
 from subproptools import qtaim_extract as qt
 
-from aiida_aimall import workchains as aimw
+from aiida_aimall.workchains import calcfunctions as cf
 
 
 def test_generate_structure_data():
@@ -17,24 +17,24 @@ def test_generate_structure_data():
     )
     #        "C 0.0 0.0 0.0\nH -1.0 0.0 0.0\nH 1.0 1.0 0.0\nH 1.0 -1.0 1.0\n H 1.0 -1.0 -1.0"
 
-    structure_data = aimw.generate_structure_data(test_Str)
+    structure_data = cf.generate_structure_data(test_Str)
     assert isinstance(structure_data, StructureData)
 
 
 def test_calc_multiplicity():
     """Tests calc_multiplicity function"""
     mol1 = Chem.MolFromSmiles("C")
-    assert aimw.calc_multiplicity(mol1) == 1
+    assert cf.calc_multiplicity(mol1) == 1
     mol2 = Chem.MolFromSmiles("[CH3]")
-    assert aimw.calc_multiplicity(mol2) == 2
+    assert cf.calc_multiplicity(mol2) == 2
     mol3 = Chem.MolFromSmiles("[CH2][CH2]")
-    assert aimw.calc_multiplicity(mol3) == 3
+    assert cf.calc_multiplicity(mol3) == 3
 
 
 def test_find_attachment_atoms():
     """Tests find_attachment_atoms function"""
     mol = Chem.MolFromSmiles("*C")
-    mol_rw, zero_at, attached_atom = aimw.find_attachment_atoms(mol)
+    mol_rw, zero_at, attached_atom = cf.find_attachment_atoms(mol)
     num_hs = 0
     # explicit hydrogens should have been added - check that
     for atom in mol_rw.GetAtoms():
@@ -56,17 +56,17 @@ def test_find_attachment_exceptions():
     mol = Chem.MolFromSmiles("C")
     # Check that find_attachment returns errors with number of * != 1
     with pytest.raises(ValueError):
-        aimw.find_attachment_atoms(mol)
+        cf.find_attachment_atoms(mol)
     mol2 = Chem.MolFromSmiles("*C*")
     with pytest.raises(ValueError):
-        aimw.find_attachment_atoms(mol2)
+        cf.find_attachment_atoms(mol2)
 
 
 def test_reorder_molecule():
     """Test reorder_molecule"""
     mol = Chem.MolFromSmiles("CN*")
-    mol_rw, zero_at, attached_atom = aimw.find_attachment_atoms(mol)
-    reorder_mol = aimw.reorder_molecule(mol_rw, zero_at, attached_atom)
+    mol_rw, zero_at, attached_atom = cf.find_attachment_atoms(mol)
+    reorder_mol = cf.reorder_molecule(mol_rw, zero_at, attached_atom)
     # Atom 1 (index 0) should be N soince it is attached to *
     assert reorder_mol.GetAtomWithIdx(0).GetSymbol() == "N"
     # Atom 2 (index 1) was a *, should now be H
@@ -79,9 +79,9 @@ def test_reorder_molecule():
 def test_get_xyz():
     """Test get_xyz"""
     mol = Chem.MolFromSmiles("CN*")
-    mol_rw, zero_at, attached_atom = aimw.find_attachment_atoms(mol)
-    reorder_mol = aimw.reorder_molecule(mol_rw, zero_at, attached_atom)
-    out_xyz = aimw.get_xyz(reorder_mol)
+    mol_rw, zero_at, attached_atom = cf.find_attachment_atoms(mol)
+    reorder_mol = cf.reorder_molecule(mol_rw, zero_at, attached_atom)
+    out_xyz = cf.get_xyz(reorder_mol)
     # out_xyz should be a string that when split on newlines is equal in length to number of atoms
     assert isinstance(out_xyz, str)
     split_xyz = out_xyz.split("\n")
@@ -91,7 +91,7 @@ def test_get_xyz():
 
 def test_get_substituent_input():
     """Test get_substituent_input"""
-    out_Dict = aimw.get_substituent_input(Str("*C"))
+    out_Dict = cf.get_substituent_input(Str("*C"))
     out_dict = out_Dict.get_dict()
     # output should be Dict with xyz, charge, and multiplpcity keys
     assert isinstance(out_Dict, Dict)
@@ -104,7 +104,7 @@ def test_parameters_with_cm():
     """Test parameters_with_cm"""
     parameter_dict = Dict({})
     smiles_dict = Dict({"charge": 0, "multiplicity": 1})
-    out_Dict = aimw.parameters_with_cm(parameter_dict, smiles_dict)
+    out_Dict = cf.parameters_with_cm(parameter_dict, smiles_dict)
     assert isinstance(out_Dict, Dict)
     out_dict = out_Dict.get_dict()
     # charge and multiplicity matching the smiles_dict should be in out_Dict
@@ -118,10 +118,10 @@ def test_validate_shell_code():
     """Test validate_shell_code"""
     str_node = Str("aimall")
     # Str node is valid input, should return None
-    assert not aimw.validate_shell_code(str_node, "foo")
+    assert not cf.validate_shell_code(str_node, "foo")
     int_node = Int(1)
     # Int node is invalid input, should return string error message
-    res = aimw.validate_shell_code(int_node, "foo")
+    res = cf.validate_shell_code(int_node, "foo")
     assert (
         res == "the `shell_code` input must be either ShellCode or Str of the command."
     )
@@ -131,15 +131,15 @@ def test_validate_file_ext():
     """Test validate_file_ext - provided file extension should be wfx, wfn or fchk"""
     # these should all return None, so check for not None
     wfx_node = Str("wfx")
-    assert not aimw.validate_file_ext(wfx_node, "foo")
+    assert not cf.validate_file_ext(wfx_node, "foo")
     wfn_node = Str("wfn")
-    assert not aimw.validate_file_ext(wfn_node, "foo")
+    assert not cf.validate_file_ext(wfn_node, "foo")
     fchk_node = Str("fchk")
-    assert not aimw.validate_file_ext(fchk_node, "foo")
+    assert not cf.validate_file_ext(fchk_node, "foo")
     # log extension should result in error
     log_node = Str("log")
     err_str = "the `aim_file_ext` input must be a valid file format for AIMQB: wfx, wfn, or fchk"
-    assert aimw.validate_file_ext(log_node, "log") == err_str
+    assert cf.validate_file_ext(log_node, "log") == err_str
 
 
 def test_generate_rotated_structure_aiida(generate_workchain_folderdata):
@@ -163,7 +163,7 @@ def test_generate_rotated_structure_aiida(generate_workchain_folderdata):
         )
         for x in atom_list
     }
-    rot_Dict = aimw.generate_rotated_structure_aiida(aim_folder, a_props, cc_dict)
+    rot_Dict = cf.generate_rotated_structure_aiida(aim_folder, a_props, cc_dict)
     rot_dict = rot_Dict.get_dict()
     assert isinstance(rot_Dict, Dict)
     assert "atom_symbols" in rot_dict
@@ -181,5 +181,5 @@ def test_dict_to_structure():
     str_dict = Dict(
         {"atom_symbols": ["H", "H"], "geom": [[-0.5, 0.0, 0.0], [0.5, 0.0, 0.0]]}
     )
-    str_str = aimw.dict_to_structure(str_dict)
+    str_str = cf.dict_to_structure(str_dict)
     assert isinstance(str_str, StructureData)

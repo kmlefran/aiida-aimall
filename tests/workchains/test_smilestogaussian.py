@@ -17,20 +17,20 @@ def test_setup(generate_workchain_aimreor):
 # pylint:disable=too-many-arguments
 # pylint:disable=too-many-locals
 def test_default(
-    generate_workchain_smitog16,
+    generate_workchain_smitogauss,
     fixture_localhost,
-    generate_g16_inputs,
+    generate_gauss_inputs,
     generate_calc_job_node,
     fixture_code,
     filepath_tests,
 ):
     """Test the default inputs of `SmilesToGaussianWorkchain"""
-    entry_point_name = "aimall.smitog16"
+    entry_point_name = "aimall.smitogauss"
     entry_point_calc_job = "gaussian"
     test = "default"
     name = "default"
     # create the workchain node
-    wkchain = generate_workchain_smitog16()
+    wkchain = generate_workchain_smitogauss()
     # Run the first step - this should put the smiles_geom Dict in context
     # Note that calling the function in the assert statement does run it
     assert wkchain.get_substituent_inputs_step() is None
@@ -58,7 +58,7 @@ def test_default(
         entry_point_calc_job,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
     node.store()
