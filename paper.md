@@ -12,7 +12,7 @@ authors:
     equal-contrib: true
     affiliation: 1 # (Multiple affiliations must be quoted)
   - name: Robert C. Mawhinney
-  - orcid: 0000-0002-6077-2403
+    orcid: 0000-0002-6077-2403
     equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
     affiliation: 1
 affiliations:
