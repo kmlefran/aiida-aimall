@@ -17,7 +17,7 @@ Subpackages
    :titlesonly:
    :maxdepth: 3
 
-   data/index.rst
+   workchains/index.rst
 
 
 Submodules
@@ -28,8 +28,8 @@ Submodules
 
    calculations/index.rst
    controllers/index.rst
+   data/index.rst
    parsers/index.rst
-   workchains/index.rst
 
 
 Package Contents

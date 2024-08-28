@@ -80,17 +80,20 @@ class BaseInputWorkChain(WorkChain):
             return ExitCode(201)
 
     def create_structure_from_xyz(self):
-        """Convert the xyzfile to StructureData"""
+        """Convert the xyzfile to StructureData. Calls
+        :func:`aiida_aimall.workchains.calcfunctions.xyzfile_to_StructureData`"""
         self.ctx.structure = xyzfile_to_StructureData(self.inputs.xyz_file)
 
     def structure_in_context(self):
-        """Store the input structure in context, to make consistent with the results of xyz_file or SMILES input"""
+        """Store the input structure in context, to make consistent with the results of xyz_file or SMILES input."""
         self.ctx.structure = self.inputs.structure
 
     def get_molecule_inputs_step(self):
-        """Given list of substituents and previously done smiles, get input"""
+        """Given list of substituents and previously done smiles, get input.
+        Calls :func:`aiida_aimall.workchains.calcfunctions.get_molecule_str_from_smiles`"""
         self.ctx.smiles_geom = get_molecule_str_from_smiles(self.inputs.smiles)
 
     def string_to_StructureData(self):
-        """Convert an xyz string of molecule geometry to StructureData"""
+        """Convert an xyz string of molecule geometry to StructureData.
+        Calls :func:`aiida_aimall.workchains.calcfunctions.generate_structure_data`"""
         self.ctx.structure = generate_structure_data(self.ctx.smiles_geom)

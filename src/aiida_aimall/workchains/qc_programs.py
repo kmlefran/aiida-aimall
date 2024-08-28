@@ -1,4 +1,4 @@
-"""Workchains to interface with AiiDA"""
+"""Workchains to interface various quantum software with AiiDA"""
 # pylint: disable=c-extension-no-member
 # pylint:disable=no-member
 from aiida.engine import ToContext, WorkChain, if_
@@ -10,7 +10,7 @@ from aiida_shell import launch_shell_job
 from aiida_aimall.calculations import AimqbCalculation
 from aiida_aimall.data import AimqbParameters
 from aiida_aimall.workchains.calcfunctions import (
-    get_wfx,
+    create_wfx_from_retrieved,
     validate_file_ext,
     validate_shell_code,
 )
@@ -169,7 +169,7 @@ class GaussianToAIMWorkChain(BaseInputWorkChain):
         folder_data = self.ctx.gauss.base.links.get_outgoing().get_node_by_label(
             "retrieved"
         )
-        self.ctx.wfx = get_wfx(folder_data, self.inputs.wfx_filename)
+        self.ctx.wfx = create_wfx_from_retrieved(self.inputs.wfx_filename, folder_data)
         # later scan input parameters for filename
 
         if "wfx_group" in self.inputs:

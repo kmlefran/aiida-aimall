@@ -1,13 +1,4 @@
-"""aiida_aimall.workchains
-Workchains designed for a workflow starting from a set of cmls, then breaking off into fragment Gaussian Calculations
-Needs to be run in part with aiida_aimall.controllers to control local traffic on lab Mac
-Example in the works
-
-Provided Workchains are
-MultiFragmentWorkchain, entry point: multifrag
-gaussOptWorkChain, entry point: gaussopt
-AimAllReor WorkChain, entry point: aimreor
-"""
+"""`WorkChain` for calculating substituent parameters developed by authors"""
 # pylint: disable=c-extension-no-member
 # pylint:disable=no-member
 # pylint:disable=too-many-lines
@@ -18,7 +9,10 @@ from aiida_gaussian.calculations import GaussianCalculation
 
 from aiida_aimall.calculations import AimqbCalculation
 from aiida_aimall.data import AimqbParameters
-from aiida_aimall.workchains.calcfunctions import get_substituent_input, get_wfx
+from aiida_aimall.workchains.calcfunctions import (
+    create_wfx_from_retrieved,
+    get_substituent_input,
+)
 from aiida_aimall.workchains.input import BaseInputWorkChain
 from aiida_aimall.workchains.param_parts import AIMAllReorWorkChain
 
@@ -105,7 +99,9 @@ class SubstituentParameterWorkChain(BaseInputWorkChain):
             "retrieved"
         )
         # later scan input parameters for filename
-        wfx_file = get_wfx(folder_data, self.inputs.wfx_filename.value)
+        wfx_file = create_wfx_from_retrieved(
+            self.inputs.wfx_filename.value, folder_data
+        )
         self.ctx.opt_wfx = wfx_file
 
         if "opt_wfx_group" in self.inputs:
@@ -162,7 +158,9 @@ class SubstituentParameterWorkChain(BaseInputWorkChain):
             "retrieved"
         )
         # later scan input parameters for filename
-        wfx_file = get_wfx(folder_data, self.inputs.wfx_filename.value)
+        wfx_file = create_wfx_from_retrieved(
+            self.inputs.wfx_filename.value, folder_data
+        )
         self.ctx.sp_wfx = wfx_file
 
         if "sp_wfx_group" in self.inputs:

@@ -1,4 +1,5 @@
 """Workchains that are smaller parts of SubstituenParamWorkChain"""
+# pylint:disable=no-member
 from aiida.engine import ToContext, WorkChain, if_
 from aiida.orm import (
     Bool,
@@ -155,7 +156,6 @@ class AIMAllReorWorkChain(WorkChain):
         builder.code = self.inputs.aim_code
         builder.parameters = self.inputs.aim_params
         builder.file = self.inputs.file
-        # pylint:disable=no-member
         builder.metadata.options.resources = {
             "num_machines": 1,
             "tot_num_mpiprocs": 2,

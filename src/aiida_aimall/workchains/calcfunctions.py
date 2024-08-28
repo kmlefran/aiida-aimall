@@ -21,29 +21,56 @@ def generate_rotated_structure_aiida(FolderData, atom_dict, cc_dict):
         FolderData: aim calculation folder
         atom_dict: AIM atom dict
         cc_dict: AIM cc_dict
+
+    Returns:
+        Dict with keys 'atom_symbols' and 'geom' containing atomic symbols and the
+            the rotated geometry.
+
     """
     return Dict(rotate_substituent_aiida(FolderData, atom_dict, cc_dict))
 
 
-def remove(in_list):
-    """Remove digits from a list of strings. e.g. ['O1','H2','H3'] -> ['O','H','H']"""
+def remove_numcharss_from_strlist(in_list):
+    """Remove digits from a list of strings. e.g. ['O1','H2','H3'] -> ['O','H','H']
+
+    Args:
+        in_list: input list to remove digits from
+
+    Returns:
+        output list with the numerical digits removed from each element
+
+    Note:
+        The intention for this list is to convert numered atomic symbols, e.g. from Gaussian
+            to just symbols
+
+    """
     remove_digits = str.maketrans("", "", digits)
     out_list = [i.translate(remove_digits) for i in in_list]
     return out_list
 
 
 @calcfunction
-def dict_to_structure(fragment_dict):
-    """Generate a string of xyz coordinates for Gaussian input file
+def dict_to_structure(fragment_dict: Dict):
+    """Generate a StructureData for Gaussian inputs
 
-    :param fragment_dict:
-    :param type fragment_dict: aiida.orm.nodes.data.dict.Dict
+    Args:
+        fragment_dict: AiiDA orm.Dict with keys 'atom_symbols' and 'geom'
+
+    Returns:
+        StructureData for the molecule
+
+    Note:
+        input can be generated, for example, by
+            :func:`aiida_aimall.workchains.calcfunctions.generate_rotated_structure_aiida`
+
     """
     inp_dict = fragment_dict.get_dict()
     symbols = inp_dict["atom_symbols"]
-    symbols = remove(symbols)
+    symbols = remove_numcharss_from_strlist(symbols)
     coords = inp_dict["geom"]
+    # outstr is xyz file contents
     outstr = ""
+    # numatoms then blank line, then coordinates and symbols for each atom
     outstr += f"{len(symbols)}\n\n"
     for i, symbol in enumerate(symbols):
         if i != len(symbols) - 1:
@@ -69,6 +96,7 @@ def dict_to_structure(fragment_dict):
                 + "   "
                 + str(coords[i][2])
             )
+    # create StructureData from .xyz file string
     f = io.StringIO(outstr)
     struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
     f.close()
@@ -76,7 +104,18 @@ def dict_to_structure(fragment_dict):
 
 
 def calc_multiplicity(mol):
-    """Calculate the multiplicity of a molecule as 2S +1"""
+    """Calculate the multiplicity of a molecule as 2S +1
+
+    Loops over the atoms in the molecule and gets number of radical electrons,
+    then converts that number to the multiplicity.
+
+    Args:
+        mol: rdkit.Chem molecule object
+
+    Returns:
+        integer number of multiplicity
+
+    """
     num_radicals = 0
     for atom in mol.GetAtoms():
         num_radicals += atom.GetNumRadicalElectrons()
@@ -146,7 +185,15 @@ def reorder_molecule(h_mol_rw, zero_at, attached_atom):
 
 
 def get_xyz(reorder_mol):
-    """MMFF optimize the molecule to generate xyz coordiantes"""
+    """MMFF optimize the molecule to generate xyz coordiantes
+
+    Args:
+        reorder_mol: rdkit.Chem molecule output, output of :func:`aiida_aimall.workchains.calcfunctions.reorder_molecule`
+
+    Returns:
+        string of the geometry block of an .xyz file
+
+    """
     AllChem.EmbedMolecule(reorder_mol)
     # not_optimized will be 0 if done, 1 if more steps needed
     max_iters = 200
@@ -182,19 +229,26 @@ def get_substituent_input(smiles: str) -> dict:
     Returns:
         Dict with keys xyz, charge, multiplicity
 
+    Raise:
+        ValueError: if molecule cannot be built from SMILES
+
     """
     mol = Chem.MolFromSmiles(smiles.value)
+    # If the mol could not be built, mol will be None
     if not mol:
         raise ValueError(
             f"Molecule could not be constructed for substituent input SMILES {smiles.value}"
         )
+    # add hydrogens to the molecule, and find the atom to put at origin and the atom attached to it
     h_mol_rw, zero_at, attached_atom = find_attachment_atoms(mol)
+    # Set zero_at to be the first atom, and attached atom as the second, by number
     reorder_mol = reorder_molecule(h_mol_rw, zero_at, attached_atom)
     xyz_string = get_xyz(reorder_mol)
     if xyz_string == "Could not determine xyz coordinates":
         raise BadMoleculeException(
             "Maximum iterations exceeded, could not determine xyz coordinates for f{smiles.value}"
         )
+    # get store charge, multiplicity and geometry
     reorder_mol.UpdatePropertyCache()
     charge = Chem.GetFormalCharge(h_mol_rw)
     multiplicity = calc_multiplicity(h_mol_rw)
@@ -204,11 +258,21 @@ def get_substituent_input(smiles: str) -> dict:
 
 @calcfunction
 def generate_structure_data(smiles_dict):
-    """Take an input xyz string and convert it to StructureData"""
+    """Take an input xyz string and convert it to StructureData
+
+    Args:
+        smiles_dict: output of :func:`aiida_aimall.workchains.calcfunctions.get_substituent_input`
+
+    Returns:
+        StructureData of the molecule
+
+    """
     structure_Str = smiles_dict["xyz"]
     structure_str = structure_Str
+    # Use the geometry string and create the xyz string for a full .xyz file
     num_atoms = len(structure_str.split("\n"))
     xyz_string = f"{num_atoms}\n\n" + structure_str
+    # Convert string to StructureData by encoding it as a file
     f = io.StringIO(xyz_string)
     struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
     f.close()
@@ -217,7 +281,16 @@ def generate_structure_data(smiles_dict):
 
 @calcfunction
 def parameters_with_cm(parameters, smiles_dict):
-    """Add charge and multiplicity keys to Gaussian Input"""
+    """Add charge and multiplicity keys to Gaussian Input
+
+    Args:
+        parameters: dictionary to be provided to GaussianCalculation
+        smiles_dict: `aiida_aimall.workchains.calcfunctions.get_substituent_input`
+
+    Returns:
+        Dict of Gaussian parameters updated with charge and multiplicity
+
+    """
     parameters_dict = parameters.get_dict()
     smiles_dict_dict = smiles_dict.get_dict()
     parameters_dict["charge"] = smiles_dict_dict["charge"]
@@ -227,7 +300,18 @@ def parameters_with_cm(parameters, smiles_dict):
 
 @calcfunction
 def get_wfxname_from_gaussianinputs(gaussian_parameters):
-    """Look for wfx or wfn objects in the retrieved Folder"""
+    """Find the .wfx filename from gaussian_parameters
+
+    Check if input parameters was provided to gaussian_parameters, and if so, look for
+    .wfx file names supplied. If it was, return the first .wfx filename found
+
+    Args:
+        gaussian_parameters: input dictionary to be provided to GaussianCalculation
+
+    Returns:
+        Str of .wfx filename
+
+    """
     gaussian_dict = gaussian_parameters.get_dict()
     if "input_parameters" not in gaussian_dict:
         return Str("")
@@ -247,13 +331,30 @@ def get_wfxname_from_gaussianinputs(gaussian_parameters):
 
 @calcfunction
 def create_wfx_from_retrieved(wfxname, retrieved_folder):
-    """Create wavefunciton Singlefildata from retrieved folder"""
+    """Create wavefunction SinglefileData from retrieved folder
+
+    Args:
+        wfxname: Str of the name of a .wfx file to get from the retrieved folder
+        retrieved_folder: FolderData of a completed GaussianCalculation
+
+    Returns:
+        SinglefileData of the .wfx file to find in the FolderData
+
+    """
     wfx_file_string = retrieved_folder.get_object_content(wfxname.value)
     return SinglefileData(io.BytesIO(wfx_file_string.encode()))
 
 
 def validate_shell_code(node, _):
-    """Validate the shell code, ensuring that it is ShellCode or Str"""
+    """Validate the shell code, ensuring that it is ShellCode or Str
+
+    Args:
+        node: input node to check the type for ShellCode or Str
+
+    Returns:
+        None if the type is ShellCode or Str, or error string if node is not
+
+    """
     if node.node_type not in [
         "data.core.code.installed.shell.ShellCode.",
         "data.core.str.Str.",
@@ -263,21 +364,18 @@ def validate_shell_code(node, _):
 
 
 def validate_file_ext(node, _):
-    """Validates that the file extension provided for AIM is wfx, wfn or fchk"""
+    """Validates that the file extension provided for AIM is wfx, wfn or fchk
+
+    Args:
+        node: node to check the value of to ensure it is in a supported format
+
+    Returns:
+        None if the type is ShellCode or Str, or error string if node is not
+
+    """
     if node.value not in ["wfx", "wfn", "fchk"]:
         return "the `aim_file_ext` input must be a valid file format for AIMQB: wfx, wfn, or fchk"
     return None
-
-
-@calcfunction
-def get_wfx(retrieved_folder, wfx_filename):
-    """Get a wfx file from retrieved folder"""
-    folder_data = retrieved_folder
-    # later scan input parameters for filename
-    wfx_file = SinglefileData(
-        io.BytesIO(folder_data.get_object_content(wfx_filename.value).encode())
-    )
-    return wfx_file
 
 
 @calcfunction
