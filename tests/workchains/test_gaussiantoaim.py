@@ -5,9 +5,9 @@ from aiida.orm import Dict, StructureData
 from plumpy.utils import AttributesFrozendict
 
 
-def test_setup(generate_workchain_g16toaim):
+def test_setup(generate_workchain_gausstoaim):
     """Test creation of `AimReorWorkChain`."""
-    process = generate_workchain_g16toaim()
+    process = generate_workchain_gausstoaim()
 
     assert isinstance(process.inputs, AttributesFrozendict)
 
@@ -15,9 +15,9 @@ def test_setup(generate_workchain_g16toaim):
 # pylint:disable=too-many-arguments
 # pylint:disable=too-many-locals
 def test_default_structure(
-    generate_workchain_g16toaim,
+    generate_workchain_gausstoaim,
     fixture_localhost,
-    generate_g16_inputs,
+    generate_gauss_inputs,
     generate_calc_job_node,
     fixture_code,
 ):
@@ -26,7 +26,7 @@ def test_default_structure(
     entry_point_calc_job_gauss = "aimall.gaussianwfx"
     name = "default"
     # create the workchain node
-    wkchain = generate_workchain_g16toaim(input_type="structure")
+    wkchain = generate_workchain_gausstoaim(input_type="structure")
     # test the first workchain step
     assert wkchain.validate_input() is None
     assert wkchain.is_xyz_input() is False
@@ -35,18 +35,18 @@ def test_default_structure(
     assert wkchain.structure_in_context() is None
     assert "structure" in wkchain.ctx
     assert isinstance(wkchain.ctx.structure, StructureData)
-    gaussian_inputs = wkchain.g16()
+    gaussian_inputs = wkchain.gauss()
     assert isinstance(gaussian_inputs, AttributesFrozendict)
     # Generate mock CalcJobNodes and needed outputs for the gaussian optimization
-    g16_node = generate_calc_job_node(
+    gauss_node = generate_calc_job_node(
         entry_point_name=entry_point_calc_job_gauss,
         computer=fixture_localhost,
         test_name=name,
-        inputs=generate_g16_inputs(fixture_code),
+        inputs=generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    g16_node.store()
-    wkchain.ctx.g16 = g16_node
+    gauss_node.store()
+    wkchain.ctx.gauss = gauss_node
 
     assert wkchain.classify_wfx() is None
     assert "wfx" in wkchain.ctx
@@ -62,7 +62,7 @@ def test_default_structure(
         entry_point_calc_job_aim,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
     wkchain.ctx.aim = aim_sp_node
@@ -79,9 +79,9 @@ def test_default_structure(
 
 
 def test_default_xyz(
-    generate_workchain_g16toaim,
+    generate_workchain_gausstoaim,
     fixture_localhost,
-    generate_g16_inputs,
+    generate_gauss_inputs,
     generate_calc_job_node,
     fixture_code,
 ):
@@ -90,7 +90,7 @@ def test_default_xyz(
     entry_point_calc_job_gauss = "aimall.gaussianwfx"
     name = "default"
     # create the workchain node
-    wkchain = generate_workchain_g16toaim(input_type="xyz")
+    wkchain = generate_workchain_gausstoaim(input_type="xyz")
     # test the first workchain step
     assert wkchain.validate_input() is None
     assert wkchain.is_xyz_input() is True
@@ -99,18 +99,18 @@ def test_default_xyz(
     assert wkchain.create_structure_from_xyz() is None
     assert "structure" in wkchain.ctx
     assert isinstance(wkchain.ctx.structure, StructureData)
-    gaussian_inputs = wkchain.g16()
+    gaussian_inputs = wkchain.gauss()
     assert isinstance(gaussian_inputs, AttributesFrozendict)
     # Generate mock CalcJobNodes and needed outputs for the gaussian optimization
-    g16_node = generate_calc_job_node(
+    gauss_node = generate_calc_job_node(
         entry_point_name=entry_point_calc_job_gauss,
         computer=fixture_localhost,
         test_name=name,
-        inputs=generate_g16_inputs(fixture_code),
+        inputs=generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    g16_node.store()
-    wkchain.ctx.g16 = g16_node
+    gauss_node.store()
+    wkchain.ctx.gauss = gauss_node
 
     assert wkchain.classify_wfx() is None
     assert "wfx" in wkchain.ctx
@@ -126,7 +126,7 @@ def test_default_xyz(
         entry_point_calc_job_aim,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
     wkchain.ctx.aim = aim_sp_node
@@ -143,9 +143,9 @@ def test_default_xyz(
 
 
 def test_default_smiles(
-    generate_workchain_g16toaim,
+    generate_workchain_gausstoaim,
     fixture_localhost,
-    generate_g16_inputs,
+    generate_gauss_inputs,
     generate_calc_job_node,
     fixture_code,
 ):
@@ -154,7 +154,7 @@ def test_default_smiles(
     entry_point_calc_job_gauss = "aimall.gaussianwfx"
     name = "default"
     # create the workchain node
-    wkchain = generate_workchain_g16toaim(input_type="smiles")
+    wkchain = generate_workchain_gausstoaim(input_type="smiles")
     # test the first workchain step
     assert wkchain.validate_input() is None
     assert wkchain.is_xyz_input() is False
@@ -169,18 +169,18 @@ def test_default_smiles(
     assert wkchain.string_to_StructureData() is None
     assert "structure" in wkchain.ctx
     assert isinstance(wkchain.ctx.structure, StructureData)
-    gaussian_inputs = wkchain.g16()
+    gaussian_inputs = wkchain.gauss()
     assert isinstance(gaussian_inputs, AttributesFrozendict)
     # Generate mock CalcJobNodes and needed outputs for the gaussian optimization
-    g16_node = generate_calc_job_node(
+    gauss_node = generate_calc_job_node(
         entry_point_name=entry_point_calc_job_gauss,
         computer=fixture_localhost,
         test_name=name,
-        inputs=generate_g16_inputs(fixture_code),
+        inputs=generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    g16_node.store()
-    wkchain.ctx.g16 = g16_node
+    gauss_node.store()
+    wkchain.ctx.gauss = gauss_node
 
     assert wkchain.classify_wfx() is None
     assert "wfx" in wkchain.ctx
@@ -196,7 +196,7 @@ def test_default_smiles(
         entry_point_calc_job_aim,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
     wkchain.ctx.aim = aim_sp_node

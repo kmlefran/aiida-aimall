@@ -53,4 +53,4 @@ def test_aimreor_controller(fixture_code):
     assert "aim_params" in ins
     assert "file" in ins
     assert "reor_group" in ins
-    assert wf.get_name() == "AIMAllReor"
+    assert wf.get_name() == "AIMAllReorWorkChain"

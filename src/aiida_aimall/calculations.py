@@ -1,10 +1,4 @@
-"""Calculations provided by aiida_aimall.
-
-Upon pip install, AimqbCalculation is accessible in AiiDA.calculations plugins
-Using the 'aimall' entry point, and GaussianWFXCalculation is accessible with the 'gaussianwfx'
-entry point
-
-"""
+"""`CalcJob` implementation for the aimqb executable of AIMAll."""
 from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import Dict, Int, List, SinglefileData

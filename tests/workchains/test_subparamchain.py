@@ -20,7 +20,7 @@ def test_default_structure(
     generate_workchain_subparam,
     fixture_localhost,
     generate_workchain_aimreor,
-    generate_g16_inputs,
+    generate_gauss_inputs,
     generate_calc_job_node,
     fixture_code,
 ):
@@ -40,21 +40,21 @@ def test_default_structure(
     assert wkchain.structure_in_context() is None
     assert "structure" in wkchain.ctx
     assert isinstance(wkchain.ctx.structure, StructureData)
-    gaussian_inputs = wkchain.g16_opt()
+    gaussian_inputs = wkchain.gauss_opt()
     assert isinstance(gaussian_inputs, AttributesFrozendict)
     # Generate mock CalcJobNodes and needed outputs for the gaussian optimization
-    g16_node = generate_calc_job_node(
+    gauss_node = generate_calc_job_node(
         entry_point_name=entry_point_calc_job_gauss,
         computer=fixture_localhost,
         test_name=name,
-        inputs=generate_g16_inputs(fixture_code),
+        inputs=generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    g16_node.store()
-    wkchain.ctx.opt = g16_node
+    gauss_node.store()
+    wkchain.ctx.opt = gauss_node
     # gaussian_folder = generate_workchain_folderdata(entry_point_name, gaussianopttest)
     # gaussian_folder.base.links.add_incoming(
-    #     g16_node, link_type=LinkType.CREATE, link_label="retrieved"
+    #     gauss_node, link_type=LinkType.CREATE, link_label="retrieved"
     # )
     # gaussian_folder.store()
     assert wkchain.classify_opt_wfx() is None
@@ -77,17 +77,17 @@ def test_default_structure(
     )
 
     # Test gaussian single point
-    g16_sp_inputs = wkchain.g16_sp()
-    assert isinstance(g16_sp_inputs, AttributesFrozendict)
+    gauss_sp_inputs = wkchain.gauss_sp()
+    assert isinstance(gauss_sp_inputs, AttributesFrozendict)
     # generate mock gaussian singlepoint outputs
-    g16_sp_node = generate_calc_job_node(
+    gauss_sp_node = generate_calc_job_node(
         entry_point_calc_job_gauss,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    wkchain.ctx.sp = g16_sp_node
+    wkchain.ctx.sp = gauss_sp_node
 
     assert wkchain.classify_sp_wfx() is None
     assert "sp_wfx" in wkchain.ctx
@@ -99,7 +99,7 @@ def test_default_structure(
         entry_point_calc_job_aim,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
     wkchain.ctx.final_aim = aim_sp_node
@@ -119,7 +119,7 @@ def test_default_xyz(
     generate_workchain_subparam,
     fixture_localhost,
     generate_workchain_aimreor,
-    generate_g16_inputs,
+    generate_gauss_inputs,
     generate_calc_job_node,
     fixture_code,
 ):
@@ -137,21 +137,21 @@ def test_default_xyz(
     assert wkchain.create_structure_from_xyz() is None
     assert "structure" in wkchain.ctx
     assert isinstance(wkchain.ctx.structure, StructureData)
-    gaussian_inputs = wkchain.g16_opt()
+    gaussian_inputs = wkchain.gauss_opt()
     assert isinstance(gaussian_inputs, AttributesFrozendict)
     # Generate mock CalcJobNodes and needed outputs for the gaussian optimization
-    g16_node = generate_calc_job_node(
+    gauss_node = generate_calc_job_node(
         entry_point_name=entry_point_calc_job_gauss,
         computer=fixture_localhost,
         test_name=name,
-        inputs=generate_g16_inputs(fixture_code),
+        inputs=generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    g16_node.store()
-    wkchain.ctx.opt = g16_node
+    gauss_node.store()
+    wkchain.ctx.opt = gauss_node
     # gaussian_folder = generate_workchain_folderdata(entry_point_name, gaussianopttest)
     # gaussian_folder.base.links.add_incoming(
-    #     g16_node, link_type=LinkType.CREATE, link_label="retrieved"
+    #     gauss_node, link_type=LinkType.CREATE, link_label="retrieved"
     # )
     # gaussian_folder.store()
     assert wkchain.classify_opt_wfx() is None
@@ -174,17 +174,17 @@ def test_default_xyz(
     )
 
     # Test gaussian single point
-    g16_sp_inputs = wkchain.g16_sp()
-    assert isinstance(g16_sp_inputs, AttributesFrozendict)
+    gauss_sp_inputs = wkchain.gauss_sp()
+    assert isinstance(gauss_sp_inputs, AttributesFrozendict)
     # generate mock gaussian singlepoint outputs
-    g16_sp_node = generate_calc_job_node(
+    gauss_sp_node = generate_calc_job_node(
         entry_point_calc_job_gauss,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    wkchain.ctx.sp = g16_sp_node
+    wkchain.ctx.sp = gauss_sp_node
 
     assert wkchain.classify_sp_wfx() is None
     assert "sp_wfx" in wkchain.ctx
@@ -196,7 +196,7 @@ def test_default_xyz(
         entry_point_calc_job_aim,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
     wkchain.ctx.final_aim = aim_sp_node
@@ -216,7 +216,7 @@ def test_default_smiles(
     generate_workchain_subparam,
     fixture_localhost,
     generate_workchain_aimreor,
-    generate_g16_inputs,
+    generate_gauss_inputs,
     generate_calc_job_node,
     fixture_code,
 ):
@@ -241,21 +241,21 @@ def test_default_smiles(
     assert wkchain.string_to_StructureData() is None
     assert "structure" in wkchain.ctx
     assert isinstance(wkchain.ctx.structure, StructureData)
-    gaussian_inputs = wkchain.g16_opt()
+    gaussian_inputs = wkchain.gauss_opt()
     assert isinstance(gaussian_inputs, AttributesFrozendict)
     # Generate mock CalcJobNodes and needed outputs for the gaussian optimization
-    g16_node = generate_calc_job_node(
+    gauss_node = generate_calc_job_node(
         entry_point_name=entry_point_calc_job_gauss,
         computer=fixture_localhost,
         test_name=name,
-        inputs=generate_g16_inputs(fixture_code),
+        inputs=generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    g16_node.store()
-    wkchain.ctx.opt = g16_node
+    gauss_node.store()
+    wkchain.ctx.opt = gauss_node
     # gaussian_folder = generate_workchain_folderdata(entry_point_name, gaussianopttest)
     # gaussian_folder.base.links.add_incoming(
-    #     g16_node, link_type=LinkType.CREATE, link_label="retrieved"
+    #     gauss_node, link_type=LinkType.CREATE, link_label="retrieved"
     # )
     # gaussian_folder.store()
     assert wkchain.classify_opt_wfx() is None
@@ -278,17 +278,17 @@ def test_default_smiles(
     )
 
     # Test gaussian single point
-    g16_sp_inputs = wkchain.g16_sp()
-    assert isinstance(g16_sp_inputs, AttributesFrozendict)
+    gauss_sp_inputs = wkchain.gauss_sp()
+    assert isinstance(gauss_sp_inputs, AttributesFrozendict)
     # generate mock gaussian singlepoint outputs
-    g16_sp_node = generate_calc_job_node(
+    gauss_sp_node = generate_calc_job_node(
         entry_point_calc_job_gauss,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
-    wkchain.ctx.sp = g16_sp_node
+    wkchain.ctx.sp = gauss_sp_node
 
     assert wkchain.classify_sp_wfx() is None
     assert "sp_wfx" in wkchain.ctx
@@ -300,7 +300,7 @@ def test_default_smiles(
         entry_point_calc_job_aim,
         fixture_localhost,
         name,
-        generate_g16_inputs(fixture_code),
+        generate_gauss_inputs(fixture_code),
         test_folder_type="workchains",
     )
     wkchain.ctx.final_aim = aim_sp_node

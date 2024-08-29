@@ -21,7 +21,7 @@ def test_unstored_parentgrouplabel_returns_error():
             max_concurrent=1,
             code_label="test.aimall.aimqb",
             wfxgroup="test",
-            g16_sp_params={},
+            gauss_sp_params={},
         )
     assert str(excinfo.value) == "No result was found"
 
@@ -39,7 +39,7 @@ def test_gaussiansubmission_controller(fixture_code):
         group_label="gaussian_sp",
         max_concurrent=1,
         code_label=code.label + "@" + code.computer.label,
-        g16_sp_params={},
+        gauss_sp_params={},
         wfxgroup="test",
     )
     assert con.get_extra_unique_keys() == ("smiles",)
