@@ -2,7 +2,7 @@
 """
 Parsers provided by aiida_aimall.
 
-Register parsers via the "aiida.parsers" entry point in setup.json.
+Register parsers via the "aiida.parsers" entry point in pyproject.toml.
 """
 
 import numpy as np

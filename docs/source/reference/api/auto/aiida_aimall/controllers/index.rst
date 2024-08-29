@@ -5,11 +5,13 @@
 
 .. autoapi-nested-parse::
 
-   aiida_aimall.controllers
+   Subclasses of `FromGroupSubmissionController` designed to prevent too many running processes
 
-   Subclasses of FromGroupSubmissionController designed to manage local traffic on lab Macs to prevent to many running processes
+   The entire :func:`aiida_aimall.workchains.subparam.SubstituentParameterWorkChain` can be replicated
+   by linking these together.
 
-   Provides controllers for the AimReor WorkChain, AimQBCalculations, and GaussianWFXCalculations
+   Provides controllers for the `AimReorWorkChain`, `AimqbCalculations`, `GaussianCalculation`
+   and `SmilesToGaussianWorkChain`.
 
 
 
@@ -51,18 +53,18 @@ Attributes
 
 
 
-.. py:class:: SmilesToGaussianController(code_label: str, g16_opt_params: dict, wfxgroup: str, nprocs: int, mem_mb: int, time_s: int, *args, **kwargs)
+.. py:class:: SmilesToGaussianController(code_label: str, gauss_opt_params: dict, wfxgroup: str, nprocs: int, mem_mb: int, time_s: int, *args, **kwargs)
 
 
    Bases: :py:obj:`aiida_submission_controller.FromGroupSubmissionController`
 
-   A controller for submitting SmilesToGaussianWorkchain
+   A controller for submitting :func:`aiida_aimall.workchains.param_parts.SmilesToGaussianWorkChain`
 
    :param parent_group_label: the string of a group label which contains various SMILES as orm.Str nodes
    :param group_label: the string of the group to put the GaussianCalculations in
    :param max_concurrent: maximum number of concurrent processes.
    :param code_label: label of code, e.g. gaussian@cedar
-   :param g16_opt_params: Dict of Gaussian parameters to use
+   :param gauss_opt_params: Dict of Gaussian parameters to use
    :param wfxgroup: group in which to store the resulting wfx files
    :param nprocs: number of processors for gaussian calculation
    :param mem_mb: amount of memory in MB for Gaussian calculation
@@ -83,8 +85,8 @@ Attributes
            parent_group_label = 'input_smiles', # Add structures to run to input_smiles group
            group_label = 'gaussianopt', # Resulting nodes will be in the gaussianopt group
            max_concurrent = 1,
-           wfxgroup = "opt_wfx"
-           g16_opt_params = Dict(dict={
+           wfxgroup = "opt_wfx",
+           gauss_opt_params = Dict(dict={
                'link0_parameters': {
                    '%chk':'aiida.chk',
                    "%mem": "4000MB",
@@ -93,8 +95,11 @@ Attributes
                'functional':'wb97xd',
                'basis_set':'aug-cc-pvtz',
                'route_parameters': { 'opt':None, 'freq':None},
-               })
-       )
+               }),
+           nprocs = 4,
+           mem_mb = 6400,
+           time_s = 24*3600*7
+           )
 
        while True:
            #submit Gaussian batches every hour
@@ -121,7 +126,7 @@ Attributes
 
 
 
-   .. py:attribute:: g16_opt_params
+   .. py:attribute:: gauss_opt_params
       :type: dict
 
 
@@ -147,7 +152,7 @@ Attributes
 
 
    .. py:attribute:: WORKFLOW_ENTRY_POINT
-      :value: 'aimall.smitog16'
+      :value: 'aimall.smitogauss'
 
 
 
@@ -158,7 +163,7 @@ Attributes
 
    .. py:method:: get_inputs_and_processclass_from_extras(extras_values)
 
-      Constructs input for a GaussianWFXCalculation from extra_values
+      Constructs input for a GaussianCalculation from extra_values
 
 
 
@@ -167,7 +172,7 @@ Attributes
 
    Bases: :py:obj:`aiida_submission_controller.FromGroupSubmissionController`
 
-   A controller for submitting AIMReor Workchains.
+   A controller for submitting :func:`aiida_aimall.workchains.param_parts.AIMAllReorWorkChain`.
 
    :param parent_group_label: the string of a group label which contains various structures as orm.Str nodes
    :param group_label: the string of the group to put the GaussianCalculations in
@@ -180,8 +185,8 @@ Attributes
 
    .. note::
 
-      A typical use case is using this as a controller on wfx files created by GaussianWFXCalculation. In that case,
-          match the `parent_group_label` here to the `wfxgroup` provided to the GaussianWFXCalculation.
+      A typical use case is using this as a controller on wfx files created by GaussianCalculation. In that case,
+          match the `parent_group_label` here to the `wfxgroup` provided to the GaussianCalculation.
           In GaussianOptWorkchain, this is `opt_wfx` by default
 
    .. rubric:: Example
@@ -249,7 +254,7 @@ Attributes
 
    .. py:method:: get_inputs_and_processclass_from_extras(extras_values)
 
-      Constructs input for a AimReor Workchain from extra_values
+      Constructs input for a :func:`aiida_aimall.workchains.param_parts.AIMAllReorWorkChain` from extra_values
 
 
 
@@ -258,21 +263,22 @@ Attributes
 
    Bases: :py:obj:`aiida_submission_controller.FromGroupSubmissionController`
 
-   A controller for submitting AimQB calculations.
+   A controller for submitting :func:`aiida_aimall.calculations.AimqbCalculation`.
 
    :param parent_group_label: the string of a group label which contains various structures as orm.Str nodes
    :param group_label: the string of the group to put the GaussianCalculations in
    :param max_concurrent: maximum number of concurrent processes. Expected behaviour is to set to a large number
                           since we will be submitting to Cedar which will manage
    :param code_label: label of code, e.g. gaussian@cedar
-   :param aimparameters: dict of parameters for running AimQB, to be converted to AimqbParameters by the controller
+   :param aimparameters: dict of parameters for running AimQB, to be converted to
+                         :func:`aiida_aimall.data.AimqbParameters` by the controller
 
    :returns: Controller object, periodically use run_in_batches to submit new results
 
    .. note::
 
-      A typical use case is using this as a controller on wfx files created by GaussianWFXCalculation. In that case,
-          match the `parent_group_label` here to the `wfxgroup` provided to the GaussianWFXCalculation.
+      A typical use case is using this as a controller on wfx files created by `GaussianCalculation`. In that case,
+          match the `parent_group_label` here to the `wfxgroup` provided to the `GaussianCalculation`.
           In GaussianSubmissionController, this is `reor_wfx`
 
    .. rubric:: Example
@@ -344,19 +350,19 @@ Attributes
 
 
 
-.. py:class:: GaussianSubmissionController(code_label: str, g16_sp_params: dict, wfxgroup: str, *args, **kwargs)
+.. py:class:: GaussianSubmissionController(code_label: str, gauss_sp_params: dict, wfxgroup: str, *args, **kwargs)
 
 
    Bases: :py:obj:`aiida_submission_controller.FromGroupSubmissionController`
 
-   A controller for submitting Gaussian calculations.
+   A controller for submitting `GaussianCalculation`.
 
    :param parent_group_label: the string of a group label which contains various structures as orm.Str nodes
    :param group_label: the string of the group to put the GaussianCalculations in
    :param max_concurrent: maximum number of concurrent processes. Expected behaviour is to set to a large number
                           since we will be submitting to Cedar which will manage
    :param code_label: label of code, e.g. gaussian@cedar
-   :param g16_sp_params: dictionary of parameters to use in gaussian calculation
+   :param gauss_sp_params: dictionary of parameters to use in gaussian calculation
 
    :returns: Controller object, periodically use run_in_batches to submit new results
 
@@ -383,7 +389,7 @@ Attributes
            parent_group_label = 'struct', # Add structures to run to struct group
            group_label = 'gaussiansp', # Resulting nodes will be in the gaussiansp group
            max_concurrent = 1,
-           g16_sp_params = Dict(dict={
+           gauss_sp_params = Dict(dict={
                'link0_parameters': {
                    '%chk':'aiida.chk',
                    "%mem": "4000MB",
@@ -423,7 +429,7 @@ Attributes
 
 
 
-   .. py:attribute:: g16_sp_params
+   .. py:attribute:: gauss_sp_params
       :type: dict
 
 

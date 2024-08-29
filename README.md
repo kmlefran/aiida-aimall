@@ -44,13 +44,13 @@ A plugin to interface AIMAll with AiiDA
 * [`docs/`](docs/): Source code of documentation for [Read the Docs](http://aiida-diff.readthedocs.io/en/latest/)
 * [`examples/`](examples/): An example of how to link the four controllers in an overall workflow
 * [`tests/`](tests/): Basic regression tests using the [pytest](https://docs.pytest.org/en/latest/) framework (submitting a calculation, ...). Install `pip install -e .[testing]` and run `pytest`.
-  * [`conftest.py`](conftest.py): Configuration of fixtures for [pytest](https://docs.pytest.org/en/latest/)
+  * [`conftest.py`](PythonPackages/aiida-aimall/tests/conftest.py): Configuration of fixtures for [pytest](https://docs.pytest.org/en/latest/)
 * [`.gitignore`](.gitignore): Telling git which files to ignore
 * [`.pre-commit-config.yaml`](.pre-commit-config.yaml): Configuration of [pre-commit hooks](https://pre-commit.com/) that sanitize coding style and check for syntax errors. Enable via `pip install -e .[pre-commit] && pre-commit install`
 * [`.readthedocs.yml`](.readthedocs.yml): Configuration of documentation build for [Read the Docs](https://readthedocs.org/)
 * [`.isort.cfg`](.isort.cfg): Configuration to make isort and black precommit actions compatible
-* [`LICENSE`](LICENSE): License for your plugin
-* [`README.md`](README.md): This file
+* [`LICENSE`](PythonPackages/aiida-aimall/LICENSE): License for your plugin
+* [`README.md`](PythonPackages/aiida-aimall/README.md): This file
 * [`pyproject.toml`](setup.json): Python package metadata for registration on [PyPI](https://pypi.org/) and the [AiiDA plugin registry](https://aiidateam.github.io/aiida-registry/) (including entry points)
 
 

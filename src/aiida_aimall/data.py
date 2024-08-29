@@ -1,8 +1,5 @@
 """
 Data types provided by plugin
-
-Upon pip install, AimqbParameters  is accessible in AiiDA.data plugins
-Using the 'aimall' entry point
 """
 
 from aiida.orm import Dict
