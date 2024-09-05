@@ -43,8 +43,7 @@ with Gaussian software outputs [@gaussian], a versatile workflow enabling interf
 other quantum chemistry packages is also made available.
 
 Through a variety of workflows that can start with an .xyz file, AiiDA `StructureData`, or even with
-a SMILES string of a molecule, `aiida-aimall` provides a variety of use cases for automating
-and complex workflows. Additionally, tools to ensure that computers are not overloaded through
+a SMILES string of a molecule, `aiida-aimall` provides a variety of use cases for automating complex workflows. Additionally, tools to ensure that computers are not overloaded through
 too many simultaneous processes are made availabe through classes of `FromGroupSubmissionController`s
 from `aiida-submission-controller` to limit active processes.
 
@@ -69,7 +68,7 @@ Some of the workflows in `aiida-aimall` automate calculation of substituent prop
 
 ## Integrations with Computational Chemistry Software
 
-`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table 1. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package. Other computational chemistry software like ORCA can be run through the `QMToAIMWorkchain`, which uses `aiida-shell` to run software than can be run through the command line. If .molden or .cp2k output formats are available, one could alternatively use these to generate the needed .wfx files for AIMAll, and automatically run AIMAll through the `GenerateWFXToAIMWorkchain`.
+`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table 1. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package. Other computational chemistry software like ORCA can be run through the `QMToAIMWorkchain`, which uses `aiida-shell` to run software than can be run through the command line. If .molden or .cp2k.out output formats are available, one could alternatively use these to generate the needed .wfx files for AIMAll, and automatically run AIMAll through the `GenerateWFXToAIMWorkchain`.
 
 Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points that can be used to load them by `aiida.plugins.WorkflowFactory`, and a brief description. These workflows all end with the output of an `AimqbCalculation` as their main output.[]{label="workflows"}
 
@@ -91,13 +90,13 @@ Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points t
 +---------------------------------+-----------------+------------------------------+
 | `SubstituentParameterWorkChain` | aimall.subparam | Compute substituent \        |
 |                                 |                 |   properties defined by \    |
-|                                 |                 |   the authors automatically  |
+|                                 |                 |   the authors[@klg] automatically  |
 +:===============================:+:===============:+:============================:+
 
 
 ## Controllers to limit computer burden when running large numbers of jobs
-The last main contribution of `aiida-aimall` is through the definition of `FromGroupSubmissionController`s from the `aiida-submission-controller` package. These controllers limit active processes and can be used together as
-demonstrated in (the example notebook) to automate the entire `SubstituentParameterWorkchain`. These use a number of `Workchains` developed just for their use in these controllers. The process flows as `SmilesToGaussianController` -> `AIMAllReorController` -> `GaussianController` -> `AIMAllController`. The latter two controllers can also be seen and used as general use controllers wrapping `GaussianCalculations` and `AimqbCalculations`
+The last main contribution of `aiida-aimall` is through the definition of <br/><br/>`FromGroupSubmissionController`s from the `aiida-submission-controller` package. These controllers limit active processes and can be used together as
+demonstrated in [a tutorial notebook](https://aiida-aimall.readthedocs.io/en/latest/tutorials/controllers.html)) to automate the entire `SubstituentParameterWorkchain`. These use a number of `Workchains` developed just for their use in these controllers. The process flows as `SmilesToGaussianController` -> `AIMAllReorController` -> `GaussianController` -> `AIMAllController`. The latter two controllers can also be seen and used as general use controllers wrapping `GaussianCalculations` and `AimqbCalculations`
 
 # Acknowledgements
 
