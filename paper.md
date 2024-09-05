@@ -90,7 +90,7 @@ Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points t
 +---------------------------------+-----------------+------------------------------+
 | `SubstituentParameterWorkChain` | aimall.subparam | Compute substituent \        |
 |                                 |                 |   properties defined by \    |
-|                                 |                 |   the authors[@klg] automatically  |
+|                                 |                 |   the authors automatically  |
 +:===============================:+:===============:+:============================:+
 
 
