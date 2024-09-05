@@ -95,7 +95,7 @@ Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points t
 
 
 ## Controllers to limit computer burden when running large numbers of jobs
-The last main contribution of `aiida-aimall` is through the definition of <br/><br/>`FromGroupSubmissionController`s from the `aiida-submission-controller` package. These controllers limit active processes and can be used together as
+The last main contribution of `aiida-aimall` is through the definition of controllers from the `aiida-submission-controller` package. These controllers limit active processes and can be used together as
 demonstrated in [a tutorial notebook](https://aiida-aimall.readthedocs.io/en/latest/tutorials/controllers.html)) to automate the entire `SubstituentParameterWorkchain`. These use a number of `Workchains` developed just for their use in these controllers. The process flows as `SmilesToGaussianController` -> `AIMAllReorController` -> `GaussianController` -> `AIMAllController`. The latter two controllers can also be seen and used as general use controllers wrapping `GaussianCalculations` and `AimqbCalculations`
 
 # Acknowledgements
