@@ -64,7 +64,7 @@ This functionality in itself is an overcomplication of the simple process of run
 
 ## Substituent Properties
 
-Some of the workflows in `aiida-aimall` automate calculation of substituent properties from AIMAll output. The `SubstituentParameterWorkChain` does this automatically, and any routine AIMAll calculation can make use of this by using the `AimqbGroupParser`, which can be provided in metadata input to `AimqbCalculation` as an entry in the metadata dictionary: `metadata.options.parser_name:'aimall.group'`. A detailed description of the calculated substituent properties is available [in a tutorial in the documentation.](https://aiida-aimall.readthedocs.io/en/latest/tutorials/aimqbgroupcalculation.html) Integrated and graph properties are obtained.
+Some of the workflows in `aiida-aimall` automate calculation of substituent properties from AIMAll output. These substituent properties have been developed by the authors.[@klg] The `SubstituentParameterWorkChain` does this automatically, and any routine AIMAll calculation can make use of this by using the `AimqbGroupParser`, which can be provided in metadata input to `AimqbCalculation` as an entry in the metadata dictionary: `metadata.options.parser_name:'aimall.group'`. A detailed description of the calculated substituent properties is available [in a tutorial in the documentation.](https://aiida-aimall.readthedocs.io/en/latest/tutorials/aimqbgroupcalculation.html) Integrated and graph properties are obtained.
 
 ## Integrations with Computational Chemistry Software
 
@@ -100,6 +100,6 @@ demonstrated in [a tutorial notebook](https://aiida-aimall.readthedocs.io/en/lat
 
 # Acknowledgements
 
-We acknowledge NSERC, NWO Heritage ....
+We acknowledge the National Science and Engineering Research Council of Canada (grant RGPIN-2022-05060), and the Northern Ontario Heritage Fund Corporation (grant 7401278) for financial support.
 
 # References
