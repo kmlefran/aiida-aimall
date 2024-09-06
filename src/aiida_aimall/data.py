@@ -49,18 +49,25 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
     pass command line options to the executable.
     The class takes a dictionary of parameters and validates
     to ensure the aimqb command line parameters are correct
+
+    Args:
+        parameters_dict (`dict`): dictionary with commandline parameters
+
+    Usage: 
+        ``AimqbParameters(parameter_dict{'naat':2})``
+
     """
 
     schema = Schema(cmdline_options)
 
     def __init__(self, parameter_dict=None, **kwargs):
         """Constructor for the data class
+      
+        Args:
+            parameters_dict (`dict`): dictionary with commandline parameters
 
-        Usage: ``AimqbParameters(parameter_dict{'ignore-case': True})``
-
-        :param parameters_dict: dictionary with commandline parameters
-        :param type parameters_dict: dict
-
+        Usage: 
+            ``AimqbParameters(parameter_dict{'naat':2})``
         """
         parameter_dict = self.validate(parameter_dict)
         super().__init__(dict=parameter_dict, **kwargs)
@@ -72,19 +79,24 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
 
             print(AimqbParameters).schema.schema
 
-        :param parameters_dict: dictionary with commandline parameters
-        :param type parameters_dict: dict
-        :returns: validated dictionary
+        Args:
+            parameters_dict (dict): dictionary with commandline parameters
+
+        Returns:
+            input dictionary validated against the allowed options for aimqb         
+        
         """
         return AimqbParameters.schema(parameters_dict)
 
     def cmdline_params(self, file_name):
-        """Synthesize command line parameters.
+        """Synthesize command line parameters and add -nogui for use in `AimqbCalculation`.
 
-        e.g. [ '-atlaprhocps=True',...,'-nogui', 'filename']
+        Args:
+            file_name (str): Name of wfx/fchk/wfn file
 
-        :param file_name: Name of wfx/fchk/wfn file
-        :param type file_name: str
+        Returns:
+            command line parameters for aimqb collected in a list
+                e.g. [ '-atlaprhocps=True',...,'-nogui', 'filename']
 
         """
         # parameters = []
@@ -99,12 +111,11 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
         return [str(p) for p in parameters]
 
     def __str__(self):
-        """String representation of node.
-
-        Append values of dictionary to usual representation. E.g.::
-
-            uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590)
-            {'atlaprhocps': True}
+        """String representation of node. Append values of dictionary to usual representation.
+      
+        Returns:
+            uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590) {'atlaprhocps': True}
+            
 
         """
         string = super().__str__()

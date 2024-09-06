@@ -3,8 +3,8 @@ from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import Dict, Int, List, SinglefileData
 from aiida.plugins import DataFactory
+from aiida_aimall.data import AimqbParameters
 
-AimqbParameters = DataFactory("aimall.aimqb")
 
 
 class AimqbCalculation(CalcJob):
@@ -12,10 +12,10 @@ class AimqbCalculation(CalcJob):
 
     Attributes:
         parameters (AimqbParameters): command line parameters for the AimqbCalculation
-        file (SinglefileData): the wfx, wfn, or fchk file to be run
-        code (Code): code of the AIMQB executable
-        attached_atom_int (Int): the integer label of the atom in the group that is attached to the rest of the molecule
-        group_atoms (List(Int)): integer ids of atoms comprising the group for AimqbGroupParser
+        file (`SinglefileData`): the wfx, wfn, or fchk file to be run
+        code (`Code`): code of the AIMQB executable
+        attached_atom_int (`Int`): otional integer label of the atom in the group that is attached to the rest of the molecule
+        group_atoms (`List(int)`): optional integer ids of atoms comprising the group for AimqbGroupParser
 
     Example:
         ::
@@ -36,13 +36,18 @@ class AimqbCalculation(CalcJob):
 
     Note:
         By default, the AimqbBaseParser is used, getting atomic, BCP, and (if applicable) LapRhoCps.
-            You can opt to use the AimqbGroupParser, which also returns the integrated group properties model
-            of a group, as well as the atomic graph descriptor of the group. This is done by providing this to the builder:
+            You can opt to use the AimqbGroupParser, which also returns the integrated group properties 
+            of a group, as well as the atomic graph descriptor of the group. In doing so, you can also
+            define the atoms included in the group, which, by convention, defaults to all atoms except atom 2.
+            You can further specify which atom of the group is the one bonded to the substrate, which defaults to
+            atom 1.  This is done by providing this to the builder:
 
         ::
 
             builder.metadata.options.parser_name = "aimall.group"
-
+            builder.attached_atom_int = Int(1)
+            builder.group_atoms = List([1,3,4,5,6])
+        
     """
 
     INPUT_FILE = "aiida.wfx"
@@ -104,9 +109,7 @@ class AimqbCalculation(CalcJob):
         )
         spec.outputs.dynamic = True
 
-        # would put error codes here
 
-    # ---------------------------------------------------
 
     def prepare_for_submission(self, folder):
         """Create input files.
