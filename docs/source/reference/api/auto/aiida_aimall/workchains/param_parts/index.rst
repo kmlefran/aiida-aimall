@@ -28,7 +28,67 @@ Classes
 
    Bases: :py:obj:`aiida.engine.WorkChain`
 
-   Workchain to take a SMILES, generate xyz, charge, and multiplicity
+   Workchain to take a substituent SMILES, and run a Gaussian calculation on that SMILES
+
+   Takes an input SMILES with one placeholder \*, generates a geometry with \* replaced with a hydrogen.
+   U
+
+   .. attribute:: smiles
+
+      SMILES of a substiuent. Must contain a single placeholder \*
+
+      :type: aiida.orm.Str
+
+   .. attribute:: gaussian_parameters
+
+      Gaussian calculation for generating a wfx
+
+      :type: aiida.orm.Dict
+
+   .. attribute:: gaussian_code
+
+      Gaussian Code
+
+      :type: aiida.orm.Code
+
+   .. attribute:: wfxname
+
+      name of wfx file provided in gaussian_parameters
+
+      :type: aiida.orm.Str
+
+   .. attribute:: wfxgroup
+
+      group to store the wfx file in
+
+      :type: aiida.orm.Str
+
+   .. attribute:: mem_mb
+
+      amount of memory in MB for the Gaussian calculation
+
+      :type: aiida.orm.Int
+
+   .. attribute:: nprocs
+
+      number of processors for the Gaussian calculation
+
+      :type: aiida.orm.Int
+
+   .. attribute:: time_s
+
+      amount of time to run the Gaussian calculation
+
+      :type: aiida.orm.Int
+
+   .. note:: The SMILES provided should have a single \*.
+
+   .. note:: Uses the charge and multiplicity of the provided SMILES, not that provided to gaussian_parameters
+
+   .. note::
+
+      'output':'wfx' should be provided to `gaussian_parameters`. And a .wfx file name should be provided
+      as well
 
    .. py:method:: define(spec)
       :classmethod:
@@ -87,7 +147,60 @@ Classes
 
    Workchain to run AIM and then reorient the molecule using the results
 
-   Process continues in GaussianSubmissionController
+   Often called in `aiida_aimall.controllers.AimReorSubmissionController`.
+   Process continues in `aiida_aimall.controllers.GaussianSubmissionController`.
+
+   .. attribute:: aim_params
+
+      (AimqbParameters): Command line parameters for aimqb
+
+   .. attribute:: file
+
+      .fchk, .wfn, or .wfx file for aimqb input
+
+      :type: aiida.orm.SinglefileData
+
+   .. attribute:: aim_code
+
+      AIMQB code
+
+      :type: aiida.orm.Code
+
+   .. attribute:: frag_label
+
+      Optional SMILES tag of the substituent
+
+      :type: aiida.orm.Str
+
+   .. attribute:: aim_group
+
+      Optional group to put the AIM calculation node in
+
+      :type: aiida.orm.Str
+
+   .. attribute:: reor_group
+
+      Optional group to put the reoriented structure in
+
+      :type: aiida.orm.Str
+
+   Example
+
+       ::
+
+           from aiida_aimall.data import AimqbParameters
+           from aiida_aimall.workchains.param_parts import AIMAllReorWorkChain
+           from aiida.orm import SinglefileData, load_code
+           from aiida.engine import submit
+           input_file = SinglefileData("/absolute/path/to/file")
+           aim_code = load_code("aimall@localhost")
+           aim_params = AimqbParameters({'nproc':2,'naat':2,'atlaprhocps':True})
+           builder = AIMAllReorWorkChain.get_builder()
+           builder.file = input_file
+           builder.aim_code = aim_code
+           builder.aim_params = aim_params
+           submit(builder)
+
 
    .. py:method:: define(spec)
       :classmethod:

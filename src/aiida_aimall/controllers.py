@@ -10,27 +10,25 @@ and `SmilesToGaussianWorkChain`.
 
 from aiida import orm
 from aiida.orm import Dict, Int, Str
-from aiida.plugins import CalculationFactory, DataFactory, WorkflowFactory
+from aiida.plugins import CalculationFactory, WorkflowFactory
 from aiida_submission_controller import FromGroupSubmissionController
 
-AimqbParameters = DataFactory("aimall.aimqb")
-GaussianCalculation = CalculationFactory("gaussian")
-AimqbCalculation = CalculationFactory("aimall.aimqb")
+from aiida_aimall.data import AimqbParameters
 
 
 class SmilesToGaussianController(FromGroupSubmissionController):
     """A controller for submitting :func:`aiida_aimall.workchains.param_parts.SmilesToGaussianWorkChain`
 
     Args:
-        parent_group_label: the string of a group label which contains various SMILES as orm.Str nodes
-        group_label: the string of the group to put the GaussianCalculations in
-        max_concurrent: maximum number of concurrent processes.
-        code_label: label of code, e.g. gaussian@cedar
-        gauss_opt_params: Dict of Gaussian parameters to use
-        wfxgroup: group in which to store the resulting wfx files
-        nprocs: number of processors for gaussian calculation
-        mem_mb: amount of memory in MB for Gaussian calculation
-        time_s: wallclock time in seconds for Gaussian calculation
+        parent_group_label (`str`): group label which contains various SMILES as orm.Str nodes
+        group_label (`str`): group in which to put the GaussianCalculations
+        wfxgroup (`str`): group in which to store the resulting wfx files
+        max_concurrent (`int`): maximum number of concurrent processes
+        code_label (`str`): label of Gaussian code, e.g. gaussian@cedar
+        gauss_opt_params(`Dict`): Dict of Gaussian parameters to use
+        nprocs (`int`): number of processors for gaussian calculation
+        mem_mb (`int`): amount of memory in MB for Gaussian calculation
+        time_s (`int`): wallclock time in seconds for Gaussian calculation
 
     Returns:
         Controller object, periodically use run_in_batches to submit new results

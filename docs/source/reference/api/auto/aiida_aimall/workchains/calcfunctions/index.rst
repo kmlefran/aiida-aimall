@@ -31,6 +31,7 @@ Functions
    aiida_aimall.workchains.calcfunctions.get_wfxname_from_gaussianinputs
    aiida_aimall.workchains.calcfunctions.create_wfx_from_retrieved
    aiida_aimall.workchains.calcfunctions.validate_shell_code
+   aiida_aimall.workchains.calcfunctions.validate_parser
    aiida_aimall.workchains.calcfunctions.validate_file_ext
    aiida_aimall.workchains.calcfunctions.get_molecule_str_from_smiles
    aiida_aimall.workchains.calcfunctions.xyzfile_to_StructureData
@@ -42,6 +43,7 @@ Functions
    Rotates the fragment to the defined coordinate system
 
    :param FolderData: aim calculation folder
+   :type FolderData: aiida.orm.FolderData
    :param atom_dict: AIM atom dict
    :param cc_dict: AIM cc_dict
 
@@ -65,13 +67,14 @@ Functions
           to just symbols
 
 
-.. py:function:: dict_to_structure(fragment_dict: aiida.orm.Dict)
+.. py:function:: dict_to_structure(fragment_dict)
 
    Generate a StructureData for Gaussian inputs
 
    :param fragment_dict: AiiDA orm.Dict with keys 'atom_symbols' and 'geom'
+   :type fragment_dict: aiida.orm.Dict
 
-   :returns: StructureData for the molecule
+   :returns: aiida.orm.StructureData for the molecule
 
    .. note::
 
@@ -181,6 +184,15 @@ Functions
    :param node: input node to check the type for ShellCode or Str
 
    :returns: None if the type is ShellCode or Str, or error string if node is not
+
+
+.. py:function:: validate_parser(node, _)
+
+   Validate the parser, ensuring that the provided value is one of the accepted values.
+
+   :param node: input node to check the type for ShellCode or Str
+
+   :returns: None if the value is aimall.base or aimall.group, or an error string if it is not
 
 
 .. py:function:: validate_file_ext(node, _)

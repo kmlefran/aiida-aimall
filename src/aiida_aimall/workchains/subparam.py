@@ -18,7 +18,92 @@ from aiida_aimall.workchains.param_parts import AIMAllReorWorkChain
 
 
 class SubstituentParameterWorkChain(BaseInputWorkChain):
-    """A workchain to perform the full suite of KLG's substituent parameter determining"""
+    r"""A workchain to calculate properties of substituents, R, in R-H molecules.
+
+    This is a multistep calculation, consisting of a Gaussian calculation, an AIMQB calculation,
+    Python reorientation to the defined coordinate system, a Gaussian single point calculation,
+    and a final AIMQB calculation on the single point wfx calculation. Substituent Properties are
+    then extracted using the AimqbGroupParser.
+
+    Attributes:
+        gauss_opt_params (aiida.orm.Dict): Parameters for the Gaussian optimization calculations
+        gauss_sp_params (aiida.orm.Dict): Parameters for the Gaussian single point calculations
+        aim_params (AimqbParameters): Command line parameters for AIMQB
+        gauss_code (aiida.orm.Code): Code for Gaussian software
+        frag_label (aiida.orm.Str): Optional fragment label for the calculation
+        opt_wfx_group (aiida.orm.Str): Optional group to put optimization wavefunctions in
+        sp_wfx_group (aiida.orm.Str): Optional group to put single point wavefunctions in
+        gaussian_opt_group (aiida.orm.Str): Optional group to put optimization GaussianCalculations in
+        gaussian_sp_group (aiida.orm.Str): Optional group to put single point GaussianCalculations in
+        wfx_filename (aiida.orm.Str): Optional wfx file name
+        aim_code (aiida.orm.Code): Code for AIMQB software
+        dry_run (aiida.orm.Bool): Whether or not this is a dry run of the WorkChain
+
+    Note:
+        Here, the group for a substiuent is defined in an R-H molecule. Atom 1 is the atom in
+        the group R that is attached to the hydrogen, and the hydrogen should be atom 2. These
+        align with the default settings of an AimqbCalculation using an AimqbGroupParser.
+
+    Example:
+        ::
+
+            from aiida.plugins import WorkflowFactory, DataFactory
+            from aiida.orm import Dict, StructureData, load_code
+            from aiida.engine import submit
+            from aiida import load_profile
+            import io
+            import ase.io
+
+            load_profile()
+
+            SubstituentParameterWorkchain = WorkflowFactory('aimall.subparam')
+            AimqbParameters = DataFactory('aimall.aimqb')
+            aim_input = AimqbParameters({'nproc':2,'naat':2,'atlaprhocps':True})
+            gaussian_opt = Dict(
+                        {
+                            "link0_parameters": {
+                                "%chk": "aiida.chk",
+                                "%mem": "3200MB",  # Currently set to use 8000 MB in .sh files
+                                "%nprocshared": 4,
+                            },
+                            "functional": "wb97xd",
+                            "basis_set": "aug-cc-pvtz",
+                            "charge": 0,
+                            "multiplicity": 1,
+                            "route_parameters": {"opt": None, "Output": "WFX"},
+                            "input_parameters": {"output.wfx": None},
+                        }
+            )
+            gaussian_sp = Dict(
+                        {
+                            "link0_parameters": {
+                                "%chk": "aiida.chk",
+                                "%mem": "3200MB",  # Currently set to use 8000 MB in .sh files
+                                "%nprocshared": 4,
+                            },
+                            "functional": "wb97xd",
+                            "basis_set": "aug-cc-pvtz",
+                            "charge": 0,
+                            "multiplicity": 1,
+                            "route_parameters": {"nosymmetry": None, "Output": "WFX"},
+                            "input_parameters": {"output.wfx": None},
+                        }
+            )
+            f = io.StringIO(
+                            "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+                        )
+            struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+            f.close()
+            builder = SubstituentParameterWorkchain.get_builder()
+            builder.g16_code = load_code('gaussian@localhost')
+            builder.aim_code = load_code('aimall@localhost')
+            builder.g16_opt_params = gaussian_opt
+            builder.g16_sp_params = gaussian_sp
+            builder.structure = struct_data
+            builder.aim_params = aim_input
+            submit(builder)
+
+    """
 
     @classmethod
     def define(cls, spec):

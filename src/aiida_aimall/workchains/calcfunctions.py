@@ -18,7 +18,7 @@ def generate_rotated_structure_aiida(FolderData, atom_dict, cc_dict):
     """Rotates the fragment to the defined coordinate system
 
     Args:
-        FolderData: aim calculation folder
+        FolderData (aiida.orm.FolderData): aim calculation folder
         atom_dict: AIM atom dict
         cc_dict: AIM cc_dict
 
@@ -50,14 +50,14 @@ def remove_numcharss_from_strlist(in_list):
 
 
 @calcfunction
-def dict_to_structure(fragment_dict: Dict):
+def dict_to_structure(fragment_dict):
     """Generate a StructureData for Gaussian inputs
 
     Args:
-        fragment_dict: AiiDA orm.Dict with keys 'atom_symbols' and 'geom'
+        fragment_dict (aiida.orm.Dict): AiiDA orm.Dict with keys 'atom_symbols' and 'geom'
 
     Returns:
-        StructureData for the molecule
+        aiida.orm.StructureData for the molecule
 
     Note:
         input can be generated, for example, by
@@ -224,7 +224,7 @@ def get_substituent_input(smiles: str) -> dict:
     """For a given smiles, determine xyz structure, charge, and multiplicity
 
     Args:
-        smiles: SMILEs of substituent to run
+        smiles (str): SMILEs of substituent to run
 
     Returns:
         Dict with keys xyz, charge, multiplicity
@@ -360,6 +360,21 @@ def validate_shell_code(node, _):
         "data.core.str.Str.",
     ]:
         return "the `shell_code` input must be either ShellCode or Str of the command."
+    return None
+
+
+def validate_parser(node, _):
+    """Validate the parser, ensuring that the provided value is one of the accepted values.
+
+    Args:
+        node: input node to check the type for ShellCode or Str
+
+    Returns:
+        None if the value is aimall.base or aimall.group, or an error string if it is not
+    """
+
+    if node.value not in ["aimall.base", "aimall.group"]:
+        return "the `aim_parser` input must be either aimall.base or aimall.group"
     return None
 
 

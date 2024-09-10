@@ -53,7 +53,7 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
     Args:
         parameters_dict (`dict`): dictionary with commandline parameters
 
-    Usage: 
+    Usage:
         ``AimqbParameters(parameter_dict{'naat':2})``
 
     """
@@ -62,11 +62,11 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
 
     def __init__(self, parameter_dict=None, **kwargs):
         """Constructor for the data class
-      
+
         Args:
             parameters_dict (`dict`): dictionary with commandline parameters
 
-        Usage: 
+        Usage:
             ``AimqbParameters(parameter_dict{'naat':2})``
         """
         parameter_dict = self.validate(parameter_dict)
@@ -83,8 +83,8 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
             parameters_dict (dict): dictionary with commandline parameters
 
         Returns:
-            input dictionary validated against the allowed options for aimqb         
-        
+            input dictionary validated against the allowed options for aimqb
+
         """
         return AimqbParameters.schema(parameters_dict)
 
@@ -112,10 +112,9 @@ class AimqbParameters(Dict):  # pylint: disable=too-many-ancestors
 
     def __str__(self):
         """String representation of node. Append values of dictionary to usual representation.
-      
+
         Returns:
-            uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590) {'atlaprhocps': True}
-            
+            representation of node, including uuid, pk, and the contents of the dictionary
 
         """
         string = super().__str__()
