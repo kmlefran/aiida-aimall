@@ -27,8 +27,34 @@ Classes
 
    Bases: :py:obj:`aiida.engine.WorkChain`
 
-   A workchain to generate and validate inputs. One of SinglefileData, Smiles as Str or StructureData should be
-   provided
+   A workchain to generate and validate inputs.
+
+   Provided an .xyz file as `SinglefileData`, molecule `StructureData`, or SMILES of the molecule
+   validates that only one is provided. Then, prepares the input into a format for future GaussianCalculations.
+
+   .. attribute:: structure
+
+      StructureData of molecule to run
+
+      :type: aiida.orm.StructureData
+
+   .. attribute:: smiles
+
+      smiles string of molecule
+
+      :type: aiida.orm.Str
+
+   .. attribute:: xyz_file
+
+      file data of an xyz file
+
+      :type: aiida.orm.SinglefileData
+
+   .. note::
+
+      This is a base class that is used by other WorkChains
+          (:func:`aiida_aimall.workchains.subparam.SubstituentParameterWorkChain`, and
+          :func:`aiida_aimall.workchains.qc_programs.GaussianToAIMWorkChain`)
 
    .. py:method:: define(spec)
       :classmethod:

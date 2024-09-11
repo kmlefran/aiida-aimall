@@ -260,7 +260,10 @@ nitpick_ignore = [
     ),
     ("py:class", "SinglefileData"),
     ("py:class", "Int"),
+    ("py:class", "Str"),
     ("py:class", "Code"),
     ("py:class", "QbFields"),
+    ("py:class", "StructureData"),
+    ("py:class", "Bool"),
     ("py:obj", "aiida_submission_controller.FromGroupSubmissionController"),
 ]

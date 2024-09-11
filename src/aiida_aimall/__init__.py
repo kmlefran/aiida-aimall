@@ -1,7 +1,4 @@
-"""
-aiida_aimall
-
-A plugin to interface AIMAll with AiiDA
+"""Integration of AIMQB and aiida
 """
 
 __version__ = "0.7.5"
