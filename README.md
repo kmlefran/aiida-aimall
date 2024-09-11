@@ -14,36 +14,35 @@ A plugin to interface AIMAll with AiiDA
     * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and continuous integration at every new commit
     * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
   * [`config/`](.github/config) config files for testing/docs environment
-    * [`code-aim.yaml`](.github/workflows/config/code-aim.yaml) config file for building precommit and test envs
-    * [`code-gwfx.yaml`](.github/workflows/config/code-gwfx.yaml) config file for building precommit and test envs
-    * [`profile.yaml`](.github/workflows/config/profile.yaml) config file for aiida profile
-    * [`localhost-config.yaml`](.github/workflows/config/localhost-config.yaml) config file for localhost computer
-    * [`localhost-setup.yaml`](.github/workflows/config/localhost-setup.yaml) setup file for localhost computer
-* [`aiida_aimall/`](aiida_aimall/): The main source code of the plugin package
-  * [`data.py`](aiida_aimall/data.py): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
-  * [`calculations.py`](aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class
-  * [`parsers.py`](aiida_aimall/parsers.py): Two parsers (`AimqbBaseParser` and `AimqbGroupParser`) for `AimqbCalculation` results
-  * [`workchains/`](aiida_aimall/workchains/): New `WorkChains`.
-    * [`calcfunctions.py`](aiida_aimall/workchains/calcfunctions.py): `calcfunction`s that are used in the workchains
-    * [`input.py`](aiida_aimall/workchains/input.py): `BaseInputWorkChain` that is used in other workchains to validate multiple input options
-    * [`param_parts.py`](aiida_aimall/workchains/param_parts.py): `SmilesToGaussianWorkChain` and `AIMAllReorWorkChain`: two workchains representing individual steps of the `SubstituentParameterWorkchain`
-    * [`qc_programs.py`](aiida_aimall/workchains/qc_programs.py): `QMToAIMWorkChain` and `GaussianToAIMWorkChain` linking quantum chemical software output to an AIMQB calculation
-    * [`subparam.py`](aiida_aimall/workchains/subparam.py): `SubstituentParameterWorkchain` to automate calculation substituent properties in a multistep calculation.
-* [`controllers.py`](aiida_aimall/controllers.py): Workflow controllers to limit number of running jobs on localhost computers.
+    * [`code-aim.yaml`](.github/config/code-aim.yaml) config file for building precommit and test envs
+    * [`code-gwfx.yaml`](.github/config/code-gwfx.yaml) config file for building precommit and test envs
+    * [`profile.yaml`](.github/config/profile.yaml) config file for aiida profile
+    * [`localhost-config.yaml`](.github/config/localhost-config.yaml) config file for localhost computer
+    * [`localhost-setup.yaml`](.github/config/localhost-setup.yaml) setup file for localhost computer
+* [`aiida_aimall/`](src/): The main source code of the plugin package
+  * [`data.py`](src/data.py): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
+  * [`calculations.py`](src/calculations.py): A new `AimqbCalculation` `CalcJob` class
+  * [`parsers.py`](src/parsers.py): Two parsers (`AimqbBaseParser` and `AimqbGroupParser`) for `AimqbCalculation` results
+  * [`workchains/`](src/workchains/): New `WorkChains`.
+    * [`calcfunctions.py`](src/workchains/calcfunctions.py): `calcfunction`s that are used in the workchains
+    * [`input.py`](src/workchains/input.py): `BaseInputWorkChain` that is used in other workchains to validate multiple input options
+    * [`param_parts.py`](src/workchains/param_parts.py): `SmilesToGaussianWorkChain` and `AIMAllReorWorkChain`: two workchains representing individual steps of the `SubstituentParameterWorkchain`
+    * [`qc_programs.py`](src/workchains/qc_programs.py): `QMToAIMWorkChain` and `GaussianToAIMWorkChain` linking quantum chemical software output to an AIMQB calculation
+    * [`subparam.py`](src/workchains/subparam.py): `SubstituentParameterWorkchain` to automate calculation substituent properties in a multistep calculation.
+* [`controllers.py`](src/controllers.py): Workflow controllers to limit number of running jobs on localhost computers.
   * `AimReorSubmissionController` to control `AimReorWorkChain`s. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
   * `AimAllSubmissionController` to control `AimqbCalculations``. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
   * `GaussianSubmissionController` to control `GaussianWFXCalculations`. This is mostly intended to have a arbitrarily large number of max concurrents and scan for output structures of `AimReorWorkchain`s to submit to a remote cluster
 * [`docs/`](docs/): Source code of documentation for [Read the Docs](http://aiida-diff.readthedocs.io/en/latest/)
-* [`examples/`](examples/): An example of how to link the four controllers in an overall workflow
 * [`tests/`](tests/): Basic regression tests using the [pytest](https://docs.pytest.org/en/latest/) framework (submitting a calculation, ...). Install `pip install -e .[testing]` and run `pytest`.
-  * [`conftest.py`](PythonPackages/aiida-aimall/tests/conftest.py): Configuration of fixtures for [pytest](https://docs.pytest.org/en/latest/)
+  * [`conftest.py`](tests/conftest.py): Configuration of fixtures for [pytest](https://docs.pytest.org/en/latest/)
 * [`.gitignore`](.gitignore): Telling git which files to ignore
 * [`.pre-commit-config.yaml`](.pre-commit-config.yaml): Configuration of [pre-commit hooks](https://pre-commit.com/) that sanitize coding style and check for syntax errors. Enable via `pip install -e .[pre-commit] && pre-commit install`
 * [`.readthedocs.yml`](.readthedocs.yml): Configuration of documentation build for [Read the Docs](https://readthedocs.org/)
 * [`.isort.cfg`](.isort.cfg): Configuration to make isort and black precommit actions compatible
-* [`LICENSE`](PythonPackages/aiida-aimall/LICENSE): License for your plugin
-* [`README.md`](PythonPackages/aiida-aimall/README.md): This file
-* [`pyproject.toml`](setup.json): Python package metadata for registration on [PyPI](https://pypi.org/) and the [AiiDA plugin registry](https://aiidateam.github.io/aiida-registry/) (including entry points)
+* [`LICENSE`](LICENSE): License for your plugin
+* [`README.md`](README.md): This file
+* [`pyproject.toml`](pyproject.toml): Python package metadata for registration on [PyPI](https://pypi.org/) and the [AiiDA plugin registry](https://aiidateam.github.io/aiida-registry/) (including entry points)
 
 ## Features
 
