@@ -19,17 +19,17 @@ A plugin to interface AIMAll with AiiDA
     * [`profile.yaml`](.github/config/profile.yaml) config file for aiida profile
     * [`localhost-config.yaml`](.github/config/localhost-config.yaml) config file for localhost computer
     * [`localhost-setup.yaml`](.github/config/localhost-setup.yaml) setup file for localhost computer
-* [`aiida_aimall/`](src/): The main source code of the plugin package
-  * [`data.py`](src/data.py): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
-  * [`calculations.py`](src/calculations.py): A new `AimqbCalculation` `CalcJob` class
-  * [`parsers.py`](src/parsers.py): Two parsers (`AimqbBaseParser` and `AimqbGroupParser`) for `AimqbCalculation` results
-  * [`workchains/`](src/workchains/): New `WorkChains`.
-    * [`calcfunctions.py`](src/workchains/calcfunctions.py): `calcfunction`s that are used in the workchains
-    * [`input.py`](src/workchains/input.py): `BaseInputWorkChain` that is used in other workchains to validate multiple input options
-    * [`param_parts.py`](src/workchains/param_parts.py): `SmilesToGaussianWorkChain` and `AIMAllReorWorkChain`: two workchains representing individual steps of the `SubstituentParameterWorkchain`
-    * [`qc_programs.py`](src/workchains/qc_programs.py): `QMToAIMWorkChain` and `GaussianToAIMWorkChain` linking quantum chemical software output to an AIMQB calculation
-    * [`subparam.py`](src/workchains/subparam.py): `SubstituentParameterWorkchain` to automate calculation substituent properties in a multistep calculation.
-* [`controllers.py`](src/controllers.py): Workflow controllers to limit number of running jobs on localhost computers.
+* [`aiida_aimall/`](src/aiida_aimall/): The main source code of the plugin package
+  * [`data.py`](src/aiida_aimall/data.py): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
+  * [`calculations.py`](src/aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class
+  * [`parsers.py`](src/aiida_aimall/parsers.py): Two parsers (`AimqbBaseParser` and `AimqbGroupParser`) for `AimqbCalculation` results
+  * [`workchains/`](src/aiida_aimall/workchains/): New `WorkChains`.
+    * [`calcfunctions.py`](src/aiida_aimall/workchains/calcfunctions.py): `calcfunction`s that are used in the workchains
+    * [`input.py`](src/aiida_aimall/workchains/input.py): `BaseInputWorkChain` that is used in other workchains to validate multiple input options
+    * [`param_parts.py`](src/aiida_aimall/workchains/param_parts.py): `SmilesToGaussianWorkChain` and `AIMAllReorWorkChain`: two workchains representing individual steps of the `SubstituentParameterWorkchain`
+    * [`qc_programs.py`](src/aiida_aimall/workchains/qc_programs.py): `QMToAIMWorkChain` and `GaussianToAIMWorkChain` linking quantum chemical software output to an AIMQB calculation
+    * [`subparam.py`](src/aiida_aimall/workchains/subparam.py): `SubstituentParameterWorkchain` to automate calculation substituent properties in a multistep calculation.
+* [`controllers.py`](src/aiida_aimall/controllers.py): Workflow controllers to limit number of running jobs on localhost computers.
   * `AimReorSubmissionController` to control `AimReorWorkChain`s. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
   * `AimAllSubmissionController` to control `AimqbCalculations``. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
   * `GaussianSubmissionController` to control `GaussianWFXCalculations`. This is mostly intended to have a arbitrarily large number of max concurrents and scan for output structures of `AimReorWorkchain`s to submit to a remote cluster
