@@ -1,11 +1,41 @@
 """Tests for calcfunctions in aiida-aimall workchains"""
 # pylint:disable=no-member
+import os
+
 import pytest
 from aiida.orm import Dict, Int, SinglefileData, Str, StructureData
 from rdkit import Chem
 from subproptools import qtaim_extract as qt
 
 from aiida_aimall.workchains import calcfunctions as cf
+
+
+def test_get_molecule_str_from_smiles():
+    """Test get_molecule_str_from_smiles"""
+    with pytest.raises(ValueError):
+        _ = cf.get_molecule_str_from_smiles(Str("[NH4]")) is None
+    methane_Dict = cf.get_molecule_str_from_smiles(Str("C"))
+
+    assert isinstance(methane_Dict, Dict)
+    assert "xyz" in methane_Dict
+    assert "charge" in methane_Dict
+    assert "multiplicity" in methane_Dict
+    assert methane_Dict["charge"] == 0
+    assert methane_Dict["multiplicity"] == 1
+
+
+def test_xyzfile_to_StructureData(filepath_tests):
+    """Test xyzfile_to_StructureData"""
+    input_file = SinglefileData(
+        os.path.join(
+            filepath_tests,
+            "workchains/inputs",
+            "ch4.xyz",
+        )
+    )
+
+    struct = cf.xyzfile_to_StructureData(input_file)
+    assert isinstance(struct, StructureData)
 
 
 def test_generate_structure_data():
@@ -114,6 +144,63 @@ def test_parameters_with_cm():
     assert out_dict["multiplicity"] == 1
 
 
+def test_get_wfxname_from_gaussianinputs():
+    """Test get_wfxname_from_gaussianinputs"""
+    gaussian_sp = Dict(
+        {
+            "link0_parameters": {
+                "%chk": "aiida.chk",
+                "%mem": "3200MB",  # Currently set to use 8000 MB in .sh files
+                "%nprocshared": 4,
+            },
+            "functional": "wb97xd",
+            "basis_set": "aug-cc-pvtz",
+            "charge": 0,
+            "multiplicity": 1,
+            "route_parameters": {"nosymmetry": None, "Output": "WFX"},
+            "input_parameters": {"output.wfx": None},
+        }
+    )
+    wfxname = cf.get_wfxname_from_gaussianinputs(gaussian_sp)
+    assert isinstance(wfxname, Str)
+    assert wfxname.value == "output.wfx"
+    gaussian_optfreq = Dict(
+        {
+            "link0_parameters": {
+                "%chk": "aiida.chk",
+                "%mem": "3200MB",  # Currently set to use 8000 MB in .sh files
+                "%nprocshared": 4,
+            },
+            "functional": "wb97xd",
+            "basis_set": "aug-cc-pvtz",
+            "charge": 0,
+            "multiplicity": 1,
+            "route_parameters": {"opt": None, "freq": None, "Output": "WFX"},
+            "input_parameters": {"output.wfx": None, "output2.wfx": None},
+        }
+    )
+    wfxname = cf.get_wfxname_from_gaussianinputs(gaussian_optfreq)
+    assert isinstance(wfxname, Str)
+    assert wfxname.value == "output.wfx"
+    gaussian_nowfx = Dict(
+        {
+            "link0_parameters": {
+                "%chk": "aiida.chk",
+                "%mem": "3200MB",  # Currently set to use 8000 MB in .sh files
+                "%nprocshared": 4,
+            },
+            "functional": "wb97xd",
+            "basis_set": "aug-cc-pvtz",
+            "charge": 0,
+            "multiplicity": 1,
+            "route_parameters": {"opt": None, "freq": None},
+        }
+    )
+    wfxname = cf.get_wfxname_from_gaussianinputs(gaussian_nowfx)
+    assert isinstance(wfxname, Str)
+    assert wfxname.value == ""
+
+
 def test_validate_shell_code():
     """Test validate_shell_code"""
     str_node = Str("aimall")
@@ -124,6 +211,20 @@ def test_validate_shell_code():
     res = cf.validate_shell_code(int_node, "foo")
     assert (
         res == "the `shell_code` input must be either ShellCode or Str of the command."
+    )
+
+
+def test_validate_parser():
+    """Test validate_file_ext - provided file extension should be wfx, wfn or fchk"""
+    # these should all return None, so check for not None
+    base_node = Str("aimall.base")
+    assert not cf.validate_parser(base_node, "foo")
+    group_node = Str("aimall.group")
+    assert not cf.validate_parser(group_node, "foo")
+    wrong_node = Str("wfn")
+    assert (
+        cf.validate_parser(wrong_node, "foo")
+        == "the `aim_parser` input must be either aimall.base or aimall.group"
     )
 
 
@@ -174,6 +275,13 @@ def test_generate_rotated_structure_aiida(generate_workchain_folderdata):
     assert rot_dict["geom"][1][0] < 0
     assert abs(rot_dict["geom"][1][1]) < 0.0001
     assert abs(rot_dict["geom"][1][2]) < 0.0001
+
+
+def test_remove_numcharss_from_strlist():
+    """Test remove_numcharss_from_strlist"""
+    out_list = cf.remove_numcharss_from_strlist(["O1", "O2"])
+    assert isinstance(out_list, list)
+    assert out_list == ["O", "O"]
 
 
 def test_dict_to_structure():

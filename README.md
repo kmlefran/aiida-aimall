@@ -3,16 +3,6 @@
 [![Documentation Status](https://readthedocs.org/projects/aiida-aimall/badge/?version=latest)](https://aiida-aimall.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/aiida-aimall.svg)](https://badge.fury.io/py/aiida-aimall)
 
-!This README and all documentation is a work in progress!
-
-# Copyright notice
-
-This repository contains modified versions of the calculations and parsers presented in [Aiida-Gaussian](https://github.com/nanotech-empa/aiida-gaussian). Copyright (c) 2020 Kristjan Eimre. The modifications basically amount to adding the wfx file to the retrieved nodes and adding some groups/extras to calculation output.
-
-Also, the (incomplete) testing framework is heavily influenced by the infrastructure presented in [aiida-quantumespresso](https://github.com/aiidateam/aiida-quantumespresso).  Copyright (c), 2015-2020, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE
-(Theory and Simulation of Materials (THEOS) and National Centre for
-Computational Design and Discovery of Novel Materials (NCCR MARVEL))
-
 # aiida-aimall
 
 A plugin to interface AIMAll with AiiDA
@@ -21,22 +11,24 @@ A plugin to interface AIMAll with AiiDA
 
 * [`.github/`](.github/): [Github Actions](https://github.com/features/actions) configuration
   * [`workflows/`](.github/workflows/)
-    * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and builds documentation at every new commit
+    * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and continuous integration at every new commit
     * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
   * [`config/`](.github/config) config files for testing/docs environment
     * [`code-aim.yaml`](.github/workflows/config/code-aim.yaml) config file for building precommit and test envs
     * [`code-gwfx.yaml`](.github/workflows/config/code-gwfx.yaml) config file for building precommit and test envs
     * [`profile.yaml`](.github/workflows/config/profile.yaml) config file for aiida profile
-    * [`profile.yaml`](.github/workflows/config/localhost-config.yaml) config file for localhost computer
-    * [`profile.yaml`](.github/workflows/config/localhost-setup.yaml) setup file for localhost computer
+    * [`localhost-config.yaml`](.github/workflows/config/localhost-config.yaml) config file for localhost computer
+    * [`localhost-setup.yaml`](.github/workflows/config/localhost-setup.yaml) setup file for localhost computer
 * [`aiida_aimall/`](aiida_aimall/): The main source code of the plugin package
-  * [`data/`](aiida_aimall/data/): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
-  * [`calculations.py`](aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class, and `GaussianWFXCalculation`, a modified version of `GaussianCalculation` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
-  * [`parsers.py`](aiida_aimall/parsers.py): A new `Parser` for the `AimqbCalculation`, and `GaussianWFXParser`, a modified version of `GaussianBaseParser` from [AiiDA Gaussian](https://github.com/nanotech-empa/aiida-gaussian)
-  * [`workchains.py`](aiida_aimall/workchains.py): New `WorkChains`.
-    * `MultiFragmentWorkChain` to fragment molecules using cml files from the Retrievium database and submit Gaussian calculations for the fragments using functions in `frag_functions` from [subproptools Github](https:github.com/kmlefran/group_decomposition)
-    * `G16OptWorkchain` to take output from `MultiFragmentWorkChain` and submit Gaussian optimization calculations
-    * `AimAllReorWorkChain` to run `AimqbCalculation` on output from `GaussianWFXCalculations`, then reorient to coordinate systems defined in `subreor` from [subproptools Github](https:github.com/kmlefran/subproptools)
+  * [`data.py`](aiida_aimall/data.py): A new `AimqbParameters` data class, used as input to the `AimqbCalculation` `CalcJob` class
+  * [`calculations.py`](aiida_aimall/calculations.py): A new `AimqbCalculation` `CalcJob` class
+  * [`parsers.py`](aiida_aimall/parsers.py): Two parsers (`AimqbBaseParser` and `AimqbGroupParser`) for `AimqbCalculation` results
+  * [`workchains/`](aiida_aimall/workchains/): New `WorkChains`.
+    * [`calcfunctions.py`](aiida_aimall/workchains/calcfunctions.py): `calcfunction`s that are used in the workchains
+    * [`input.py`](aiida_aimall/workchains/input.py): `BaseInputWorkChain` that is used in other workchains to validate multiple input options
+    * [`param_parts.py`](aiida_aimall/workchains/param_parts.py): `SmilesToGaussianWorkChain` and `AIMAllReorWorkChain`: two workchains representing individual steps of the `SubstituentParameterWorkchain`
+    * [`qc_programs.py`](aiida_aimall/workchains/qc_programs.py): `QMToAIMWorkChain` and `GaussianToAIMWorkChain` linking quantum chemical software output to an AIMQB calculation
+    * [`subparam.py`](aiida_aimall/workchains/subparam.py): `SubstituentParameterWorkchain` to automate calculation substituent properties in a multistep calculation.
 * [`controllers.py`](aiida_aimall/controllers.py): Workflow controllers to limit number of running jobs on localhost computers.
   * `AimReorSubmissionController` to control `AimReorWorkChain`s. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
   * `AimAllSubmissionController` to control `AimqbCalculations``. These use `parent_group_label` for the wavefunction file nodes from `GaussianWFXCalculation`s
@@ -52,8 +44,6 @@ A plugin to interface AIMAll with AiiDA
 * [`LICENSE`](PythonPackages/aiida-aimall/LICENSE): License for your plugin
 * [`README.md`](PythonPackages/aiida-aimall/README.md): This file
 * [`pyproject.toml`](setup.json): Python package metadata for registration on [PyPI](https://pypi.org/) and the [AiiDA plugin registry](https://aiidateam.github.io/aiida-registry/) (including entry points)
-
-
 
 ## Features
 
@@ -87,30 +77,17 @@ Many of the workflows provided are specific to my field of study, but the calcul
    submit(builder)
    ```
 
- *
+## Documentation
+
+Documentation is hosted at [ReadTheDocs](http://aiida-aimall.readthedocs.io/).
 
 ## Installation
 
-The aiida-dataframe dependency tables requires h5 headers on your system. You may already have this, or not. One easy way that allows installation of the headers using the h5py package
 
 ```shell
-(conda-env) conda install h5py
-(conda-env) pip install aiida-aimall
-verdi quicksetup  # better to set up a new profile
-verdi plugin list aiida.calculations  # should now show your calclulation plugins
-```
-
-
-## Usage
-
-Here goes a complete example of how to submit a test calculation using this plugin.
-
-A quick demo of how to submit a calculation:
-```shell
-verdi daemon start     # make sure the daemon is running
-cd examples
-./example_01.py        # run test calculation
-verdi process list -a  # check record of calculation
+(env) pip install aiida-aimall
+(env) verdi quicksetup  # better to set up a new profile
+(env) verdi plugin list aiida.calculations  # should now show your calclulation plugins
 ```
 
 ## Development
@@ -126,9 +103,15 @@ pytest -v  # discover and run all tests
 
 See the [developer guide](http://aiida-aimall.readthedocs.io/en/latest/developer_guide/index.html) for more information.
 
+## Copyright notice
+
+The testing and documentation framework is heavily influenced by the infrastructure presented in [aiida-quantumespresso](https://github.com/aiidateam/aiida-quantumespresso).  Copyright (c), 2015-2020, ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and National Centre for
+Computational Design and Discovery of Novel Materials (NCCR MARVEL))
+
 ## License
 
 MIT
+
 ## Contact
 
 kgagnon@lakeheadu.ca
