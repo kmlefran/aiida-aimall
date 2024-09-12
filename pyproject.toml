@@ -31,7 +31,7 @@ dependencies = [
     "aiida-submission-controller",
     "pydantic",
     "ase",
-    "cclib @ git+https://github.com/cclib/cclib",
+    "cclib",
     "multiprocess",
     "subproptools",
     "aiida-gaussian",
