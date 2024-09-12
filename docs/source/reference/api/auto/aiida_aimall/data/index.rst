@@ -46,6 +46,13 @@ Attributes
    The class takes a dictionary of parameters and validates
    to ensure the aimqb command line parameters are correct
 
+   :param parameters_dict: dictionary with commandline parameters
+   :type parameters_dict: `dict`
+
+   Usage:
+       ``AimqbParameters(parameter_dict{'naat':2})``
+
+
    .. py:attribute:: schema
 
 
@@ -59,26 +66,26 @@ Attributes
           print(AimqbParameters).schema.schema
 
       :param parameters_dict: dictionary with commandline parameters
-      :param type parameters_dict: dict
-      :returns: validated dictionary
+      :type parameters_dict: dict
+
+      :returns: input dictionary validated against the allowed options for aimqb
 
 
    .. py:method:: cmdline_params(file_name)
 
-      Synthesize command line parameters.
-
-      e.g. [ '-atlaprhocps=True',...,'-nogui', 'filename']
+      Synthesize command line parameters and add -nogui for use in `AimqbCalculation`.
 
       :param file_name: Name of wfx/fchk/wfn file
-      :param type file_name: str
+      :type file_name: str
 
+      :returns:
+
+                command line parameters for aimqb collected in a list
+                    e.g. [ '-atlaprhocps=True',...,'-nogui', 'filename']
 
 
    .. py:method:: __str__()
 
-      String representation of node.
+      String representation of node. Append values of dictionary to usual representation.
 
-      Append values of dictionary to usual representation. E.g.::
-
-          uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590)
-          {'atlaprhocps': True}
+      :returns: representation of node, including uuid, pk, and the contents of the dictionary

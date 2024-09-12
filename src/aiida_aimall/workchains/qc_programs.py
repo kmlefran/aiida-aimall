@@ -12,13 +12,67 @@ from aiida_aimall.data import AimqbParameters
 from aiida_aimall.workchains.calcfunctions import (
     create_wfx_from_retrieved,
     validate_file_ext,
+    validate_parser,
     validate_shell_code,
 )
 from aiida_aimall.workchains.input import BaseInputWorkChain
 
 
 class QMToAIMWorkChain(WorkChain):
-    """Workchain to link quantum chemistry jobs without plugins to AIMAll"""
+    r"""Workchain to link quantum chemistry jobs without plugins to AIMAll
+
+    Attributes:
+        shell_metadata (aiida.orm.Dict): Metadata for the shell calculation
+        shell_retrieved (aiida.orm.List): List of files to store in database
+        shell_input_file (aiida.orm.SinglefileData): Input file for the calculation software
+        shell_cmdline (aiida.orm.Str): Command line terminal command
+        wfx_filename (aiida.orm.Str): Filename of the wfx file
+        aim_code (aiida.orm.Code): Code for AIMQB
+        aim_file_ext (aiida.orm.Str):
+        aim_parser (aiida.orm.Str): Entry point for parser to use.
+        dry_run (aiida.orm.Bool): Whether or not this is a trial run
+
+    Example:
+        ::
+
+            # ORCA Example
+            from aiida_shell import ShellCode
+            from aiida.orm import load_computer, List, SinglefileData, Str, load_code
+            QMToAIMWorkchain = WorkflowFactory('aimall.qmtoaim')
+            # already have an orca code setup,  you can use the codeblock above to do so
+            code = load_code('orca@cedar')
+            builder = QMToAIMWorkchain.get_builder()
+            builder.shell_code = code
+            pre_str = 'module load StdEnv/2020; module load gcc/10.3.0; module load openmpi/4.1.1; module load orca/5.0.4'
+            builder.shell_metadata = Dict(
+                {
+                    'options': {
+                        'withmpi': False,
+                        # modules for the compute cluster to load
+                        'prepend_text': pre_str,
+                        'resources': {
+                            'num_machines': 1,
+                            'num_mpiprocs_per_machine': 4,
+                        },
+                        'max_memory_kb': int(3200 * 1.25) * 1024,
+                        'max_wallclock_seconds': 3600
+                    }
+                }
+            )
+            # again, for tutorial, using a string parsed as file in place of providing an input file
+            file_string = '! B3LYP def2-SVP Opt AIM PAL4\n*xyz 0 1\nH 0.0 0.0 0.0\nH 0.0 0.0 1.0\n*'
+            input_file = SinglefileData(io.BytesIO(file_string.encode()))
+            builder.shell_input_file = input_file
+            # get the resulting wfx and opt file, the above command creates a file file.txt
+            # so we replace the txt with the output extensions we want
+            shell_list = List([input_file.filename.replace('txt','wfx'),input_file.filename.replace('txt','opt'),])
+            builder.shell_retrieved = shell_list
+            builder.shell_cmdline = Str('{file}')
+            builder.aim_code = load_code('aimall@localhost')
+            builder.aim_params = AimqbParameters({'nproc':2,'naat':2,'atlaprhocps':True})
+            submit(builder)
+
+    """
 
     @classmethod
     def define(cls, spec):
@@ -44,6 +98,7 @@ class QMToAIMWorkChain(WorkChain):
         spec.input(
             "aim_parser",
             valid_type=Str,
+            validator=validate_parser,
             required=False,
             default=lambda: Str("aimall.base"),
         )
@@ -108,7 +163,60 @@ class QMToAIMWorkChain(WorkChain):
 
 
 class GaussianToAIMWorkChain(BaseInputWorkChain):
-    """A workchain to submit a Gaussian calculation and automatically setup an AIMAll calculation on the output"""
+    r"""A workchain to submit a Gaussian calculation and automatically setup an AIMAll calculation on the output
+
+    Attributes:
+        gauss_params (aiida.orm.Dict): Parameters for the Gaussian calculation
+        aim_params (AimqbParameters): Parameters for the AIMQB calculation
+        gauss_code (aiida.orm.Code): Code for Gaussian software
+        frag_label (aiida.orm.Str): Label of the fragment
+        wfx_group (aiida.orm.Str): Group to put the wfx file in
+        gaussian_group (aiida.orm.Str): Group to put the GaussianCalculation in
+        aim_code (aiida.orm.Code): Code for AIMQB software
+        dry_run (aiida.orm.Bool): Whether the run is a dry run
+        wfx_filename (aiida.orm.Str): Name of the wfx file produced in the calculation
+
+    Example:
+        .. code-block:: python
+
+            from aiida import load_profile
+            from aiida.plugins import WorkflowFactory, DataFactory
+            from aiida.orm import Dict, StructureData, load_code
+            import io
+            import ase.io
+            from aiida.engine import submit
+            load_profile()
+            GaussianToAIMWorkChain = WorkflowFactory('aimall.gausstoaim')
+            AimqbParameters = DataFactory('aimall.aimqb')
+            gaussian_input = Dict(
+                            {
+                                "link0_parameters": {
+                                    "%chk": "aiida.chk",
+                                    "%mem": "3200MB",  # Currently set to use 8000 MB in .sh files
+                                    "%nprocshared": 4,
+                                },
+                                "functional": "wb97xd",
+                                "basis_set": "aug-cc-pvtz",
+                                "charge": 0,
+                                "multiplicity": 1,
+                                "route_parameters": {"opt": None, "Output": "WFX"},
+                                "input_parameters": {"output.wfx": None},
+                            })
+            aim_input = AimqbParameters({'nproc':2,'naat':2,'atlaprhocps':True})
+            # For tutorial purpose, representing a xyz file as a string, and parsing it to get strcutre data
+            f = io.StringIO(
+                            "5\n\n C -0.1 2.0 -0.02\nH 0.3 1.0 -0.02\nH 0.3 2.5 0.8\nH 0.3 2.5 -0.9\nH -1.2 2.0 -0.02"
+                        )
+            struct_data = StructureData(ase=ase.io.read(f, format="xyz"))
+            f.close()
+            builder = GaussianToAIMWorkChain.get_builder()
+            builder.g16_params = gaussian_input
+            builder.aim_params = aim_input
+            builder.structure = struct_data
+            builder.gauss_code = load_code('gaussian@localhost')
+            builder.aim_code = load_code('aimall@localhost')
+            submit(builder)
+    """
 
     @classmethod
     def define(cls, spec):
@@ -208,7 +316,33 @@ class GaussianToAIMWorkChain(BaseInputWorkChain):
 
 
 class GenerateWFXToAIMWorkChain(WorkChain):
-    """Workchain to generate a wfx file from computational chemistry output files and submit that to an AIMQB Calculation
+    r"""Workchain to generate a wfx file from computational chemistry output files and submit that to an AIMQB Calculation
+
+    Attributes:
+        input_file (aiida.orm.SinglefileData): File to convert to a wfx file. Should be .cp2k.out or .molden
+        aim_params (AimqbParameters): Command line parameters for AIMQB
+        aim_code (aiida.orm.Code): AIMQB code
+
+    Example:
+        ::
+
+            from aiida import load_profile
+            from aiida.plugins import WorkflowFactory, DataFactory
+            from aiida.orm import load_node, load_code, SinglefileData
+            from aiida.engine import submit
+
+            load_profile()
+            GenerateWFXToAIMWorkChain = WorkflowFactory("aimall.wfxtoaim")
+            AimqbParameters = DataFactory("aimall.aimqb")
+            # predefined Molden input file in database
+            single_file = SinglefileData('/absolute/path/to/file')
+            aim_params = AimqbParameters({"naat": 2, "nproc": 2, "atlaprhocps": True})
+            aim_code = load_code("aimall@localhost")
+            builder = GenerateWFXToAIMWorkChain.get_builder()
+            builder.input_file = single_file
+            builder.aim_params = aim_params
+            builder.aim_code = aim_code
+            submit(builder)
 
     Note:
         This workchain uses the IOData module of the Ayer's group Horton to generate the wfx files. Supported file formats

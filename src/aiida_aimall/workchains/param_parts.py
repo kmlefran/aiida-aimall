@@ -28,16 +28,59 @@ from aiida_aimall.workchains.calcfunctions import (
 
 
 class SmilesToGaussianWorkChain(WorkChain):
-    """Workchain to take a SMILES, generate xyz, charge, and multiplicity"""
+    r"""Workchain to take a substituent SMILES, and run a Gaussian calculation on that SMILES
+
+    Takes an input SMILES with one placeholder \*, generates a geometry with \* replaced with a hydrogen.
+    U
+
+    Attributes:
+        smiles (aiida.orm.Str): SMILES of a substiuent. Must contain a single placeholder \*
+        gaussian_parameters (aiida.orm.Dict): Gaussian calculation for generating a wfx
+        gaussian_code (aiida.orm.Code): Gaussian Code
+        wfxname (aiida.orm.Str): name of wfx file provided in gaussian_parameters
+        wfxgroup (aiida.orm.Str): group to store the wfx file in
+        mem_mb (aiida.orm.Int): amount of memory in MB for the Gaussian calculation
+        nprocs (aiida.orm.Int): number of processors for the Gaussian calculation
+        time_s (aiida.orm.Int): amount of time to run the Gaussian calculation
+
+    Note:
+        The SMILES provided should have a single \*.
+
+    Note:
+        Uses the charge and multiplicity of the provided SMILES, not that provided to gaussian_parameters
+
+    Note:
+        'output':'wfx' should be provided to `gaussian_parameters`. And a .wfx file name should be provided
+        as well
+
+    """
 
     @classmethod
     def define(cls, spec):
         super().define(spec)
-        spec.input("smiles")
-        spec.input("gaussian_parameters")
-        spec.input("gaussian_code")
-        spec.input("wfxname", required=False)
-        spec.input("wfxgroup", required=False)
+        spec.input(
+            "smiles",
+            valid_type=Str,
+            help="SMILES of a substiuent. Must contain a single placeholder *",
+        )
+        spec.input(
+            "gaussian_parameters",
+            valid_type=Dict,
+            help="Gaussian calculation for generating a wfx",
+        )
+        spec.input("gaussian_code", valid_type=Code, help="Gaussian Code")
+        spec.input(
+            "wfxname",
+            required=False,
+            valid_type=Str,
+            help="name of wfx file provided in gaussian_parameters",
+        )
+        spec.input(
+            "wfxgroup",
+            required=False,
+            valid_type=Str,
+            help="group to store the wfx file in",
+        )
         spec.input("nprocs", default=lambda: Int(4))
         spec.input("mem_mb", default=lambda: Int(6400))
         spec.input("time_s", default=lambda: Int(24 * 7 * 60 * 60))
@@ -134,18 +177,69 @@ class SmilesToGaussianWorkChain(WorkChain):
 class AIMAllReorWorkChain(WorkChain):
     """Workchain to run AIM and then reorient the molecule using the results
 
-    Process continues in GaussianSubmissionController"""
+    Often called in `aiida_aimall.controllers.AimReorSubmissionController`.
+    Process continues in `aiida_aimall.controllers.GaussianSubmissionController`.
+
+    Attributes:
+        aim_params: (AimqbParameters): Command line parameters for aimqb
+        file (aiida.orm.SinglefileData): .fchk, .wfn, or .wfx file for aimqb input
+        aim_code (aiida.orm.Code): AIMQB code
+        frag_label (aiida.orm.Str): Optional SMILES tag of the substituent
+        aim_group (aiida.orm.Str): Optional group to put the AIM calculation node in
+        reor_group (aiida.orm.Str): Optional group to put the reoriented structure in
+
+    Example
+
+        ::
+
+            from aiida_aimall.data import AimqbParameters
+            from aiida_aimall.workchains.param_parts import AIMAllReorWorkChain
+            from aiida.orm import SinglefileData, load_code
+            from aiida.engine import submit
+            input_file = SinglefileData("/absolute/path/to/file")
+            aim_code = load_code("aimall@localhost")
+            aim_params = AimqbParameters({'nproc':2,'naat':2,'atlaprhocps':True})
+            builder = AIMAllReorWorkChain.get_builder()
+            builder.file = input_file
+            builder.aim_code = aim_code
+            builder.aim_params = aim_params
+            submit(builder)
+
+    """
 
     @classmethod
     def define(cls, spec):
         super().define(spec)
-        spec.input("aim_params", valid_type=AimqbParameters)
-        spec.input("file", valid_type=SinglefileData)
+        spec.input(
+            "aim_params",
+            valid_type=AimqbParameters,
+            help="Command line parameters for aimqb",
+        )
+        spec.input(
+            "file",
+            valid_type=SinglefileData,
+            help="fchk, wfn, or wfx file for aimqb input",
+        )
         # spec.output('aim_dict',valid_type=Dict)
-        spec.input("aim_code", valid_type=Code)
-        spec.input("frag_label", valid_type=Str, required=False)
-        spec.input("aim_group", valid_type=Str, required=False)
-        spec.input("reor_group", valid_type=Str, required=False)
+        spec.input("aim_code", valid_type=Code, help="aimqb code")
+        spec.input(
+            "frag_label",
+            valid_type=Str,
+            required=False,
+            help="Optional SMILES tag of the substituent",
+        )
+        spec.input(
+            "aim_group",
+            valid_type=Str,
+            required=False,
+            help="Optional group to put the AIM calculation node in",
+        )
+        spec.input(
+            "reor_group",
+            valid_type=Str,
+            required=False,
+            help="Optional group to put the reoriented structure in",
+        )
         spec.input("dry_run", valid_type=Bool, default=lambda: Bool(False))
         spec.output("rotated_structure", valid_type=StructureData)
         spec.outline(cls.aimall, cls.rotate, cls.dict_to_struct_reor, cls.result)

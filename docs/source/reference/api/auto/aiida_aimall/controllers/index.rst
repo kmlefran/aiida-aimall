@@ -31,28 +31,6 @@ Classes
 
 
 
-Attributes
-~~~~~~~~~~
-
-.. autoapisummary::
-
-   aiida_aimall.controllers.AimqbParameters
-   aiida_aimall.controllers.GaussianCalculation
-   aiida_aimall.controllers.AimqbCalculation
-
-
-.. py:data:: AimqbParameters
-
-
-
-.. py:data:: GaussianCalculation
-
-
-
-.. py:data:: AimqbCalculation
-
-
-
 .. py:class:: SmilesToGaussianController(code_label: str, gauss_opt_params: dict, wfxgroup: str, nprocs: int, mem_mb: int, time_s: int, *args, **kwargs)
 
 
@@ -60,15 +38,24 @@ Attributes
 
    A controller for submitting :func:`aiida_aimall.workchains.param_parts.SmilesToGaussianWorkChain`
 
-   :param parent_group_label: the string of a group label which contains various SMILES as orm.Str nodes
-   :param group_label: the string of the group to put the GaussianCalculations in
-   :param max_concurrent: maximum number of concurrent processes.
-   :param code_label: label of code, e.g. gaussian@cedar
-   :param gauss_opt_params: Dict of Gaussian parameters to use
+   :param parent_group_label: group label which contains various SMILES as orm.Str nodes
+   :type parent_group_label: `str`
+   :param group_label: group in which to put the GaussianCalculations
+   :type group_label: `str`
    :param wfxgroup: group in which to store the resulting wfx files
+   :type wfxgroup: `str`
+   :param max_concurrent: maximum number of concurrent processes
+   :type max_concurrent: `int`
+   :param code_label: label of Gaussian code, e.g. gaussian@cedar
+   :type code_label: `str`
+   :param gauss_opt_params: Dict of Gaussian parameters to use
+   :type gauss_opt_params: `Dict`
    :param nprocs: number of processors for gaussian calculation
+   :type nprocs: `int`
    :param mem_mb: amount of memory in MB for Gaussian calculation
+   :type mem_mb: `int`
    :param time_s: wallclock time in seconds for Gaussian calculation
+   :type time_s: `int`
 
    :returns: Controller object, periodically use run_in_batches to submit new results
 

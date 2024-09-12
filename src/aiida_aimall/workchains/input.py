@@ -11,15 +11,40 @@ from aiida_aimall.workchains.calcfunctions import (
 
 
 class BaseInputWorkChain(WorkChain):
-    """A workchain to generate and validate inputs. One of SinglefileData, Smiles as Str or StructureData should be
-    provided"""
+    """A workchain to generate and validate inputs.
+
+    Provided an .xyz file as `SinglefileData`, molecule `StructureData`, or SMILES of the molecule
+    validates that only one is provided. Then, prepares the input into a format for future GaussianCalculations.
+
+    Attributes:
+        structure (aiida.orm.StructureData): StructureData of molecule to run
+        smiles (aiida.orm.Str): smiles string of molecule
+        xyz_file (aiida.orm.SinglefileData): file data of an xyz file
+
+    Note:
+        This is a base class that is used by other WorkChains
+            (:func:`aiida_aimall.workchains.subparam.SubstituentParameterWorkChain`, and
+            :func:`aiida_aimall.workchains.qc_programs.GaussianToAIMWorkChain`)
+    """
 
     @classmethod
     def define(cls, spec):
         super().define(spec)
-        spec.input("structure", valid_type=StructureData, required=False)
-        spec.input("smiles", valid_type=Str, required=False)
-        spec.input("xyz_file", valid_type=SinglefileData, required=False)
+        spec.input(
+            "structure",
+            valid_type=StructureData,
+            required=False,
+            help="StructureData of molecule to run",
+        )
+        spec.input(
+            "smiles", valid_type=Str, required=False, help="smiles string of molecule"
+        )
+        spec.input(
+            "xyz_file",
+            valid_type=SinglefileData,
+            required=False,
+            help="file data of an xyz file",
+        )
         spec.exit_code(
             200,
             "ERROR_MULTIPLE_INPUTS",

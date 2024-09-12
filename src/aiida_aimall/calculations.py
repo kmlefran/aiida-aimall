@@ -2,9 +2,8 @@
 from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import Dict, Int, List, SinglefileData
-from aiida.plugins import DataFactory
 
-AimqbParameters = DataFactory("aimall.aimqb")
+from aiida_aimall.data import AimqbParameters
 
 
 class AimqbCalculation(CalcJob):
@@ -12,10 +11,10 @@ class AimqbCalculation(CalcJob):
 
     Attributes:
         parameters (AimqbParameters): command line parameters for the AimqbCalculation
-        file (SinglefileData): the wfx, wfn, or fchk file to be run
-        code (Code): code of the AIMQB executable
-        attached_atom_int (Int): the integer label of the atom in the group that is attached to the rest of the molecule
-        group_atoms (List(Int)): integer ids of atoms comprising the group for AimqbGroupParser
+        file (aiida.orm.SinglefileData): the wfx, wfn, or fchk file to be run
+        code (aiida.orm.Code): code of the AIMQB executable
+        attached_atom_int (aiida.orm.Int): optional integer label of the atom that is attached to the rest of the molecule
+        group_atoms (aiida.orm.List): optional integer list of ids of atoms comprising the group for AimqbGroupParser
 
     Example:
         ::
@@ -36,12 +35,17 @@ class AimqbCalculation(CalcJob):
 
     Note:
         By default, the AimqbBaseParser is used, getting atomic, BCP, and (if applicable) LapRhoCps.
-            You can opt to use the AimqbGroupParser, which also returns the integrated group properties model
-            of a group, as well as the atomic graph descriptor of the group. This is done by providing this to the builder:
+            You can opt to use the AimqbGroupParser, which also returns the integrated group properties
+            of a group, as well as the atomic graph descriptor of the group. In doing so, you can also
+            define the atoms included in the group, which, by convention, defaults to all atoms except atom 2.
+            You can further specify which atom of the group is the one bonded to the substrate, which defaults to
+            atom 1.  This is done by providing this to the builder:
 
         ::
 
             builder.metadata.options.parser_name = "aimall.group"
+            builder.attached_atom_int = Int(1)
+            builder.group_atoms = List([1,3,4,5,6])
 
     """
 
@@ -62,20 +66,17 @@ class AimqbCalculation(CalcJob):
         }
 
         spec.inputs["metadata"]["options"]["parser_name"].default = "aimall.base"
-        # new ports
-        # spec.input(
-        #     'metadata.options.output_filename', valid_type=str, default='aiida.out'
-        # )
+
         spec.input(
             "attached_atom_int",
             valid_type=Int,
-            help="id # of attached atom for graph descriptor",
+            help="id # of attached atom for graph descriptor. Defaults to atom 1",
             default=lambda: Int(1),
         )
         spec.input(
             "group_atoms",
             valid_type=List,
-            help="Integer ids of atoms in groups to include",
+            help="Integer ids of atoms in groups to include. e.g. [1,3,4]. Defaults to all atoms in molecule except atom 2",
             default=lambda: List([]),
         )
         spec.input(
@@ -103,10 +104,6 @@ class AimqbCalculation(CalcJob):
             message="The retrieved folder did not contain the output file.",
         )
         spec.outputs.dynamic = True
-
-        # would put error codes here
-
-    # ---------------------------------------------------
 
     def prepare_for_submission(self, folder):
         """Create input files.

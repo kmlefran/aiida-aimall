@@ -22,18 +22,6 @@ Classes
 
 
 
-Attributes
-~~~~~~~~~~
-
-.. autoapisummary::
-
-   aiida_aimall.calculations.AimqbParameters
-
-
-.. py:data:: AimqbParameters
-
-
-
 .. py:class:: AimqbCalculation(*args, **kwargs)
 
 
@@ -51,25 +39,25 @@ Attributes
 
       the wfx, wfn, or fchk file to be run
 
-      :type: SinglefileData
+      :type: `SinglefileData`
 
    .. attribute:: code
 
       code of the AIMQB executable
 
-      :type: Code
+      :type: `Code`
 
    .. attribute:: attached_atom_int
 
-      the integer label of the atom in the group that is attached to the rest of the molecule
+      otional integer label of the atom in the group that is attached to the rest of the molecule
 
-      :type: Int
+      :type: `Int`
 
    .. attribute:: group_atoms
 
-      integer ids of atoms comprising the group for AimqbGroupParser
+      optional integer ids of atoms comprising the group for AimqbGroupParser
 
-      :type: List(Int)
+      :type: `List(int)`
 
    .. rubric:: Example
 
@@ -92,12 +80,17 @@ Attributes
    .. note::
 
       By default, the AimqbBaseParser is used, getting atomic, BCP, and (if applicable) LapRhoCps.
-          You can opt to use the AimqbGroupParser, which also returns the integrated group properties model
-          of a group, as well as the atomic graph descriptor of the group. This is done by providing this to the builder:
+          You can opt to use the AimqbGroupParser, which also returns the integrated group properties
+          of a group, as well as the atomic graph descriptor of the group. In doing so, you can also
+          define the atoms included in the group, which, by convention, defaults to all atoms except atom 2.
+          You can further specify which atom of the group is the one bonded to the substrate, which defaults to
+          atom 1.  This is done by providing this to the builder:
 
       ::
 
           builder.metadata.options.parser_name = "aimall.group"
+          builder.attached_atom_int = Int(1)
+          builder.group_atoms = List([1,3,4,5,6])
 
    .. py:attribute:: INPUT_FILE
       :value: 'aiida.wfx'
