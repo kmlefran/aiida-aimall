@@ -341,7 +341,7 @@ def create_wfx_from_retrieved(wfxname, retrieved_folder):
         SinglefileData of the .wfx file to find in the FolderData
 
     """
-    wfx_file_string = retrieved_folder.get_object_content(wfxname.value)
+    wfx_file_string = retrieved_folder.get_object_content(wfxname.value.strip())
     return SinglefileData(io.BytesIO(wfx_file_string.encode()))
 
 
