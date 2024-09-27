@@ -1,5 +1,6 @@
 # pylint: disable=redefined-outer-name,too-many-statements
 """Initialise a text database and profile for pytest."""
+# pylint:disable=too-many-positional-arguments
 import io
 import os
 

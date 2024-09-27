@@ -1,4 +1,5 @@
 """Tests for AimReor Workchain"""
+# pylint:disable=too-many-positional-arguments
 # import os
 
 from aiida.common import LinkType

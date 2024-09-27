@@ -7,7 +7,7 @@ Provides controllers for the `AimReorWorkChain`, `AimqbCalculations`, `GaussianC
 and `SmilesToGaussianWorkChain`.
 
 """
-
+# pylint:disable=too-many-positional-arguments
 from aiida import orm
 from aiida.orm import Dict, Int, Str
 from aiida.plugins import CalculationFactory, WorkflowFactory

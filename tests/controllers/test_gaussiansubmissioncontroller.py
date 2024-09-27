@@ -20,7 +20,6 @@ def test_unstored_parentgrouplabel_returns_error():
             group_label="opt_workchain",
             max_concurrent=1,
             code_label="test.aimall.aimqb",
-            wfxgroup="test",
             gauss_sp_params={},
             wfxname="output.wfx",
         )
@@ -41,7 +40,6 @@ def test_gaussiansubmission_controller(fixture_code):
         max_concurrent=1,
         code_label=code.label + "@" + code.computer.label,
         gauss_sp_params={},
-        wfxgroup="test",
         wfxname="output.wfx",
     )
     assert con.get_extra_unique_keys() == ("smiles",)

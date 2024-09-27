@@ -1,5 +1,6 @@
 # pylint: disable=redefined-outer-name
 """Tests for the `AimqbParser"""
+# pylint:disable=too-many-positional-arguments
 
 
 import pytest

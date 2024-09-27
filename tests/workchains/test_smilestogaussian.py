@@ -1,4 +1,5 @@
 """Tests for SmilesToGaussianWorkchain"""
+# pylint:disable=too-many-positional-arguments
 import os
 
 import cclib
