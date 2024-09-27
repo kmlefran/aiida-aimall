@@ -136,7 +136,9 @@ class SmilesToGaussianWorkChain(WorkChain):
         )
         builder.metadata.options.max_wallclock_seconds = self.inputs.time_s.value
         if self.ctx.wfxname.value:
-            builder.metadata.options.additional_retrieve_list = [self.ctx.wfxname.value]
+            builder.metadata.options.additional_retrieve_list = [
+                self.ctx.wfxname.value.strip()
+            ]
 
         if self.inputs.dry_run.value:
             return self.inputs
