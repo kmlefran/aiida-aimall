@@ -436,7 +436,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
                     "resources": {"num_machines": 1, "tot_num_mpiprocs": 1},
                     "max_memory_kb": int(3200 * 1.25) * 1024,
                     "max_wallclock_seconds": 604800,
-                    "additional_retrieve_list": self.wfxname.strip(),
+                    "additional_retrieve_list": [self.wfxname.strip()],
                 }
             },
         }
