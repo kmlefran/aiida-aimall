@@ -49,7 +49,7 @@ The ``-e`` flag will install the package in editable mode, meaning that changes 
 
 ::::
 
-If you are using `WorkChain`s that run `GaussianCalculation`s on some computers like Apple M1s, the current release of the dependency cclib (v1.8.1) may result in an error in due to a space in the computer name. The master branch of cclib has been updated to fix this bug. The direct dependency is not allowed on PyPi. If you are in the situation, you can fix it by installing the current version of cclib from the master branch after installing aiida-aimall.
+If you are using `WorkChain`s that run `GaussianCalculation`s on some computers like Apple M1s, the current release of the dependency cclib (v1.8.1) may result in an error due to a space in the computer name. The master branch of cclib has been updated to fix this bug. The direct dependency is not allowed on PyPi. If you are in the situation, you can fix it by installing the current version of cclib from the master branch after installing aiida-aimall.
 
 ```shell
 (env) pip install git+https://github.com/cclib/cclib

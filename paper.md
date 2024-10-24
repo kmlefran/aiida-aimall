@@ -64,7 +64,7 @@ This functionality in itself is an overcomplication of the simple process of run
 
 ## Substituent Properties
 
-Some of the workflows in `aiida-aimall` automate calculation of substituent properties from AIMAll output. These substituent properties have been developed by the authors.[@klg] The `SubstituentParameterWorkChain` does this automatically, and any routine AIMAll calculation can make use of this by using the `AimqbGroupParser`, which can be provided in metadata input to `AimqbCalculation` as an entry in the metadata dictionary: `metadata.options.parser_name:'aimall.group'`. A detailed description of the calculated substituent properties is available [in a tutorial in the documentation.](https://aiida-aimall.readthedocs.io/en/latest/tutorials/aimqbgroupcalculation.html) Integrated and graph properties are obtained.
+Some of the workflows in `aiida-aimall` automate calculation of substituent properties from AIMAll output. These substituent properties have been developed by the authors.[@klg] The `SubstituentParameterWorkChain` does this automatically, and any routine AIMAll calculation can make use of this by using the `AimqbGroupParser`, which can be provided in metadata input to `AimqbCalculation` as an entry in the metadata dictionary: `metadata.options.parser_name:'aimall.group'`. A detailed description of the calculated substituent properties is available [in a tutorial in the documentation.](https://aiida-aimall.readthedocs.io/en/latest/tutorials/aimqbgroupcalculation.html) AIMAll integrated and graph properties are obtained.
 
 ## Integrations with Computational Chemistry Software
 
@@ -96,7 +96,7 @@ Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points t
 
 ## Controllers to limit computer burden when running large numbers of jobs
 The last main contribution of `aiida-aimall` is through the definition of controllers from the `aiida-submission-controller` package. These controllers limit active processes and can be used together as
-demonstrated in [a tutorial notebook](https://aiida-aimall.readthedocs.io/en/latest/tutorials/controllers.html)) to automate the entire `SubstituentParameterWorkchain`. These use a number of `Workchains` developed just for their use in these controllers. The process flows as `SmilesToGaussianController` -> `AIMAllReorController` -> `GaussianController` -> `AIMAllController`. The latter two controllers can also be seen and used as general use controllers wrapping `GaussianCalculations` and `AimqbCalculations`
+demonstrated in [a tutorial notebook](https://aiida-aimall.readthedocs.io/en/latest/tutorials/controllers.html) to automate the entire `SubstituentParameterWorkchain`. These use a number of `Workchains` developed just for their use in these controllers. The process flows as `SmilesToGaussianController` -> `AIMAllReorController` -> `GaussianController` -> `AIMAllController`. The latter two controllers can also be seen and used as general use controllers wrapping `GaussianCalculations` and `AimqbCalculations`
 
 # Acknowledgements
 
