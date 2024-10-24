@@ -20,8 +20,8 @@ def test_unstored_parentgrouplabel_returns_error():
             group_label="opt_workchain",
             max_concurrent=1,
             code_label="test.aimall.aimqb",
-            wfxgroup="test",
             gauss_sp_params={},
+            wfxname="output.wfx",
         )
     assert str(excinfo.value) == "No result was found"
 
@@ -40,7 +40,7 @@ def test_gaussiansubmission_controller(fixture_code):
         max_concurrent=1,
         code_label=code.label + "@" + code.computer.label,
         gauss_sp_params={},
-        wfxgroup="test",
+        wfxname="output.wfx",
     )
     assert con.get_extra_unique_keys() == ("smiles",)
     f = io.StringIO("4\n\nC 0.0 0.0 0.0\nH -0.5 0.0 0.0\nC 0.5 0.0 0.0\n H 1.0 0.0 0.0")

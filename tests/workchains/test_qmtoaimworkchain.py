@@ -1,4 +1,5 @@
 """Tests for aiida_aimall.workchains.QMToAIMWorkchain"""
+# pylint:disable=too-many-positional-arguments
 from aiida.common import LinkType
 from aiida.orm import Dict, SinglefileData
 from plumpy.utils import AttributesFrozendict

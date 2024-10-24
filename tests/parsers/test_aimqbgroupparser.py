@@ -1,4 +1,5 @@
 """Test aiida-aimall group parser"""
+# pylint:disable=too-many-positional-arguments
 import os
 
 import pytest

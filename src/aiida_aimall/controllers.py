@@ -7,7 +7,7 @@ Provides controllers for the `AimReorWorkChain`, `AimqbCalculations`, `GaussianC
 and `SmilesToGaussianWorkChain`.
 
 """
-
+# pylint:disable=too-many-positional-arguments
 from aiida import orm
 from aiida.orm import Dict, Int, Str
 from aiida.plugins import CalculationFactory, WorkflowFactory
@@ -228,6 +228,8 @@ class AimAllSubmissionController(FromGroupSubmissionController):
         code_label: label of code, e.g. gaussian@cedar
         aimparameters: dict of parameters for running AimQB, to be converted to
             :func:`aiida_aimall.data.AimqbParameters` by the controller
+        aimparser: str of which AIM parser to use: aimall.base for `AimqbBaseParser` or
+            aimall.group for `AimqbGroupParser`
 
     Returns:
         Controller object, periodically use run_in_batches to submit new results
@@ -329,6 +331,8 @@ class GaussianSubmissionController(FromGroupSubmissionController):
             since we will be submitting to Cedar which will manage
         code_label: label of code, e.g. gaussian@cedar
         gauss_sp_params: dictionary of parameters to use in gaussian calculation
+        wfxname: Name of the wfx file
+
 
     Returns:
         Controller object, periodically use run_in_batches to submit new results
@@ -353,6 +357,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
                 parent_group_label = 'struct', # Add structures to run to struct group
                 group_label = 'gaussiansp', # Resulting nodes will be in the gaussiansp group
                 max_concurrent = 1,
+                wfxname='output.wfx'
                 gauss_sp_params = Dict(dict={
                     'link0_parameters': {
                         '%chk':'aiida.chk',
@@ -380,7 +385,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
     max_concurrent: int
     code_label: str
     gauss_sp_params: dict
-    wfxgroup: str
+    wfxname: str
     # GaussianWFXCalculation entry point as defined in aiida-aimall pyproject.toml
     CALCULATION_ENTRY_POINT = "gaussian"
 
@@ -388,7 +393,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
         self,
         code_label: str,
         gauss_sp_params: dict,
-        wfxgroup: str,
+        wfxname: str,
         *args,
         **kwargs,
     ):
@@ -396,7 +401,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
         super().__init__(*args, **kwargs)
         self.code_label = code_label
         self.gauss_sp_params = gauss_sp_params
-        self.wfxgroup = wfxgroup
+        self.wfxname = wfxname
 
     # @validator("code_label")
     # def _check_code_plugin(self, value):
@@ -431,6 +436,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
                     "resources": {"num_machines": 1, "tot_num_mpiprocs": 1},
                     "max_memory_kb": int(3200 * 1.25) * 1024,
                     "max_wallclock_seconds": 604800,
+                    "additional_retrieve_list": [self.wfxname.strip()],
                 }
             },
         }

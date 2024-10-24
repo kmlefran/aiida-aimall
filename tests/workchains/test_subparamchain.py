@@ -1,4 +1,5 @@
 """Tests for aiida_aimall.workchains.SubstituentParameterWorkchain"""
+# pylint:disable=too-many-positional-arguments
 import io
 
 import ase.io
