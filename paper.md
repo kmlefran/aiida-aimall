@@ -37,10 +37,10 @@ so long as it generates the input files required by `AIMAll`.
 
 `aiida-aimall` is a Python package based on the AiiDA [@aiida] infrastructure designed
 to assist users with generating inputs for AIMAll software [@AIMAll]. The goal of
-the AiiDA infrastructure are, in part, to ensure data provenance and calculation
+the AiiDA infrastructure is, in part, to ensure data provenance and calculation
 reproducibility. While `aiida-aimall` has been developed primarily for interface
 with Gaussian software outputs [@gaussian], a versatile workflow enabling interface with
-other quantum chemistry packages is also made available.
+other quantum chemistry packages is also made available. To the best of the authors' knowledge, no tool for automatically linking the output of quantum chemistry packages with AIMAll while tracking data provenance exists. Before this tool, individuals would manually provide output files from one software to the other. This tool significantly simplifies complex multi-step workflows such as substituent parameter generation into one simple step, easing the burden on the end user and allowing for high-throughput calculations.
 
 Through a variety of workflows that can start with an .xyz file, AiiDA `StructureData`, or even with
 a SMILES string of a molecule, `aiida-aimall` provides a variety of use cases for automating complex workflows. Additionally, tools to ensure that computers are not overloaded through
@@ -60,7 +60,7 @@ then `AimqbParameters` ensures that the parameters match options available for A
 correct data type is provided for each parameter. In this way, `AimqbParameters` verifies the provided input
 to AIMAll calculations prior to launch of the calculation. These parameters, along with `SinglefileData` of a valid AIMAll input file, a `Code` object for AIMAll software, and relevant metadata are provided to an `AimqbCalculation`.
 
-This functionality in itself is an overcomplication of the simple process of running the software normally. However, it does have some benefits. The output is already extracted and stored in the database in a readily useable manner through the use of the `AimqbBaseParser`. It is now simple to see the history of the calculation.
+This functionality in itself is an overcomplication of the simple process of running the software normally. However, it does have some benefits. The output is already extracted and stored in the database in a readily usable manner through the use of the `AimqbBaseParser`. It is now simple to see the history of the calculation.
 
 ## Substituent Properties
 
