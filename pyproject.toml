@@ -28,7 +28,7 @@ dependencies = [
     "aiida-core>=2.0,<3",
     "pandas<2.2",
     "voluptuous",
-    "aiida-submission-controller",
+    "aiida-submission-controller<0.2",
     "pydantic",
     "ase",
     "cclib",
