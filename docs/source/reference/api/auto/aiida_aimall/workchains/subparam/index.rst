@@ -27,7 +27,12 @@ Classes
 
    Bases: :py:obj:`aiida_aimall.workchains.input.BaseInputWorkChain`
 
-   A workchain to perform the full suite of KLG's substituent parameter determining
+   A workchain to calculate properties of substituents, R, in R-H molecules.
+
+   This is a multistep calculation, consisting of a Gaussian calculation, an AIMQB calculation,
+   Python reorientation to the defined coordinate system, a Gaussian single point calculation,
+   and a final AIMQB calculation on the single point wfx calculation. Substituent Properties are
+   then extracted using the AimqbGroupParser.
 
    .. attribute:: gauss_opt_params
 
@@ -100,6 +105,12 @@ Classes
       Whether or not this is a dry run of the WorkChain
 
       :type: aiida.orm.Bool
+
+   .. note::
+
+      Here, the group for a substiuent is defined in an R-H molecule. Atom 1 is the atom in
+      the group R that is attached to the hydrogen, and the hydrogen should be atom 2. These
+      align with the default settings of an AimqbCalculation using an AimqbGroupParser.
 
    .. rubric:: Example
 

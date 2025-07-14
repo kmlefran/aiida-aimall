@@ -130,6 +130,7 @@ Functions
    For a given smiles, determine xyz structure, charge, and multiplicity
 
    :param smiles: SMILEs of substituent to run
+   :type smiles: str
 
    :returns: Dict with keys xyz, charge, multiplicity
 

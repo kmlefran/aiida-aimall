@@ -139,6 +139,7 @@ Classes
 
 
    .. py:attribute:: WORKFLOW_ENTRY_POINT
+      :type: str
       :value: 'aimall.smitogauss'
 
 
@@ -230,6 +231,7 @@ Classes
 
 
    .. py:attribute:: WORKFLOW_ENTRY_POINT
+      :type: str
       :value: 'aimall.aimreor'
 
 
@@ -259,6 +261,8 @@ Classes
    :param code_label: label of code, e.g. gaussian@cedar
    :param aimparameters: dict of parameters for running AimQB, to be converted to
                          :func:`aiida_aimall.data.AimqbParameters` by the controller
+   :param aimparser: str of which AIM parser to use: aimall.base for `AimqbBaseParser` or
+                     aimall.group for `AimqbGroupParser`
 
    :returns: Controller object, periodically use run_in_batches to submit new results
 
@@ -322,6 +326,7 @@ Classes
 
 
    .. py:attribute:: CALCULATION_ENTRY_POINT
+      :type: str
       :value: 'aimall.aimqb'
 
 
@@ -337,7 +342,7 @@ Classes
 
 
 
-.. py:class:: GaussianSubmissionController(code_label: str, gauss_sp_params: dict, wfxgroup: str, *args, **kwargs)
+.. py:class:: GaussianSubmissionController(code_label: str, gauss_sp_params: dict, wfxname: str, *args, **kwargs)
 
 
    Bases: :py:obj:`aiida_submission_controller.FromGroupSubmissionController`
@@ -350,6 +355,7 @@ Classes
                           since we will be submitting to Cedar which will manage
    :param code_label: label of code, e.g. gaussian@cedar
    :param gauss_sp_params: dictionary of parameters to use in gaussian calculation
+   :param wfxname: Name of the wfx file
 
    :returns: Controller object, periodically use run_in_batches to submit new results
 
@@ -376,6 +382,7 @@ Classes
            parent_group_label = 'struct', # Add structures to run to struct group
            group_label = 'gaussiansp', # Resulting nodes will be in the gaussiansp group
            max_concurrent = 1,
+           wfxname='output.wfx'
            gauss_sp_params = Dict(dict={
                'link0_parameters': {
                    '%chk':'aiida.chk',
@@ -421,12 +428,13 @@ Classes
 
 
 
-   .. py:attribute:: wfxgroup
+   .. py:attribute:: wfxname
       :type: str
 
 
 
    .. py:attribute:: CALCULATION_ENTRY_POINT
+      :type: str
       :value: 'gaussian'
 
 

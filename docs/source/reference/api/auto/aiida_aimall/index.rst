@@ -3,6 +3,11 @@
 
 .. py:module:: aiida_aimall
 
+.. autoapi-nested-parse::
+
+   Integration of AIMQB and aiida
+
+
 
 Subpackages
 -----------
@@ -29,4 +34,4 @@ Package Contents
 ----------------
 
 .. py:data:: __version__
-   :value: '0.7.5'
+   :value: '1.0.1'
