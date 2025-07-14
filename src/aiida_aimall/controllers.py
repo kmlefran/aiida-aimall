@@ -79,7 +79,7 @@ class SmilesToGaussianController(FromGroupSubmissionController):
     mem_mb: int
     time_s: int
 
-    WORKFLOW_ENTRY_POINT = "aimall.smitogauss"
+    WORKFLOW_ENTRY_POINT: str = "aimall.smitogauss"
 
     def __init__(
         self,
@@ -170,7 +170,7 @@ class AimReorSubmissionController(FromGroupSubmissionController):
     reor_group: str
     aimparameters: dict
 
-    WORKFLOW_ENTRY_POINT = "aimall.aimreor"
+    WORKFLOW_ENTRY_POINT: str = "aimall.aimreor"
 
     def __init__(
         self,
@@ -270,7 +270,7 @@ class AimAllSubmissionController(FromGroupSubmissionController):
     aim_parser: str
     aimparameters: dict
 
-    CALCULATION_ENTRY_POINT = "aimall.aimqb"
+    CALCULATION_ENTRY_POINT: str = "aimall.aimqb"
 
     def __init__(
         self,
@@ -387,7 +387,7 @@ class GaussianSubmissionController(FromGroupSubmissionController):
     gauss_sp_params: dict
     wfxname: str
     # GaussianWFXCalculation entry point as defined in aiida-aimall pyproject.toml
-    CALCULATION_ENTRY_POINT = "gaussian"
+    CALCULATION_ENTRY_POINT: str = "gaussian"
 
     def __init__(
         self,
