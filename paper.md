@@ -68,9 +68,9 @@ Some of the workflows in `aiida-aimall` automate calculation of substituent prop
 
 ## Integrations with Computational Chemistry Software
 
-`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table 1. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package. Other computational chemistry software like ORCA can be run through the `QMToAIMWorkchain`, which uses `aiida-shell` to run software than can be run through the command line. These workflow inputs, outputs and processes aer illustrated in the provenance graph in Figure \autoref{fig:qmwf}.  If .molden or .cp2k.out output formats are available, one could alternatively use these to generate the needed .wfx files for AIMAll, and automatically run AIMAll through the `GenerateWFXToAIMWorkchain`.
+`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table 1. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package. Other computational chemistry software like ORCA can be run through the `QMToAIMWorkchain`, which uses `aiida-shell` to run software than can be run through the command line. These workflow inputs, outputs and processes aer illustrated in the provenance graph in \autoref{fig:qmwf}.  If .molden or .cp2k.out output formats are available, one could alternatively use these to generate the needed .wfx files for AIMAll, and automatically run AIMAll through the `GenerateWFXToAIMWorkchain`.
 
-![Inputs outputs and process of the `GaussianToAimWorkchain`.\label{fig:qmwf}](tutorials_quantumsoftware_3_0.png)
+![Database inputs, outputs, and process of the `GaussianToAimWorkchain`.\label{fig:qmwf}](tutorials_quantumsoftware_3_0.png)
 
 Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points that can be used to load them by `aiida.plugins.WorkflowFactory`, and a brief description. These workflows all end with the output of an `AimqbCalculation` as their main output.[]{label="workflows"}
 
