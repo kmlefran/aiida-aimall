@@ -40,7 +40,7 @@ to assist users with generating inputs for AIMAll software [@AIMAll]. The goal o
 the AiiDA infrastructure is, in part, to ensure data provenance and calculation
 reproducibility. While `aiida-aimall` has been developed primarily for interface
 with Gaussian software outputs [@gaussian], a versatile workflow enabling interface with
-other quantum chemistry packages is also made available. To the best of the authors' knowledge, no tool for automatically linking the output of quantum chemistry packages with AIMAll while tracking data provenance exists. Before this tool, individuals would manually provide output files from one software to the other. This tool significantly simplifies complex multi-step workflows such as substituent parameter generation into one simple step, easing the burden on the end user and allowing for high-throughput calculations.
+other quantum chemistry packages is also made available. To the best of the authors' knowledge, no tool for automatically linking the output of quantum chemistry packages with AIMAll while tracking data provenance exists. This tool significantly simplifies complex multi-step workflows such as substituent parameter generation into one simple step, easing the burden on the end user and allowing for high-throughput calculations.
 
 Through a variety of workflows that can start with an .xyz file, AiiDA `StructureData`, or even with
 a SMILES string of a molecule, `aiida-aimall` provides a variety of use cases for automating complex workflows. Additionally, tools to ensure that computers are not overloaded through
@@ -68,7 +68,9 @@ Some of the workflows in `aiida-aimall` automate calculation of substituent prop
 
 ## Integrations with Computational Chemistry Software
 
-`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table 1. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package. Other computational chemistry software like ORCA can be run through the `QMToAIMWorkchain`, which uses `aiida-shell` to run software than can be run through the command line. If .molden or .cp2k.out output formats are available, one could alternatively use these to generate the needed .wfx files for AIMAll, and automatically run AIMAll through the `GenerateWFXToAIMWorkchain`.
+`aiida-aimall`'s main draw is that it enables automation to link the outputs of standard computational chemistry software directly to an AIMAll calculation. A list of provided workflows is shown in Table 1. The software with the most robust implementation is Gaussian software,[@gaussian] as Gaussian already has an implemented `aiida` package. Other computational chemistry software like ORCA can be run through the `QMToAIMWorkchain`, which uses `aiida-shell` to run software than can be run through the command line. These workflow inputs, outputs and processes aer illustrated in the provenance graph in Figure \autoref{fig:qmwf}.  If .molden or .cp2k.out output formats are available, one could alternatively use these to generate the needed .wfx files for AIMAll, and automatically run AIMAll through the `GenerateWFXToAIMWorkchain`.
+
+![Inputs outputs and process of the `GaussianToAimWorkchain`.\label{fig:qmwf}](tutorials_quantumsoftware_3_0.png)
 
 Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points that can be used to load them by `aiida.plugins.WorkflowFactory`, and a brief description. These workflows all end with the output of an `AimqbCalculation` as their main output.[]{label="workflows"}
 
