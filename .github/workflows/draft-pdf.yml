@@ -1,10 +1,14 @@
 name: Draft PDF
 on:
   push:
+    branches:
+      - '**'
     paths:
       - paper.md
       - paper.bib
       - .github/workflows/draft-pdf.yml
+    tags-ignore:
+      - '**'
 
 jobs:
   paper:
