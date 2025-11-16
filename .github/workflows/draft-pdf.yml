@@ -10,6 +10,8 @@ jobs:
   paper:
     runs-on: ubuntu-latest
     name: Paper Draft
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,3 +37,5 @@ jobs:
           message: '(auto) Paper PDF Draft'
           # This should be the path to the paper within your repo.
           add: 'paper.pdf' # 'paper/*.pdf' to commit all PDFs in the paper directory
+          push: true
+          default_author: github_actions
