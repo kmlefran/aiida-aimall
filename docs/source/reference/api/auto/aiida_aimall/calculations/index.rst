@@ -39,25 +39,25 @@ Classes
 
       the wfx, wfn, or fchk file to be run
 
-      :type: `SinglefileData`
+      :type: aiida.orm.SinglefileData
 
    .. attribute:: code
 
       code of the AIMQB executable
 
-      :type: `Code`
+      :type: aiida.orm.Code
 
    .. attribute:: attached_atom_int
 
-      otional integer label of the atom in the group that is attached to the rest of the molecule
+      optional integer label of the atom that is attached to the rest of the molecule
 
-      :type: `Int`
+      :type: aiida.orm.Int
 
    .. attribute:: group_atoms
 
-      optional integer ids of atoms comprising the group for AimqbGroupParser
+      optional integer list of ids of atoms comprising the group for AimqbGroupParser
 
-      :type: `List(int)`
+      :type: aiida.orm.List
 
    .. rubric:: Example
 
