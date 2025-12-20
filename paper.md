@@ -76,24 +76,24 @@ Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points t
 
 +---------------------------------+-----------------+------------------------------+
 | Workflow                        | Entry Point     | Purpose                      |
-+:===============================:+:===============:+:============================:+
-|`QMToAIMWorkchain`               | aimall.qmtoaim  | Run a general computational\ |
-|                                 |                 | chemistry software and link\ |
-|                                 |                 | it to an AIMAll\             |
++---------------------------------+-----------------+------------------------------+
+| `QMToAIMWorkchain`              | aimall.qmtoaim  | Run a general computational  |
+|                                 |                 | chemistry software and link  |
+|                                 |                 | it to an AIMAll              |
 |                                 |                 | calculation                  |
 +---------------------------------+-----------------+------------------------------+
-|`GenerateWFXToAIMWorkchain`      | aimall.wfxtoaim | Take non-standard AIMAlll\   |
-|                                 |                 | input files,  and run AIMAll |
+| `GenerateWFXToAIMWorkchain`     | aimall.wfxtoaim | Take non-standard AIMAll     |
+|                                 |                 | input files, and run AIMAll  |
 +---------------------------------+-----------------+------------------------------+
-|`GaussianToAIMWorkChain`         | aimall.g16toaim | Run a Gaussian calculationl\ |
-|                                 |                 |   and automatically run\     |
-|                                 |                 |   an AIMAll calculation on \ |
-|                                 |                 |   its outputs                |
+| `GaussianToAIMWorkChain`        | aimall.g16toaim | Run a Gaussian calculation   |
+|                                 |                 | and automatically run        |
+|                                 |                 | an AIMAll calculation on     |
+|                                 |                 | its outputs                  |
 +---------------------------------+-----------------+------------------------------+
-| `SubstituentParameterWorkChain` | aimall.subparam | Compute substituent \        |
-|                                 |                 |   properties defined by \    |
-|                                 |                 |   the authors automatically  |
-+:===============================:+:===============:+:============================:+
+| `SubstituentParameterWorkChain` | aimall.subparam | Compute substituent          |
+|                                 |                 | properties defined by        |
+|                                 |                 | the authors automatically   |
++---------------------------------+-----------------+------------------------------+
 
 
 ## Controllers to limit computer burden when running large numbers of jobs
