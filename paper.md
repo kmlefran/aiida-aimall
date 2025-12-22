@@ -72,6 +72,10 @@ Some of the workflows in `aiida-aimall` automate calculation of substituent prop
 
 ![Database inputs, outputs, and process of the `GaussianToAimWorkchain`.\label{fig:qmwf}](tutorials_quantumsoftware_3_0.png)
 
+
+
+
+
 Table 1: Main workflows provided by `aiida-aimall`, their `aiida` entry points that can be used to load them by `aiida.plugins.WorkflowFactory`, and a brief description. These workflows all end with the output of an `AimqbCalculation` as their main output.[]{label="workflows"}
 
 +---------------------------------+-----------------+------------------------------+
