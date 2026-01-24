@@ -44,12 +44,12 @@ other quantum chemistry packages is also made available. To the best of the auth
 
 Through a variety of workflows that can start with an .xyz file, AiiDA `StructureData`, or even with
 a SMILES string of a molecule, `aiida-aimall` provides a variety of use cases for automating complex workflows. Additionally, tools to ensure that computers are not overloaded through
-too many simultaneous processes are made availabe through classes of `FromGroupSubmissionController`s
+too many simultaneous processes are made available through classes of `FromGroupSubmissionController`s
 from `aiida-submission-controller` to limit active processes.
 
 # Features
 `aiida-aimall` contains many different classes from `aiida` tailored to ensure ease of use of
-AIMAll calculations. Numerous features provided by `aiida-aimall` are described in full on the [documentation webpage hosted on ReadTheDocs](https://aiida-aimall.readthedocs.io/en/latest/). A brief description of main features is provided here. For each of the types of workflows and calculations that follow, the inputs, outputs, and all processes (such as `calcfunctions` or `CalcJobs`) that occured in generating the results are added to a database to provide a record of the full calculation history and ensure reproducibility.
+AIMAll calculations. Numerous features provided by `aiida-aimall` are described in full on the [documentation webpage hosted on ReadTheDocs](https://aiida-aimall.readthedocs.io/en/latest/). A brief description of main features is provided here. For each of the types of workflows and calculations that follow, the inputs, outputs, and all processes (such as `calcfunctions` or `CalcJobs`) that occurred in generating the results are added to a database to provide a record of the full calculation history and ensure reproducibility.
 
 ## Running Simple AIMAll Calculations
 
